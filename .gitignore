@@ -1,0 +1,19 @@
+# R package build artefacts
+src/*.o
+src/*.so
+src/*.dll
+*.Rcheck/
+*.tar.gz
+*.zip
+
+# Installed package files
+/inst/
+
+# RStudio / IDE
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# macOS
+.DS_Store

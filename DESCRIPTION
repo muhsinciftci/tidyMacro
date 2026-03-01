@@ -1,0 +1,25 @@
+Package: tidyMacro
+Type: Package
+Title: Fast Vector Autoregression Models via C++
+Version: 1.0.0
+Date: 2025-01-24
+Encoding: UTF-8
+Authors@R: person("Muhsin", "Ciftci", email = "farmer.muhsin@gmail.com", 
+                  role = c("aut", "cre"))
+Description: Implements Vector Autoregression (VAR) models using fast and 
+    efficient C++ programs via Rcpp and RcppArmadillo. Provides tools for 
+    estimation, forecasting, and impulse response analysis.
+License: MIT + file LICENSE
+Imports:
+    Rcpp,
+    tibble,
+    ggplot2,
+    tidyr,
+    dplyr,
+    rlang
+LinkingTo: Rcpp, RcppArmadillo
+Depends: R (>= 3.5.0)
+RoxygenNote: 7.3.2
+LazyData: true
+URL: https://github.com/muhsinciftci/tidyMacro
+BugReports: https://github.com/muhsinciftci/tidyMacro/issues

@@ -1,0 +1,9 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+
+# Exclude entire inst folder from the build tarball
+^inst$
+
+# Exclude xlsx from data/ (only .rda/.rds/.R allowed there)
+^data/.*\.xlsx$
