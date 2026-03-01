@@ -1,65 +1,57 @@
+---
+output: github_document
+keep-md: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./man/figures/README-",
+  out.width = "100%",
+  fig.width = 12,
+  fig.height = 9
+)
+```
 
 # tidyMacro
-
 <img src="man/figures/tidyMacro.png" align="right" height="175" alt="" />
-`tidyMacro` is an R package for fast estimation of Vector Autoregression
-(VAR) models via C++ (Rcpp/RcppArmadillo). It provides tools for
-estimation, impulse response analysis, forecast error variance
-decomposition, and historical decomposition, with built-in plotting
-functions for publication-quality output.
+`tidyMacro` is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo). It provides tools for estimation, impulse response analysis, forecast error variance decomposition, and historical decomposition, with built-in plotting functions for publication-quality output.
 
 ## Installation
 
-``` r
+```{r, eval = FALSE}
 # Install from GitHub
 # devtools::install_github("muhsinciftci/tidyMacro")
 ```
 
 ## Usage
 
-``` r
+```{r, eval = FALSE}
 library(tidyMacro)
 ```
 
-------------------------------------------------------------------------
+---
 
 ## Replication 1: Känzig (2021) — Oil Supply News Shocks via External Instruments
 
-``` r
+```{r bloom}
 library(tidyMacro)
 library(tidyverse)
-#> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.2.0     ✔ readr     2.1.5
-#> ✔ forcats   1.0.0     ✔ stringr   1.6.0
-#> ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
-#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.2
-#> ✔ purrr     1.2.1     
-#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-#> ✖ dplyr::filter() masks stats::filter()
-#> ✖ dplyr::lag()    masks stats::lag()
-#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 library(tictoc)
 library(patchwork)
 
 set_tidyMacro_theme()
-#> tidyMacro theme and color scales set as default for this session.
 
 # Load data
 data("kaenzig_data")
 kaenzig_data |> head()
-#> # A tibble: 6 × 8
-#>   date                Oil_Price World_Oil_Prod World_Oil_Inven World_IP US_IP
-#>   <dttm>                  <dbl>          <dbl>           <dbl>    <dbl> <dbl>
-#> 1 1974-01-01 00:00:00      307.          1092.            628.     379.  385.
-#> 2 1974-02-01 00:00:00      306.          1093.            632.     378.  385.
-#> 3 1974-03-01 00:00:00      305.          1094.            631.     378.  385.
-#> 4 1974-04-01 00:00:00      305.          1095.            634.     378.  385.
-#> 5 1974-05-01 00:00:00      304.          1096.            638.     379.  385.
-#> 6 1974-06-01 00:00:00      303.          1095.            640.     378.  385.
-#> # ℹ 2 more variables: US_CPI <dbl>, iv_kanzig_final <dbl>
 ```
 
-``` r
+
+```{r}
 # Pass data as matrix
 finaldata <- kaenzig_data |>
   select(Oil_Price, World_Oil_Prod, World_Oil_Inven, World_IP, US_IP, US_CPI) |>
@@ -108,7 +100,6 @@ result_mbb <- fbootstrapIV_mbb(
   horizon = hor,
   prc = 90
 )
-#> Using 3 thread(s) for parallel bootstrap computation...
 
 # Plot IRFs
 fplotirf_iv(
@@ -123,12 +114,9 @@ fplotirf_iv(
   labs(x = NULL, y = NULL)
 ```
 
-<img src="./man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+The package calculates many intermediate steps. However, One can `manually` calculate IV steps as in the original paper:
 
-The package calculates many intermediate steps. However, One can
-`manually` calculate IV steps as in the original paper:
-
-``` r
+```{r}
 # IV identification
 u_p <- residuals[, 1]
 u_p_final <- u_p[(length(u_p) - length(iv_oil) + 1):length(u_p)] |> as.matrix()
@@ -156,9 +144,9 @@ for (h in 1:(hor + 1)) {
 }
 ```
 
-### FEVD
+### FEVD 
 
-``` r
+```{r}
 # FEVD
 fevd_result <- fevd_iv(s, S, wold, N, hor, sigma, u, T1 = T1, p = p)
 
@@ -169,11 +157,9 @@ fplot_vardec(
 )
 ```
 
-<img src="./man/figures/README-unnamed-chunk-6-1.png" width="100%" />
-
 Again the same:
 
-``` r
+```{r}
 # FEVD scaled to unit variance (Känzig approach)
 scaler <- s / norm(solve(S) %*% s, type = "2")
 ivirf_scaled <- matrix(0, nrow = N, ncol = hor + 1)
@@ -200,11 +186,11 @@ fplot_vardec(
   scale_fill_manual(values = tidyMacro_colors[c(2, 3)])
 ```
 
-<img src="./man/figures/README-unnamed-chunk-7-1.png" width="100%" />
+
 
 ## Replication 2: Bloom (2009) — Uncertainty Shocks via Cholesky Ordering
 
-``` r
+```{r kaenzig}
 library(tidyMacro)
 library(tidyverse)
 
@@ -242,8 +228,7 @@ bloom_chol <- fbootstrapChol(
 ```
 
 ### Impulse responses
-
-``` r
+```{r}
 # Plot IRF
 shockname <- "UNCERT"
 var_names <- colnames(y)
@@ -261,11 +246,9 @@ fplotirf_chol(
   ftheme_tidyMacro()
 ```
 
-<img src="./man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 ### FEVD
-
-``` r
+```{r}
 # FEVD
 vardec <- fevd_chol(point_irf, shock = shock)
 
@@ -278,11 +261,9 @@ fplot_vardec(
   scale_fill_manual(values = c("gray95", "lightblue"))
 ```
 
-<img src="./man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 ### Historical Decomposition
-
-``` r
+```{r}
 series <- setdiff(seq_len(ncol(y)), shock)
 
 histdec_list <- setNames(
@@ -303,11 +284,9 @@ fplot_histdec(
   ftheme_tidyMacro()
 ```
 
-<img src="./man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
 ### Bias Corrected Impulse responses
-
-``` r
+```{r}
 # Bias-corrected Bootstrap
 nboot1 <- 1000
 nboot2 <- 2000
@@ -323,7 +302,6 @@ result_corrected <- fbootstrapCholCorrected(
   bootscheme = "residual"
 )
 toc()
-#> 73.183 sec elapsed
 
 fplotirf_chol(
   point_irf,
@@ -337,6 +315,5 @@ fplotirf_chol(
   ftheme_tidyMacro()
 ```
 
-<img src="./man/figures/README-unnamed-chunk-11-1.png" width="100%" />
 
-------------------------------------------------------------------------
+---
