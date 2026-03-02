@@ -5,15 +5,15 @@
 `tidyMacro` is an R package for fast estimation of Vector Autoregression
 (VAR) models via C++ (Rcpp/RcppArmadillo). Here is what it does (will be updated as I extend functionality of the package)
 
-📦 Fast VAR & VARX reduced form estimations
-📉 Identification via external instruments (most popular) and classical recursive methods
-📊 Impulse Response Functions with bootstrap confidence bands (moving blocks, residual, wild)
-🔁 Bias-corrected bootstraps (Pope correction)
-📈 Forecast Error Variance Decomposition (FEVD)
-🕰️ Historical Decomposition
-🎨 Publication-ready plots out of the box. Each plot is a #ggplot2 object, can be ex post customized
-⚡ Parallel bootstrap computations via #OpenMP for maximum speed
-📖 Excellent documentation with detailed examples for every function
+- 📦 Fast VAR & VARX reduced form estimations
+- 📉 Identification via external instruments (most popular) and classical recursive methods
+- 📊 Impulse Response Functions with bootstrap confidence bands (moving blocks, residual, wild)
+- 🔁 Bias-corrected bootstraps (Pope correction)
+- 📈 Forecast Error Variance Decomposition (FEVD)
+- 🕰️ Historical Decomposition
+- 🎨 Publication-ready plots out of the box. Each plot is a #ggplot2 object, can be ex post customized
+- ⚡ Parallel bootstrap computations via #OpenMP for maximum speed
+- 📖 Excellent documentation with detailed examples for every function
 
 ## Installation
 
