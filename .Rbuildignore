@@ -8,6 +8,6 @@
 # Exclude xlsx from data/ (only .rda/.rds/.R allowed there)
 ^data/.*\.xlsx$
 ^_pkgdown\.yml$
-^docs$
 ^pkgdown$
 ^vignettes$
+^docs$
