@@ -3,6 +3,7 @@ template:
   bootstrap: 5
 
 navbar:
+  title: "tidyMacro"
   structure:
     left: [intro, reference, articles, news]
     right: [search, github]

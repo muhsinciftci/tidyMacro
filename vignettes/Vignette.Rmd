@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 # tidyMacro
 
-<img src="man/figures/tidyMacro.png" align="right" height="175"/> `tidyMacro` is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo). Here is what it does: (will be updated as I extend functionality of the package).
+<img src="man/figures/logo.png" align="right" height="125"/> `tidyMacro` is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo). Here is what it does: (will be updated as I extend functionality of the package).
 
 -   Fast VAR & VARX reduced form estimations
 -   Zero dependency on other packages. Ground up written in C++. All visualizations made with ggplot2 in R.
