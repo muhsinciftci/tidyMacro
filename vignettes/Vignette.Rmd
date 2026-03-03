@@ -1,8 +1,13 @@
 ---
-output: github_document
-keep-md: true
-editor_options: 
-  chunk_output_type: console
+---
+title: "Vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+execute:
+  freeze: auto
 ---
 
 ```{r, include = FALSE}
@@ -17,37 +22,36 @@ knitr::opts_chunk$set(
 ```
 
 # tidyMacro
-<img src="man/figures/tidyMacro.png" align="right" height="175" alt="" />
-`tidyMacro` is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo). Here is what it does (will be updated as I extend functionality of the package).
 
+<img src="man/figures/tidyMacro.png" align="right" height="175"/> `tidyMacro` is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo). Here is what it does: (will be updated as I extend functionality of the package).
 
-- 📦 Fast VAR & VARX reduced form estimations
-- 📉 Identification via external instruments (most popular) and classical recursive methods
-- 📊 Impulse Response Functions with bootstrap confidence bands (moving blocks, residual, wild)
-- 🔁 Bias-corrected bootstraps (Pope correction)
-- 📈 Forecast Error Variance Decomposition (FEVD)
-- 🕰️ Historical Decomposition
-- 🎨 Publication-ready plots out of the box. Each plot is a #ggplot2 object, can be ex post customized
-- ⚡ Parallel bootstrap computations via #OpenMP for maximum speed
-- 📖 Excellent documentation with detailed examples for every function
-
+-   Fast VAR & VARX reduced form estimations
+-   Zero dependency on other packages. Ground up written in C++. All visualizations made with ggplot2 in R.
+-   Identification via external instruments (most popular) and classical recursive methods
+-   Impulse Response Functions with bootstrap confidence bands (moving blocks, residual, wild)
+-   Bias-corrected bootstraps (Pope correction)
+-   Forecast Error Variance Decomposition (FEVD)
+-   Historical Decomposition
+-   Publication-ready plots out of the box. Each plot is a #ggplot2 object, can be ex post customized
+-   Parallel bootstrap computations via #OpenMP for maximum speed
+-   Excellent documentation with detailed examples for every function
 
 ## Installation
 
 ```{r, eval = FALSE}
 # Install from GitHub
-# devtools::install_github("muhsinciftci/tidyMacro")
+devtools::install_github("muhsinciftci/tidyMacro")
 ```
 
 ## Usage
 
-```{r, eval = FALSE}
+```{r}
 library(tidyMacro)
 ```
 
----
+------------------------------------------------------------------------
 
-## Replication 1: Känzig (2021) — Oil Supply News Shocks via External Instruments
+## Replication 1: @känzig2021 — Oil Supply News Shocks via `External Instruments`
 
 ```{r bloom}
 library(tidyMacro)
@@ -61,7 +65,6 @@ set_tidyMacro_theme()
 data("kaenzig_data")
 kaenzig_data |> head()
 ```
-
 
 ```{r}
 # Pass data as matrix
@@ -99,13 +102,16 @@ sigma_full <- var_result$sigma_full
 hor <- 48
 wold <- fwoldIRF(fVAR = var_result, horizon = hor)
 
+# I use 100 bootstraps here for replications but you should use 1000 or so
+nboots <- 100
+
 # Moving block bootstrap
 result_mbb <- fbootstrapIV_mbb(
   y = finaldata,
   var_result = var_result,
   Z = iv_oil,
-  nboot = 1000,
-  blocksize = 0,
+  nboot = nboots,
+  blocksize = 0, # 0 means Automatic selection
   adjustZ = c(1, 417),
   adjustu = c(100, 516),
   policyvar = 1,
@@ -156,7 +162,7 @@ for (h in 1:(hor + 1)) {
 }
 ```
 
-### FEVD 
+### FEVD
 
 ```{r}
 # FEVD
@@ -198,9 +204,7 @@ fplot_vardec(
   scale_fill_manual(values = tidyMacro_colors[c(2, 3)])
 ```
 
-
-
-## Replication 2: Bloom (2009) — Uncertainty Shocks via Cholesky Ordering
+## Replication 2: Bloom (2009) — Uncertainty Shocks via `Cholesky` Ordering
 
 ```{r kaenzig}
 library(tidyMacro)
@@ -226,13 +230,12 @@ wold <- fwoldIRF(fVAR = var_bloom, horizon = horizon)
 point_irf <- fcholeskyIRF(wold, S)
 
 # Bootstrap confidence bands
-nboot <- 1000
 prc <- 68
 
 bloom_chol <- fbootstrapChol(
   y = y,
   var_result = var_bloom,
-  nboot = nboot,
+  nboot = nboots,
   horizon = 48,
   prc = 90,
   bootscheme = "residual"
@@ -240,6 +243,7 @@ bloom_chol <- fbootstrapChol(
 ```
 
 ### Impulse responses
+
 ```{r}
 # Plot IRF
 shockname <- "UNCERT"
@@ -258,8 +262,8 @@ fplotirf_chol(
   ftheme_tidyMacro()
 ```
 
-
 ### FEVD
+
 ```{r}
 # FEVD
 vardec <- fevd_chol(point_irf, shock = shock)
@@ -273,8 +277,8 @@ fplot_vardec(
   scale_fill_manual(values = c("gray95", "lightblue"))
 ```
 
-
 ### Historical Decomposition
+
 ```{r}
 series <- setdiff(seq_len(ncol(y)), shock)
 
@@ -296,8 +300,8 @@ fplot_histdec(
   ftheme_tidyMacro()
 ```
 
-
 ### Bias Corrected Impulse responses
+
 ```{r}
 # Bias-corrected Bootstrap
 nboot1 <- 1000
@@ -307,8 +311,8 @@ tic()
 result_corrected <- fbootstrapCholCorrected(
   y = y,
   var_result = var_bloom,
-  nboot1 = nboot1,
-  nboot2 = nboot2,
+  nboot1 = nboots,
+  nboot2 = nboots,
   horizon = 48,
   prc = prc,
   bootscheme = "residual"
@@ -327,5 +331,6 @@ fplotirf_chol(
   ftheme_tidyMacro()
 ```
 
+## References
 
----
+------------------------------------------------------------------------

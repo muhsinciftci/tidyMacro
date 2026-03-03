@@ -17,6 +17,10 @@ Imports:
     tidyr,
     dplyr,
     rlang
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
 LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)
 RoxygenNote: 7.3.2

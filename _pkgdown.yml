@@ -1,0 +1,19 @@
+url: ~
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+
+articles:
+- title: "Vignette"
+  navbar: Vignette
+  contents:
+  - Vignette
+
+reference:
+- title: "Functions"
+  contents:
+  - starts_with("")
