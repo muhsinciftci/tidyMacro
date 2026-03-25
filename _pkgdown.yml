@@ -1,4 +1,4 @@
-url: ~
+url: https://tidymacro.netlify.app
 template:
   bootstrap: 5
 
@@ -9,10 +9,21 @@ navbar:
     right: [search, github]
 
 articles:
-- title: "Vignette"
-  navbar: Vignette
+- title: "Overview"
+  navbar: Overview
   contents:
-  - Vignette
+  - index
+
+- title: "Replications"
+  navbar: Replications
+  contents:
+  - Replications/Bloom2009
+  - Replications/Gali1999
+  - Replications/BeaudryPortier2014
+  - Replications/Kaenzig2021
+
+redirects:
+  - ["index.html", "articles/index.html"]
 
 reference:
 - title: "Functions"

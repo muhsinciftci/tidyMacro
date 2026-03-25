@@ -1,0 +1,200 @@
+---
+title: "Replication: Bloom (2009)"
+subtitle: "The Impact of Uncertainty Shocks"
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "100%"
+)
+```
+
+## Overview
+
+This document replicates the main empirical results of @bloom2009, which identifies uncertainty shocks using a Cholesky decomposition. The uncertainty indicator — constructed from 17 identified high-volatility events — is ordered first so that it has a contemporaneous effect on all other variables but is itself unaffected by them within the month.
+
+**Reference:** Bloom, N. (2009). The impact of uncertainty shocks. *Econometrica*, 77(3), 623–685.
+
+---
+
+## Setup
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(tidyMacro)
+library(tictoc)
+
+set_theme(ftheme_tidyMacro())
+```
+
+---
+
+## Data
+
+```{r}
+#| label: data
+data("Bloom2009")
+
+dates_vec <- Bloom2009 |> pull(Date)
+y         <- Bloom2009 |> select(-Date) |> as.matrix()
+
+T <- nrow(y)
+N <- ncol(y)
+
+var_names <- colnames(y)
+shockname <- "UNCERT"
+shock     <- match(shockname, var_names)
+```
+
+---
+
+## VAR Estimation
+
+```{r}
+#| label: var-estimation
+
+p <- 12   # lag length used in the original paper
+c <- 1
+
+var_bloom <- fVAR(y, p, c)
+sigma     <- var_bloom$sigma_full
+
+# Cholesky factor (lower triangular)
+S <- t(chol(sigma))
+
+# Wold IRFs
+horizon   <- 48
+wold      <- fwoldIRF(var_bloom, horizon = horizon)
+point_irf <- fcholeskyIRF(wold, S)
+```
+
+---
+
+## Bootstrap Confidence Bands
+
+### Standard Bootstrap
+
+```{r}
+#| label: bootstrap-standard
+
+tic()
+bloom_chol <- fbootstrapChol(
+    y          = y,
+    var_result = var_bloom,
+    nboot      = 1000,
+    horizon    = horizon,
+    prc        = 68,
+    bootscheme = "residual"
+)
+toc()
+```
+
+### Bias-Corrected Bootstrap
+
+```{r}
+#| label: bootstrap-corrected
+
+tic()
+bloom_corrected <- fbootstrapCholCorrected(
+    y          = y,
+    var_result = var_bloom,
+    nboot1     = 1000,
+    nboot2     = 2000,
+    horizon    = horizon,
+    prc        = 68,
+    bootscheme = "residual"
+)
+toc()
+```
+
+---
+
+## Impulse Response Functions
+
+### Standard Bootstrap
+
+```{r}
+#| label: fig-irf-standard
+#| fig-cap: "IRFs to uncertainty shock — standard bootstrap (68% confidence bands)"
+
+fplotirf_chol(
+    point_irf,
+    bloom_chol$upper,
+    bloom_chol$lower,
+    shock    = shock,
+    varnames = var_names,
+    prc      = 68,
+    facet_ncol = 4
+)
+```
+
+### Bias-Corrected Bootstrap
+
+```{r}
+#| label: fig-irf-corrected
+#| fig-cap: "IRFs to uncertainty shock — bias-corrected bootstrap (68% confidence bands)"
+
+fplotirf_chol(
+    point_irf,
+    bloom_corrected$upper,
+    bloom_corrected$lower,
+    shock    = shock,
+    varnames = var_names,
+    prc      = 68,
+    facet_ncol = 4
+)
+```
+
+---
+
+## Forecast Error Variance Decomposition
+
+```{r}
+#| label: fig-fevd
+#| fig-cap: "Forecast error variance decomposition: share explained by uncertainty shock"
+
+vardec <- fevd_chol(point_irf, shock = shock)
+
+fplot_vardec(
+    fevd       = vardec$fevd,
+    varnames   = var_names,
+    shocknames = shockname
+)
+```
+
+---
+
+## Historical Decomposition
+
+```{r}
+#| label: fig-histdec
+#| fig-cap: "Historical decomposition: contribution of uncertainty shock"
+
+# Exclude the shock variable itself from the response variables
+series <- setdiff(seq_len(N), shock)
+
+histdec_list <- setNames(
+    lapply(series, function(i) fhistdec(y, var_bloom, S, i)$histdec),
+    colnames(y)[series]
+)
+
+fplot_histdec(
+    histdec_list = histdec_list,
+    shock        = shock,
+    shockname    = shockname,
+    dates        = dates_vec,
+    p            = p,
+    facet_ncol   = 2
+) +
+    scale_x_date(date_breaks = "7 years", date_labels = "%Y")
+```
+
+---
+
+## References
+
+::: {#refs}
+:::

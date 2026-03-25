@@ -20,12 +20,14 @@ HistDecResult fhistdec_cpp(const arma::mat& y,
 
     // ------------------------------------------------------------------
     // 1. Structural shocks: e_struct = residuals * K^{-T}
-    //    MATLAB: struct_shock = (K \ residuals')' 
+    //    MATLAB: struct_shock = (K \ residuals')'
     //    i.e. solve K * X = residuals'  =>  X = K^{-1} * residuals'
     //    transposed: struct_shock = residuals * K^{-T}
+    //    NOTE: K is NOT assumed lower triangular here — works for both
+    //    Cholesky (lower triangular) and BQ (general) identification.
     // ------------------------------------------------------------------
     const arma::mat& residuals = var_result.residuals;   // (T-p) x N
-    arma::mat struct_shock = arma::solve(arma::trimatl(K), residuals.t()).t();
+    arma::mat struct_shock = arma::solve(K, residuals.t()).t();
     // result: (T-p) x N
 
     // ------------------------------------------------------------------
@@ -76,15 +78,18 @@ HistDecResult fhistdec_cpp(const arma::mat& y,
 //' Historical Decomposition of a VAR Variable
 //'
 //' Decomposes a chosen variable's realisation into contributions from each
-//' structural shock, identified via a lower-triangular Cholesky factor K.
-//' Mirrors the MATLAB \code{hist_decmp(y, beta, residuals, c, p, K, series)}.
+//' structural shock, identified via an impact matrix K. Supports both
+//' Cholesky (lower-triangular K) and Blanchard-Quah (general K)
+//' identification. Mirrors the MATLAB
+//' \code{hist_decmp(y, beta, residuals, c, p, K, series)}.
 //'
 //' @param y TxN numeric matrix of original (undemeaned) data.
 //' @param fVAR List returned by \code{fVAR()}, containing at minimum
 //'   \code{beta}, \code{residuals}, \code{sigma_full}, \code{p}, \code{c},
 //'   and \code{n_exog}.
-//' @param K NxN lower-triangular Cholesky factor of the residual covariance
-//'   matrix (i.e. \code{t(chol(sigma_full))}).
+//' @param K NxN structural impact matrix. For Cholesky identification pass
+//'   \code{t(chol(sigma_full))}; for BQ identification pass the matrix
+//'   returned by \code{solve(C1, D1)}.
 //' @param series Integer (1-indexed) selecting which variable to decompose.
 //'
 //' @return A list with two elements:
@@ -107,19 +112,21 @@ HistDecResult fhistdec_cpp(const arma::mat& y,
 //'
 //' @examples
 //' \dontrun{
+//' # Cholesky identification
 //' var_result <- fVAR(y, p = 12, c = 1)
-//' K <- t(chol(var_result$sigma_full))
-//' series <- match("UNCERT", colnames(y))
+//' K_chol <- t(chol(var_result$sigma_full))
+//' hd <- fhistdec(y, var_result, K_chol, series = 1)
 //'
-//' hd <- fhistdec(y, var_result, K, series)
-//'
-//' # hd$histdec is (T-p) x N; hd$ystar is the demeaned series
-//' matplot(hd$histdec, type = "l")
-//' lines(hd$ystar, lwd = 2)
+//' # BQ identification
+//' wold  <- fwoldIRF(var_result, horizon = 40)
+//' C1    <- apply(wold, c(1, 2), sum)
+//' D1    <- t(chol(C1 %*% var_result$sigma_full %*% t(C1)))
+//' K_bq  <- solve(C1, D1)
+//' hd_bq <- fhistdec(y, var_result, K_bq, series = 1)
 //' }
 //'
 //' @seealso \code{\link{fVAR}}, \code{\link{fcholeskyIRF}},
-//'   \code{\link{fwoldIRF}}, \code{\link{plothistdec}}
+//'   \code{\link{fwoldIRF}}, \code{\link{fplot_histdec}}
 //'
 //' @export
 // [[Rcpp::export]]

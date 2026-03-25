@@ -4,10 +4,12 @@
 
 # Exclude entire inst folder from the build tarball
 ^inst$
+^pkgdown$
+^vignettes$
+^docs$
 
 # Exclude xlsx from data/ (only .rda/.rds/.R allowed there)
 ^data/.*\.xlsx$
 ^_pkgdown\.yml$
-^pkgdown$
-^vignettes$
-^docs$
+^CLAUDE\.md$
+

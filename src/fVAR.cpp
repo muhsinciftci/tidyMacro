@@ -10,7 +10,7 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
   int T = y.n_rows;
 
   arma::mat yfinal = y.rows(p, T - 1);
-  arma::mat lags   = flagmakerMatrix(y, p);
+  arma::mat lags = flagmakerMatrix(y, p);
 
   arma::mat X;
   if (c == 1) {
@@ -27,21 +27,22 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
     n_exog = exog_mat.n_cols;
   }
 
-  arma::mat XtX  = X.t() * X;
-  arma::mat Xty  = X.t() * yfinal;
+  arma::mat XtX = X.t() * X;
+  arma::mat Xty = X.t() * yfinal;
   arma::mat beta = arma::solve(XtX, Xty, arma::solve_opts::fast);
 
-  arma::mat residuals  = yfinal - X * beta;
-  int       n_obs      = residuals.n_rows;
-  arma::mat sigma_full = (residuals.t() * residuals) / (n_obs - 1);
+  arma::mat residuals = yfinal - X * beta;
+  int n_obs = residuals.n_rows;
+  int N = y.n_cols;
+  arma::mat sigma_full = (residuals.t() * residuals) / (n_obs - 1 - N * p);
 
   VARResult result;
-  result.beta       = beta;
-  result.residuals  = residuals;
+  result.beta = beta;
+  result.residuals = residuals;
   result.sigma_full = sigma_full;
-  result.p          = p;
-  result.c          = c;
-  result.n_exog     = n_exog;
+  result.p = p;
+  result.c = c;
+  result.n_exog = n_exog;
   return result;
 }
 
@@ -63,7 +64,9 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
 //'   (Np + c + M) x N, where the first row is the intercept (if c = 1),
 //'   followed by N*p lag-coefficient rows, then M exogenous-coefficient rows;
 //'   residuals — (T-p) x N matrix of OLS residuals;
-//'   sigma_full — N x N residual covariance matrix normalised by (n_obs - 1);
+//'   sigma_full — N x N residual covariance matrix normalised by
+//'   (T - 1 - p - N*p), consistent with the degrees-of-freedom correction
+//'   used in Cholesky, IV, and BQ identification;
 //'   p — lag order (echoed from input);
 //'   c — intercept indicator (echoed from input);
 //'   n_exog — number of exogenous variables (0 if none provided).
@@ -94,11 +97,10 @@ Rcpp::List fVAR(const arma::mat &y, int p, int c,
                 Rcpp::Nullable<arma::mat> exog = R_NilValue) {
   VARResult result = fVAR_cpp(y, p, c, exog);
 
-  return Rcpp::List::create(
-      Rcpp::Named("beta")       = result.beta,
-      Rcpp::Named("residuals")  = result.residuals,
-      Rcpp::Named("sigma_full") = result.sigma_full,
-      Rcpp::Named("p")          = result.p,
-      Rcpp::Named("c")          = result.c,
-      Rcpp::Named("n_exog")     = result.n_exog);
+  return Rcpp::List::create(Rcpp::Named("beta") = result.beta,
+                            Rcpp::Named("residuals") = result.residuals,
+                            Rcpp::Named("sigma_full") = result.sigma_full,
+                            Rcpp::Named("p") = result.p,
+                            Rcpp::Named("c") = result.c,
+                            Rcpp::Named("n_exog") = result.n_exog);
 }

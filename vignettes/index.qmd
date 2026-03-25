@@ -1,0 +1,85 @@
+---
+title: "tidyMacro"
+subtitle: "High-Performance Vector Autoregression in R"
+vignette: >
+  %\VignetteIndexEntry{Overview}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{quarto::html}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`tidyMacro` is an R package for fast estimation of Structural Vector Autoregression (SVAR) models. The core is written in C++ via RcppArmadillo, exposing parallelized bootstraps through OpenMP for maximum performance.
+
+```r
+devtools::install_github("muhsinciftci/tidyMacro")
+```
+
+## Key Features
+
+- **Zero extra dependencies** — all econometrics implemented from scratch in C++
+- **Publication-ready plots** — every output is a `ggplot2` object, fully customizable after the fact
+- **Parallel bootstraps** — OpenMP-backed; uses $n-1$ cores by default (`n_threads = 1` to disable)
+- **Tidy-first workflow** — import and clean data with `tidyverse`, pass to C++ via `as.matrix()`
+
+## Identification Methods
+
+### Recursive (Cholesky) Ordering
+
+The most common / old identification approach. The lower-triangular Cholesky factor of the residual
+covariance matrix $\Sigma$ is used as the structural impact matrix:
+
+$$B_0^{-1} = P \quad \text{where} \quad \Sigma = PP'$$
+
+Variables ordered first are assumed to respond contemporaneously to those ordered later.
+Confidence bands are computed via **residual** or **wild bootstraps**, with an optional
+**bias-corrected** variant following Kilian (1998).
+
+**Relevant functions:** `fVAR()`, `fwoldIRF()`, `fcholeskyIRF()`, `fbootstrapChol()`,
+`fbootstrapCholCorrected()`, `fplotirf_chol()`, `fevd_chol()`, `fhistdec()`
+
+### Long-Run Restrictions (Blanchard–Quah)
+
+Identification is achieved by imposing that certain shocks have **zero long-run effect** on
+selected variables. The long-run impact matrix is
+
+$$C(1) = (I - A_1 - \cdots - A_p)^{-1} B_0^{-1}$$
+
+and its lower-triangular Cholesky factorization pins down the structural matrix.
+
+**Relevant functions:** `fbqIRF()`, `fbootstrapBQ()`, `fplotirf_bq()`
+
+### External Instruments (Proxy-SVAR)
+
+An external instrument $z_t$ — correlated with the target structural shock but orthogonal to
+all others — is used to construct the first-stage projection following
+Mertens & Ravn (2013) and Stock & Watson (2012):
+
+$$\hat{\varepsilon}_{1t} = \Pi z_t + \text{residual}$$
+
+The identified shock is then scaled to give unit impact. Confidence bands use
+**moving-block bootstraps (MBB)**.
+
+**Relevant functions:** `fVAR()`, `fbqIRF()`, `fbootstrapBQ()`, `fplotirf_bq()`
+
+---
+
+## Replications
+
+The package ships with four published datasets and step-by-step replications.
+
+| Study | Identification | Key Result |
+|---|---|---|
+| [Bloom (2009)](Replications/Bloom2009.html) | Recursive ordering | Uncertainty shocks cause sharp, short-lived recessions |
+| [Galí (1999)](Replications/Gali1999.html) | Long-run restrictions | Technology shocks reduce hours in the short run |
+| [Beaudry & Portier (2014)](Replications/BeaudryPortier2014.html) | Long-run restrictions | News shocks drive comovement in investment and consumption |
+| [Kaenzig (2021)](Replications/Kaenzig2021.html) | External instrument | OPEC announcements shift oil prices and propagate globally |
+
+---
+
+## Full Tutorial
+
+The [main vignette](Vignette.html) walks through every step: data import, VAR estimation,
+lag selection, impulse responses, variance decomposition, and historical decomposition.

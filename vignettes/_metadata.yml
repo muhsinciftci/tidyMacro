@@ -1,0 +1,26 @@
+author:
+  - name: Muhsin Ciftci
+    url: https://mciftci.netlify.app
+    affiliation: Goethe University Frankfurt
+date: today
+format:
+  html:
+    number-sections: true
+    toc: true
+    toc-expand: true
+    toc-location: left
+    code-fold: false
+    page-layout: full
+execute:
+  freeze: auto
+  eval: true
+  collapse: true
+  comment: "#>"
+  warning: false
+  message: false
+  out-width: "100%"
+  fig-width: 12
+  fig-height: 9
+bibliography: references.bib
+editor_options:
+  chunk_output_type: console
