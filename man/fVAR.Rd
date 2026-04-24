@@ -23,7 +23,9 @@ A list with elements: beta — coefficient matrix of dimensions
   (Np + c + M) x N, where the first row is the intercept (if c = 1),
   followed by N*p lag-coefficient rows, then M exogenous-coefficient rows;
   residuals — (T-p) x N matrix of OLS residuals;
-  sigma_full — N x N residual covariance matrix normalised by (n_obs - 1);
+  sigma — N x N residual covariance matrix with degrees-of-freedom
+  correction: denominator is (T - p) - c - N*p - n_exog, matching
+  Bloom (2009) and Kaenzig (2021);
   p — lag order (echoed from input);
   c — intercept indicator (echoed from input);
   n_exog — number of exogenous variables (0 if none provided).

@@ -2,18 +2,17 @@
 % Please edit documentation in R/fplotirf_iv.R
 \name{fplotirf_iv}
 \alias{fplotirf_iv}
-\title{Plot Impulse Response Functions with Confidence Bands}
+\title{Plot IV/Proxy SVAR Impulse Response Functions with Confidence Bands}
 \usage{
 fplotirf_iv(
-  point,
-  upper,
-  lower,
+  result_mbb,
   varnames,
   shockname,
-  prc,
+  scale = 1,
   return_data = FALSE,
   ribbon_fill = "#407EC9",
-  ribbon_alpha = 0.3,
+  ribbon_alpha = 0.2,
+  ribbon_alpha2 = 0.35,
   line_color = "#910048",
   zero_line_color = "#707372",
   facet_scales = "free",
@@ -21,35 +20,41 @@ fplotirf_iv(
 )
 }
 \arguments{
-\item{point}{Matrix of point estimates (N x horizon)}
-
-\item{upper}{Matrix of upper confidence bounds (N x horizon)}
-
-\item{lower}{Matrix of lower confidence bounds (N x horizon)}
+\item{result_mbb}{List returned by \code{fbootstrapIV_mbb()}. Must contain
+\code{meanirf}, \code{upper}, and \code{lower}. If \code{upper2} and
+\code{lower2} are present, a second (inner) confidence band is drawn.}
 
 \item{varnames}{Character vector of variable names (length N)}
 
-\item{shockname}{Character string for shock name}
+\item{shockname}{Character string for the shock label}
 
-\item{prc}{Numeric, confidence level percentage (e.g., 68 or 95)}
+\item{scale}{Numeric scalar applied to all IRF values before plotting.
+Useful for unit rescaling (e.g. \code{scale = 10} to express as percent
+of a 10-unit shock). Default 1.}
 
-\item{return_data}{Logical, if TRUE returns tibble instead of plot}
+\item{return_data}{Logical, if TRUE returns tibble instead of plot. Default FALSE.}
 
-\item{ribbon_fill}{Color for confidence band fill (default: "#0072B2")}
+\item{ribbon_fill}{Color for confidence band fill (default: "#407EC9")}
 
-\item{ribbon_alpha}{Transparency for confidence band (default: 0.3)}
+\item{ribbon_alpha}{Transparency for outer confidence band (default: 0.2)}
 
-\item{line_color}{Color for point estimate line (default: "black")}
+\item{ribbon_alpha2}{Transparency for inner confidence band (default: 0.35)}
 
-\item{zero_line_color}{Color for horizontal zero line (default: "red")}
+\item{line_color}{Color for point estimate line (default: "#910048")}
 
-\item{facet_scales}{Facet scales option: "free", "free_y", "free_x", or "fixed" (default: "free")}
+\item{zero_line_color}{Color for horizontal zero line (default: "#707372")}
+
+\item{facet_scales}{Facet scales option: "free", "free_y", "free_x", or
+"fixed" (default: "free")}
 
 \item{facet_ncol}{Number of columns in facet grid (default: 2)}
 }
 \value{
-A ggplot object (if return_data = FALSE) or tibble (if return_data = TRUE)
+A ggplot object (if \code{return_data = FALSE}) or a tibble with
+  columns \code{variable}, \code{horizon}, \code{point}, \code{upper},
+  \code{lower} (and optionally \code{upper2}, \code{lower2}).
 }
 \description{
-Creates a grid of IRF plots with shaded confidence bands using ggplot2
+Creates a grid of IRF plots with shaded confidence bands using ggplot2.
+Accepts the full list returned by \code{fbootstrapIV_mbb()} directly.
 }

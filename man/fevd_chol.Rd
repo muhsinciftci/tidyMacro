@@ -38,7 +38,7 @@ each structural shock j. For Cholesky-identified VARs:
 # Estimate VAR
 var_result <- fVAR(y, p = 2, c = 1)
 wold <- fwoldIRF(var_result, horizon = 20)
-S <- t(chol(var_result$sigma_full))
+S <- t(chol(var_result$sigma))
 chol_irf <- fcholeskyIRF(wold, S)
 
 # Full decomposition (all shocks) — returns 3D cube

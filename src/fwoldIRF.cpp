@@ -1,46 +1,34 @@
 #include <RcppArmadillo.h>
-#include "fcompanionMatrix.h"
 #include "fwoldIRF.h"
 #include "fVAR.h"
+#include <vector>
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // Internal C++ function (called from other C++ code)
-// Accepts VARResult struct directly - no list overhead!
+// Uses block recursion Phi_h = sum_{l=1..min(h,p)} Phi_{h-l} * A_l
+// O(N^3 * p) per step vs O((N*p)^3) for companion matrix powers.
 WoldIRFResult fwoldIRF_cpp(const VARResult& var_result, int horizon) {
-         
-  // Extract VAR elements from struct (much faster than from Rcpp::List)
   const arma::mat& beta = var_result.beta;
   const int c = var_result.c;
   const int p = var_result.p;
-  
-  // Get companion matrix using _cpp version - no list overhead!
-  CompanionMatrixResult comp_result = fcompanionMatrix_cpp(beta, c, p);
-  const arma::mat& BigA = comp_result.comp;  // Direct struct access, no conversion needed
-  const int N = comp_result.N;
-  const int comp_size = BigA.n_rows;  // Implicit conversion from arma::uword to int
-  
-  // Pre-allocate IRF cube
+  const int N = static_cast<int>(beta.n_cols);
+
+  // Pre-extract A_l coefficient matrices (each N x N, 0-indexed: A[0]=A_1...)
+  std::vector<arma::mat> A(p);
+  for (int l = 0; l < p; ++l)
+    A[l] = beta.rows(c + l * N, c + (l + 1) * N - 1).t();
+
   arma::cube irfwold(N, N, horizon + 1, arma::fill::none);
-  
-  // Initialize with identity matrix for h=0
-  arma::mat A_power = arma::eye<arma::mat>(comp_size, comp_size);
-  
-  // Extract first N x N block directly into cube (avoid copy)
-  irfwold.slice(0) = A_power.submat(0, 0, N - 1, N - 1);
-  
-  // Iterative multiplication: A^h = A^(h-1) * A
-  // Use in-place operations where possible
-  arma::mat A_temp(comp_size, comp_size, arma::fill::none);
-  
+  irfwold.slice(0) = arma::eye<arma::mat>(N, N);
+
   for (int h = 1; h <= horizon; ++h) {
-    A_temp = A_power * BigA;  // Compute A^h
-    A_power.swap(A_temp);      // Swap instead of copy (O(1) operation)
-    
-    // Direct memory access to cube slice
-    irfwold.slice(h) = A_power.submat(0, 0, N - 1, N - 1);
+    arma::mat Phi_h(N, N, arma::fill::zeros);
+    const int lmax = std::min(h, p);
+    for (int l = 1; l <= lmax; ++l)
+      Phi_h += irfwold.slice(h - l) * A[l - 1];
+    irfwold.slice(h) = Phi_h;
   }
-  
-  // Return results as struct
+
   WoldIRFResult result;
   result.irfwold = irfwold;
   return result;
@@ -95,7 +83,7 @@ arma::cube fwoldIRF(const Rcpp::List& fVAR, int horizon) {
   VARResult var_result;
   var_result.beta = Rcpp::as<arma::mat>(fVAR["beta"]);
   var_result.residuals = Rcpp::as<arma::mat>(fVAR["residuals"]);
-  var_result.sigma_full = Rcpp::as<arma::mat>(fVAR["sigma_full"]);
+  var_result.sigma = Rcpp::as<arma::mat>(fVAR["sigma"]);
   var_result.p = Rcpp::as<int>(fVAR["p"]);
   var_result.c = Rcpp::as<int>(fVAR["c"]);
   var_result.n_exog = Rcpp::as<int>(fVAR["n_exog"]);

@@ -47,18 +47,9 @@ arma::mat flagmakerMatrix(arma::mat y, int p) {
   // Create output matrix with (T-p) rows and (N*p) columns
   arma::mat x(T - p, N * p);
 
-  int counter = 0;
-
-  // Loop through lags
+  // Block-copy each lag (all N variables at once)
   for (int i = 0; i < p; i++) {
-    // Loop through variables
-    for (int j = 0; j < N; j++) {
-      // Extract lagged values: y(p-i:T-1-i, j) in 0-indexed
-      // In MATLAB: y(p+1-i:T-i,j) is 1-indexed
-      // In C++: y.submat(p-i-1, j, T-i-2, j) for 0-indexed
-      x.col(counter) = y.submat(p - i - 1, j, T - i - 2, j);
-      counter++;
-    }
+    x.cols(i * N, (i + 1) * N - 1) = y.rows(p - i - 1, T - i - 2);
   }
 
   return x;

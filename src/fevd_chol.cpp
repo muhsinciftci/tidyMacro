@@ -74,7 +74,7 @@ FEVDCholResult fevd_chol_cpp(const arma::cube& chol_irf) {
 //' # Estimate VAR
 //' var_result <- fVAR(y, p = 2, c = 1)
 //' wold <- fwoldIRF(var_result, horizon = 20)
-//' S <- t(chol(var_result$sigma_full))
+//' S <- t(chol(var_result$sigma))
 //' chol_irf <- fcholeskyIRF(wold, S)
 //'
 //' # Full decomposition (all shocks) — returns 3D cube

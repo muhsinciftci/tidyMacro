@@ -47,32 +47,32 @@
 //' bqirf_norm <- fbqIRF(wold, K, scaling = c(1, 1))
 //' }
 //'
-//' @export
-// [[Rcpp::export]]
-arma::cube fbqIRF(const arma::cube& wold, const arma::mat& K,
-                  Rcpp::Nullable<arma::vec> scaling = R_NilValue) {
-
+// Pre-parsed scaling overload — no Rcpp::as, safe to call from OpenMP loops.
+arma::cube fbqIRF_cpp(const arma::cube& wold, const arma::mat& K,
+                      bool has_scaling, int idx_0based, double shock_size) {
   int N       = wold.n_rows;
   int horizon = wold.n_slices;
 
-  // Pre-allocate output cube
   arma::cube bqirf(N, N, horizon, arma::fill::none);
-
-  // BQ IRF: for each horizon h, IRF_h = Wold_h * K
   for (int h = 0; h < horizon; h++) {
     bqirf.slice(h) = wold.slice(h) * K;
   }
 
-  // Optional normalisation: divide entire cube by
-  //   bqirf(idx, idx, 0) / scaling(1)
-  // so that the impact response of the chosen variable equals scaling(1).
-  // scaling(0) is 1-based (R convention) -> subtract 1 for C++ indexing.
-  if (scaling.isNotNull()) {
-    arma::vec s    = Rcpp::as<arma::vec>(scaling);
-    int    idx     = static_cast<int>(s(0)) - 1;
-    double scale_val = bqirf(idx, idx, 0) / s(1);
+  if (has_scaling) {
+    double scale_val = bqirf(idx_0based, idx_0based, 0) / shock_size;
     bqirf /= scale_val;
   }
 
   return bqirf;
+}
+
+//' @export
+// [[Rcpp::export]]
+arma::cube fbqIRF(const arma::cube& wold, const arma::mat& K,
+                  Rcpp::Nullable<arma::vec> scaling = R_NilValue) {
+  if (scaling.isNotNull()) {
+    arma::vec s = Rcpp::as<arma::vec>(scaling);
+    return fbqIRF_cpp(wold, K, true, static_cast<int>(s(0)) - 1, s(1));
+  }
+  return fbqIRF_cpp(wold, K, false, 0, 0.0);
 }

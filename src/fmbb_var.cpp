@@ -1,7 +1,159 @@
 #include <RcppArmadillo.h>
 #include "fmbb_var.h"
+#include <cmath>
 // [[Rcpp::depends(RcppArmadillo)]]
 
+// ---------------------------------------------------------------------------
+// Helper: fill centering_full from a centering tile
+// ---------------------------------------------------------------------------
+static arma::mat make_centering_full(const arma::mat& centering,
+                                     int nBlock, int actualBlockSize, int final_size) {
+  arma::mat cf(final_size, centering.n_cols, arma::fill::none);
+  for (int i = 0; i < nBlock; ++i) {
+    int start_row = i * actualBlockSize;
+    int end_row   = std::min(start_row + actualBlockSize - 1, final_size - 1);
+    cf.rows(start_row, end_row) = centering.rows(0, end_row - start_row);
+  }
+  return cf;
+}
+
+// ---------------------------------------------------------------------------
+// Precompute sampler state — with instruments
+// ---------------------------------------------------------------------------
+MBBSamplerState fmbb_precompute_cpp(const arma::mat& eps, int lags, int BlockSize,
+                                    const arma::mat& M) {
+  const int Tp = eps.n_rows;
+  const int N  = eps.n_cols;
+  const int T  = Tp + lags;
+  const int k  = M.n_cols;
+
+  int actualBlockSize = BlockSize;
+  if (actualBlockSize <= 0)
+    actualBlockSize = static_cast<int>(std::round(5.03 * std::pow(Tp, 0.25)));
+
+  const int nBlock        = static_cast<int>(std::ceil(static_cast<double>(T - lags) / actualBlockSize));
+  const int nBlocks_avail = T - lags - actualBlockSize + 1;
+  const int final_size    = T - lags;
+  const int center_end    = T - lags - actualBlockSize;
+
+  arma::cube Blocks(actualBlockSize, N, nBlocks_avail, arma::fill::none);
+  for (int j = 0; j < nBlocks_avail; ++j)
+    Blocks.slice(j) = eps.rows(j, j + actualBlockSize - 1);
+
+  arma::cube MBlocks(actualBlockSize, k, nBlocks_avail, arma::fill::none);
+  for (int j = 0; j < nBlocks_avail; ++j)
+    MBlocks.slice(j) = M.rows(j, j + actualBlockSize - 1);
+
+  arma::mat centering(actualBlockSize, N, arma::fill::none);
+  for (int j = 0; j < actualBlockSize; ++j)
+    centering.row(j) = arma::mean(eps.rows(j, j + center_end), 0);
+
+  arma::mat Mcentering(actualBlockSize, k, arma::fill::zeros);
+  for (int j = 0; j < actualBlockSize; ++j) {
+    arma::mat subM = M.rows(j, j + center_end);
+    for (int col = 0; col < k; ++col) {
+      arma::vec col_vec = subM.col(col);
+      arma::uvec nz = arma::find(col_vec != 0.0);
+      if (nz.n_elem > 0)
+        Mcentering(j, col) = arma::mean(col_vec.elem(nz));
+    }
+  }
+
+  MBBSamplerState s;
+  s.Blocks           = std::move(Blocks);
+  s.MBlocks          = std::move(MBlocks);
+  s.centering_full   = make_centering_full(centering,  nBlock, actualBlockSize, final_size);
+  s.Mcentering_full  = make_centering_full(Mcentering, nBlock, actualBlockSize, final_size);
+  s.nBlock           = nBlock;
+  s.nBlocks_avail    = nBlocks_avail;
+  s.final_size       = final_size;
+  s.actualBlockSize  = actualBlockSize;
+  s.N                = N;
+  s.k                = k;
+  s.has_M            = true;
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// Precompute sampler state — without instruments
+// ---------------------------------------------------------------------------
+MBBSamplerState fmbb_precompute_cpp(const arma::mat& eps, int lags, int BlockSize) {
+  const int Tp = eps.n_rows;
+  const int N  = eps.n_cols;
+  const int T  = Tp + lags;
+
+  int actualBlockSize = BlockSize;
+  if (actualBlockSize <= 0)
+    actualBlockSize = static_cast<int>(std::round(5.03 * std::pow(Tp, 0.25)));
+
+  const int nBlock        = static_cast<int>(std::ceil(static_cast<double>(T - lags) / actualBlockSize));
+  const int nBlocks_avail = T - lags - actualBlockSize + 1;
+  const int final_size    = T - lags;
+  const int center_end    = T - lags - actualBlockSize;
+
+  arma::cube Blocks(actualBlockSize, N, nBlocks_avail, arma::fill::none);
+  for (int j = 0; j < nBlocks_avail; ++j)
+    Blocks.slice(j) = eps.rows(j, j + actualBlockSize - 1);
+
+  arma::mat centering(actualBlockSize, N, arma::fill::none);
+  for (int j = 0; j < actualBlockSize; ++j)
+    centering.row(j) = arma::mean(eps.rows(j, j + center_end), 0);
+
+  MBBSamplerState s;
+  s.Blocks          = std::move(Blocks);
+  s.centering_full  = make_centering_full(centering, nBlock, actualBlockSize, final_size);
+  s.nBlock          = nBlock;
+  s.nBlocks_avail   = nBlocks_avail;
+  s.final_size      = final_size;
+  s.actualBlockSize = actualBlockSize;
+  s.N               = N;
+  s.k               = 0;
+  s.has_M           = false;
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// Draw one bootstrap sample from the precomputed state
+// ---------------------------------------------------------------------------
+MBBVARResult fmbb_sample_cpp(const MBBSamplerState& s) {
+  arma::ivec index = arma::randi<arma::ivec>(s.nBlock,
+                         arma::distr_param(0, s.nBlocks_avail - 1));
+
+  arma::mat U_boot(s.final_size, s.N, arma::fill::none);
+  arma::mat M_boot;
+  if (s.has_M) M_boot.set_size(s.final_size, s.k);
+
+  for (int j = 0; j < s.nBlock; ++j) {
+    int start_row    = j * s.actualBlockSize;
+    int end_row      = std::min(start_row + s.actualBlockSize - 1, s.final_size - 1);
+    int rows_to_copy = end_row - start_row + 1;
+    U_boot.rows(start_row, end_row) =
+        s.Blocks.slice(index(j)).rows(0, rows_to_copy - 1);
+    if (s.has_M)
+      M_boot.rows(start_row, end_row) =
+          s.MBlocks.slice(index(j)).rows(0, rows_to_copy - 1);
+  }
+
+  arma::mat eps_boot = U_boot - s.centering_full;
+
+  if (s.has_M) {
+    for (int col = 0; col < s.k; ++col)
+      for (int i = 0; i < s.final_size; ++i)
+        if (M_boot(i, col) != 0.0)
+          M_boot(i, col) -= s.Mcentering_full(i, col);
+  } else {
+    M_boot.set_size(0, 0);
+  }
+
+  MBBVARResult result;
+  result.eps_boot = eps_boot;
+  result.M_boot   = M_boot;
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Original fmbb_var_cpp — Nullable overload
+// ---------------------------------------------------------------------------
 // Internal C++ function (called from other C++ code)
 MBBVARResult fmbb_var_cpp(const arma::mat& eps, 
                           int lags, 

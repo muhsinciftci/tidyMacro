@@ -7,103 +7,50 @@
 #' @param point Array of point estimates (N x N x horizon+1), typically from
 #'   \code{fbqIRF()}. Variables listed in \code{cumulate} will be cumulated
 #'   inside this function to recover level responses.
-#' @param upper Array of upper confidence bounds (N x N x horizon+1), from
-#'   \code{fbootstrapBQ()$upper}. Already cumulated inside the bootstrap loop.
-#' @param lower Array of lower confidence bounds (N x N x horizon+1), from
-#'   \code{fbootstrapBQ()$lower}. Already cumulated inside the bootstrap loop.
-#' @param varnames Character vector of variable names (length N)
+#' @param boot_result List returned by \code{fbootstrapBQ()}. Must contain
+#'   \code{upper} and \code{lower}. If \code{upper2} and \code{lower2} are
+#'   present, a second (inner) confidence band is drawn automatically.
+#' @param varnames Character vector of variable names (length N).
 #' @param shocknames Character vector of shock names (length equal to
-#'   \code{length(shocks)})
+#'   \code{length(shocks)}).
 #' @param cumulate Integer vector (1-based) of variable indices whose point
 #'   IRFs should be cumulated. Must match the \code{cumulate} argument passed
 #'   to \code{fbootstrapBQ()}.
 #' @param shocks Integer vector (1-based) of shock indices to plot.
-#' @param prc Numeric, confidence level percentage (e.g. 68 or 95)
 #' @param return_data Logical, if TRUE returns a tibble instead of a plot.
 #'   Default FALSE.
 #' @param ribbon_fill Color for confidence band fill (default: "#407EC9")
-#' @param ribbon_alpha Transparency for confidence band (default: 0.3)
+#' @param ribbon_alpha Transparency for outer confidence band (default: 0.2)
+#' @param ribbon_alpha2 Transparency for inner confidence band (default: 0.35)
 #' @param line_color Color for point estimate line (default: "#910048")
 #' @param zero_line_color Color for horizontal zero line (default: "#707372")
 #' @param facet_scales Scale option for \code{facet_wrap}: one of
-#'   \code{"free"} (default), \code{"free_y"}, \code{"free_x"},
-#'   or \code{"fixed"}.
+#'   \code{"free"} (default), \code{"free_y"}, \code{"free_x"}, or
+#'   \code{"fixed"}.
 #' @param facet_ncol Number of columns in the facet layout. Default NULL.
-#'   For a single shock defaults to \code{ceiling(sqrt(N))}; for multiple
-#'   shocks defaults to \code{length(shocks)} (one column per shock).
 #'
-#' @return A ggplot object (if \code{return_data = FALSE}) or a tibble with
-#'   columns \code{variable}, \code{shock}, \code{horizon}, \code{point},
-#'   \code{upper}, \code{lower} (if \code{return_data = TRUE}).
-#'
-#' @details
-#' The point IRF from \code{fbqIRF()} is in first-difference units. This
-#' function cumulates the rows specified in \code{cumulate} to recover level
-#' responses, matching what \code{fbootstrapBQ()} does internally so that
-#' the point estimate and confidence bands are on the same scale.
-#'
-#' When a single shock is supplied the facet formula is \code{~ variable},
-#' keeping the layout clean. When multiple shocks are supplied the formula
-#' becomes \code{~ shock + variable} so each shock gets its own column.
-#'
-#' The plot uses the currently active ggplot2 theme. For a consistent look
-#' with other tidyMacro plots, use \code{ftheme_tidyMacro()} or set it
-#' globally with \code{set_tidyMacro_theme()}.
-#'
-#' @examples
-#' \dontrun{
-#' var_result <- fVAR(y, p = p, c = 1)
-#' wold       <- fwoldIRF(var_result, horizon = 40)
-#' Sigma      <- var_result$sigma_full
-#' C1         <- apply(wold, c(1, 2), sum)
-#' D1         <- t(chol(C1 %*% Sigma %*% t(C1)))
-#' K          <- solve(C1, D1)
-#' point_irf  <- fbqIRF(wold, K)
-#'
-#' boot <- fbootstrapBQ(y, var_result, nboot = 1000, horizon = 40,
-#'                      prc = 68, bootscheme = "residual",
-#'                      cumulate = c(1, 2))
-#'
-#' # Single shock — facets by variable only
-#' fplotirf_bq(
-#'   point      = point_irf,
-#'   upper      = boot$upper,
-#'   lower      = boot$lower,
-#'   varnames   = c("LABPROD", "HOURS"),
-#'   shocknames = "Technology",
-#'   cumulate   = c(1, 2),
-#'   shocks     = 1,
-#'   prc        = 68
-#' )
-#'
-#' # Multiple shocks — facets by shock x variable
-#' fplotirf_bq(
-#'   point      = point_irf,
-#'   upper      = boot$upper,
-#'   lower      = boot$lower,
-#'   varnames   = c("LABPROD", "HOURS"),
-#'   shocknames = c("Technology", "Non-Technology"),
-#'   cumulate   = c(1, 2),
-#'   shocks     = c(1, 2),
-#'   prc        = 68
-#' )
-#' }
+#' @return A ggplot object (if \code{return_data = FALSE}) or a tibble.
 #'
 #' @export
-fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
-                        cumulate, shocks, prc,
+fplotirf_bq <- function(point, boot_result, varnames, shocknames,
+                        cumulate, shocks,
                         return_data     = FALSE,
                         ribbon_fill     = "#407EC9",
-                        ribbon_alpha    = 0.3,
+                        ribbon_alpha    = 0.2,
+                        ribbon_alpha2   = 0.35,
                         line_color      = "#910048",
                         zero_line_color = "#707372",
                         facet_scales    = c("free", "free_y", "free_x", "fixed"),
                         facet_ncol      = NULL) {
 
-    if (!requireNamespace("ggplot2", quietly = TRUE))
-        stop("Package 'ggplot2' is required. Please install it.", call. = FALSE)
-    if (!requireNamespace("tibble", quietly = TRUE))
-        stop("Package 'tibble' is required. Please install it.", call. = FALSE)
+    upper <- boot_result$upper
+    lower <- boot_result$lower
+
+    has_second_band <- !is.null(boot_result$upper2) && !is.null(boot_result$lower2)
+    if (has_second_band) {
+        upper2 <- boot_result$upper2
+        lower2 <- boot_result$lower2
+    }
 
     facet_scales <- match.arg(facet_scales)
 
@@ -112,11 +59,9 @@ fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
     horizon  <- dims[3]
     n_shocks <- length(shocks)
 
-    # Default ncol: sqrt layout for single shock, one col per shock otherwise
     if (is.null(facet_ncol))
         facet_ncol <- if (n_shocks == 1L) ceiling(sqrt(N)) else n_shocks
 
-    # Validate inputs
     if (length(varnames) != N)
         stop(sprintf("varnames must have length %d (number of variables)", N))
     if (length(shocknames) != n_shocks)
@@ -126,8 +71,7 @@ fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
     if (any(cumulate < 1) || any(cumulate > N))
         stop(sprintf("All cumulate indices must be between 1 and %d", N))
 
-    # Cumulate point IRF for selected rows (upper/lower already cumulated
-    # inside fbootstrapBQ loop)
+    # Cumulate point IRF (upper/lower already cumulated inside bootstrap loop)
     point_plot <- point
     for (s in shocks) {
         for (ci in cumulate) {
@@ -135,13 +79,12 @@ fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
         }
     }
 
-    # Build long-format tibble over all variable x shock combinations
     irf_list <- vector("list", N * n_shocks)
     idx <- 1L
     for (j in seq_along(shocks)) {
         s <- shocks[j]
         for (i in seq_len(N)) {
-            irf_list[[idx]] <- tibble::tibble(
+            row <- tibble::tibble(
                 variable = varnames[i],
                 shock    = shocknames[j],
                 horizon  = 0L:(horizon - 1L),
@@ -149,13 +92,16 @@ fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
                 upper    = as.numeric(upper[i, s, ]),
                 lower    = as.numeric(lower[i, s, ])
             )
+            if (has_second_band) {
+                row$upper2 <- as.numeric(upper2[i, s, ])
+                row$lower2 <- as.numeric(lower2[i, s, ])
+            }
+            irf_list[[idx]] <- row
             idx <- idx + 1L
         }
     }
 
     irf_data <- do.call(rbind, irf_list)
-
-    # Preserve ordering in facets
     irf_data$variable <- factor(irf_data$variable, levels = varnames)
     irf_data$shock    <- factor(irf_data$shock,    levels = shocknames)
 
@@ -164,7 +110,14 @@ fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
 
     p <- ggplot2::ggplot(irf_data, ggplot2::aes(x = horizon)) +
         ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper),
-                             fill = ribbon_fill, alpha = ribbon_alpha) +
+                             fill = ribbon_fill, alpha = ribbon_alpha)
+
+    if (has_second_band) {
+        p <- p + ggplot2::geom_ribbon(ggplot2::aes(ymin = lower2, ymax = upper2),
+                                      fill = ribbon_fill, alpha = ribbon_alpha2)
+    }
+
+    p <- p +
         ggplot2::geom_line(ggplot2::aes(y = point),
                            color = line_color, linewidth = 0.8) +
         ggplot2::geom_hline(yintercept = 0,
@@ -173,8 +126,6 @@ fplotirf_bq <- function(point, upper, lower, varnames, shocknames,
                             linewidth  = 0.6) +
         ggplot2::labs(x = NULL, y = NULL, caption = NULL)
 
-    # Single shock: facet by variable only (cleaner, no redundant shock label)
-    # Multiple shocks: facet by shock x variable (one column per shock)
     if (n_shocks == 1L) {
         p <- p + ggplot2::facet_wrap(~ variable,
                                      scales = facet_scales,

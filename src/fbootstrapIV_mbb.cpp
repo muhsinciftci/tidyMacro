@@ -14,6 +14,8 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include <algorithm>
+#include <vector>
 
 // Internal C++ function (called from other C++ code)
 // Calls _cpp versions of internal functions - no list overhead!
@@ -21,7 +23,7 @@ BootstrapIVMBBResult
 fbootstrapIV_mbb_cpp(const arma::mat &y, const VARResult &var_result,
                      const arma::mat &Z, int nboot, int blocksize,
                      const arma::ivec &adjustZ, const arma::ivec &adjustu,
-                     int policyvar, int horizon, double prc,
+                     int policyvar, int horizon, double prc, double prc2,
                      Rcpp::Nullable<arma::mat> exog, int n_threads) {
 
   // Extract VAR components from struct (much faster than from Rcpp::List)
@@ -61,6 +63,14 @@ fbootstrapIV_mbb_cpp(const arma::mat &y, const VARResult &var_result,
   const arma::mat Zstar = Z.rows(Z_start, Z_end);
   const arma::mat Epsstar = residuals.rows(u_start, u_end);
 
+  // Hoist exog conversion out of the parallel region.
+  const bool has_exog = exog.isNotNull();
+  arma::mat exog_mat;
+  if (has_exog) exog_mat = Rcpp::as<arma::mat>(exog);
+
+  // Precompute MBB sampler state once — Blocks, centering, etc. are constant.
+  MBBSamplerState mbb_state = fmbb_precompute_cpp(Epsstar, p, blocksize, Zstar);
+
 // Determine and set number of threads for OpenMP
 int actual_threads = 1;  // Default to 1 if no OpenMP
 
@@ -88,9 +98,9 @@ actual_threads = 1;
     // Each thread needs its own workspace
     arma::mat res_boot(residuals.n_rows, residuals.n_cols, arma::fill::none);
 
-    // Generate new residuals and new instruments using direct matrix overload
-    // No Rcpp::wrap overhead - thread-safe and faster!
-    MBBVARResult mbb_result = fmbb_var_cpp(Epsstar, p, blocksize, Zstar);
+    // Sample one bootstrap draw from the precomputed state (blocks + centering
+    // are shared read-only; only the random index draw changes per iteration).
+    MBBVARResult mbb_result = fmbb_sample_cpp(mbb_state);
     const arma::mat &eps_boot = mbb_result.eps_boot; // Use reference - no copy!
     const arma::mat &Znew = mbb_result.M_boot;       // Use reference - no copy!
 
@@ -109,12 +119,9 @@ actual_threads = 1;
     arma::mat varboot = fgenerateVARdata(y, p, c, beta, res_boot);
 
     // Estimate VAR on bootstrap sample using _cpp version
-    VARResult var_loop;
-    if (exog.isNotNull()) {
-      var_loop = fVAR_cpp(varboot, p, c, exog);
-    } else {
-      var_loop = fVAR_cpp(varboot, p, c, R_NilValue);
-    }
+    VARResult var_loop = has_exog
+                            ? fVAR_cpp(varboot, p, c, exog_mat)
+                            : fVAR_cpp(varboot, p, c, R_NilValue);
 
     const arma::mat &residuals_loop =
         var_loop.residuals; // Use reference - no copy!
@@ -134,7 +141,7 @@ actual_threads = 1;
 
     // First-stage regression: regress policy residual on instrument using _cpp
     // version
-    OLSResult ols1_result = fOLS_cpp(u_p_loop_final, Znew, 0);
+    OLSResult ols1_result = fOLS_cpp(u_p_loop_final, Znew, 0, 0, 0, 0);
     const arma::mat &uhat =
         ols1_result.fitted_partial; // Use reference - no copy!
 
@@ -160,12 +167,16 @@ actual_threads = 1;
   }
 
   // Compute percentiles
-  const double up_pct = 50.0 + prc * 0.5;
-  const double low_pct = 50.0 - prc * 0.5;
+  const double up_pct  = 50.0 + prc  * 0.5;
+  const double low_pct = 50.0 - prc  * 0.5;
+  const double up_pct2  = 50.0 + prc2 * 0.5;
+  const double low_pct2 = 50.0 - prc2 * 0.5;
 
   // Pre-allocate output matrices
   arma::mat upper(N, H, arma::fill::none);
   arma::mat lower(N, H, arma::fill::none);
+  arma::mat upper2(N, H, arma::fill::none);
+  arma::mat lower2(N, H, arma::fill::none);
   arma::mat medianirf(N, H, arma::fill::none);
   arma::mat meanirf(N, H, arma::fill::none);
 
@@ -177,59 +188,40 @@ actual_threads = 1;
   for (int i = 0; i < N; ++i) {
     for (int h = 0; h < H; ++h) {
       // Each thread needs its own boot_vals vector
-      arma::vec boot_vals(nboot, arma::fill::none);
-      // Extract bootstrap values for this element
+      std::vector<double> sv(nboot);
+      double sum_vals = 0.0;
       for (int b = 0; b < nboot; ++b) {
-        boot_vals(b) = ivirf_boot(i, h, b);
+        sv[b] = ivirf_boot(i, h, b);
+        sum_vals += sv[b];
       }
+      meanirf(i, h) = sum_vals / nboot;
 
-      arma::vec sorted = arma::sort(boot_vals);
+      auto nth_pct = [&](double pct) -> double {
+        const double raw = (pct / 100.0) * (nboot - 1);
+        const int lo = static_cast<int>(raw);
+        const double frac = raw - lo;
+        std::nth_element(sv.begin(), sv.begin() + lo, sv.end());
+        const double lo_val = sv[lo];
+        if (frac < 1e-12 || lo + 1 >= nboot) return lo_val;
+        return lo_val * (1.0 - frac) +
+               *std::min_element(sv.begin() + lo + 1, sv.end()) * frac;
+      };
 
-      // Linear interpolation for percentiles
-      const double idx_up = (up_pct / 100.0) * (nboot - 1);
-      const double idx_low = (low_pct / 100.0) * (nboot - 1);
-      const double idx_med = 0.5 * (nboot - 1);
-
-      const int floor_up = static_cast<int>(idx_up);
-      const int floor_low = static_cast<int>(idx_low);
-      const int floor_med = static_cast<int>(idx_med);
-
-      const double frac_up = idx_up - floor_up;
-      const double frac_low = idx_low - floor_low;
-      const double frac_med = idx_med - floor_med;
-
-      // Compute percentiles with bounds checking
-      if (floor_up < nboot - 1) {
-        upper(i, h) =
-            sorted(floor_up) * (1.0 - frac_up) + sorted(floor_up + 1) * frac_up;
-      } else {
-        upper(i, h) = sorted(nboot - 1);
-      }
-
-      if (floor_low < nboot - 1) {
-        lower(i, h) = sorted(floor_low) * (1.0 - frac_low) +
-                      sorted(floor_low + 1) * frac_low;
-      } else {
-        lower(i, h) = sorted(nboot - 1);
-      }
-
-      if (floor_med < nboot - 1) {
-        medianirf(i, h) = sorted(floor_med) * (1.0 - frac_med) +
-                          sorted(floor_med + 1) * frac_med;
-      } else {
-        medianirf(i, h) = sorted(nboot - 1);
-      }
-
-      // Mean
-      meanirf(i, h) = arma::mean(boot_vals);
+      upper(i, h)     = nth_pct(up_pct);
+      lower(i, h)     = nth_pct(low_pct);
+      upper2(i, h)    = nth_pct(up_pct2);
+      lower2(i, h)    = nth_pct(low_pct2);
+      medianirf(i, h) = nth_pct(50.0);
     }
   }
 
   // Return results as struct
   BootstrapIVMBBResult result;
-  result.upper = upper;
-  result.lower = lower;
-  result.meanirf = meanirf;
+  result.upper     = upper;
+  result.lower     = lower;
+  result.upper2    = upper2;
+  result.lower2    = lower2;
+  result.meanirf   = meanirf;
   result.medianirf = medianirf;
   return result;
 }
@@ -298,7 +290,7 @@ Rcpp::List fbootstrapIV_mbb(const arma::mat &y, const Rcpp::List &var_result,
                             const arma::mat &Z, int nboot, int blocksize,
                             const arma::ivec &adjustZ,
                             const arma::ivec &adjustu, int policyvar,
-                            int horizon, double prc,
+                            int horizon, double prc = 90.0, double prc2 = 68.0,
                             Rcpp::Nullable<arma::mat> exog = R_NilValue,
                             int n_threads = 0) {
 
@@ -306,7 +298,6 @@ Rcpp::List fbootstrapIV_mbb(const arma::mat &y, const Rcpp::List &var_result,
   VARResult var_result_struct;
   var_result_struct.beta = Rcpp::as<arma::mat>(var_result["beta"]);
   var_result_struct.residuals = Rcpp::as<arma::mat>(var_result["residuals"]);
-  var_result_struct.sigma_full = Rcpp::as<arma::mat>(var_result["sigma_full"]);
   var_result_struct.p = Rcpp::as<int>(var_result["p"]);
   var_result_struct.c = Rcpp::as<int>(var_result["c"]);
 
@@ -320,11 +311,13 @@ Rcpp::List fbootstrapIV_mbb(const arma::mat &y, const Rcpp::List &var_result,
   // Call the C++ function with the struct
   BootstrapIVMBBResult result =
       fbootstrapIV_mbb_cpp(y, var_result_struct, Z, nboot, blocksize, adjustZ,
-                           adjustu, policyvar, horizon, prc, exog, n_threads);
+                           adjustu, policyvar, horizon, prc, prc2, exog, n_threads);
 
   // Return results as a list for R
-  return Rcpp::List::create(Rcpp::Named("upper") = result.upper,
-                            Rcpp::Named("lower") = result.lower,
-                            Rcpp::Named("meanirf") = result.meanirf,
+  return Rcpp::List::create(Rcpp::Named("upper")     = result.upper,
+                            Rcpp::Named("lower")     = result.lower,
+                            Rcpp::Named("upper2")    = result.upper2,
+                            Rcpp::Named("lower2")    = result.lower2,
+                            Rcpp::Named("meanirf")   = result.meanirf,
                             Rcpp::Named("medianirf") = result.medianirf);
 }

@@ -4,9 +4,10 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace arma;
 
-// Internal C++ function (called from other C++ code)
-VARResult fVAR_cpp(const arma::mat &y, int p, int c,
-                   Rcpp::Nullable<arma::mat> exog) {
+// Shared implementation: takes either an empty mat (no exog) or a T x M exog mat
+// Kept static so the public _cpp overloads stay as the only external entry points.
+static VARResult fVAR_cpp_impl(const arma::mat &y, int p, int c,
+                               const arma::mat *exog_ptr) {
   int T = y.n_rows;
 
   arma::mat yfinal = y.rows(p, T - 1);
@@ -20,8 +21,8 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
   }
 
   int n_exog = 0;
-  if (exog.isNotNull()) {
-    arma::mat exog_mat = Rcpp::as<arma::mat>(exog);
+  if (exog_ptr != nullptr) {
+    const arma::mat &exog_mat = *exog_ptr;
     arma::mat exog_eff = exog_mat.rows(p, T - 1);
     X = arma::join_rows(X, exog_eff);
     n_exog = exog_mat.n_cols;
@@ -32,19 +33,36 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
   arma::mat beta = arma::solve(XtX, Xty, arma::solve_opts::fast);
 
   arma::mat residuals = yfinal - X * beta;
-  int n_obs = residuals.n_rows;
-  int N = y.n_cols;
-  arma::mat sigma_full = (residuals.t() * residuals) / (n_obs - 1 - N * p);
+  int n_obs = residuals.n_rows;   // T_full - p (residual sample)
+  int N     = y.n_cols;
+  arma::mat sigma = (residuals.t() * residuals) / (n_obs - c - N * p - n_exog);
 
   VARResult result;
   result.beta = beta;
   result.residuals = residuals;
-  result.sigma_full = sigma_full;
+  result.sigma = sigma;
   result.p = p;
   result.c = c;
   result.n_exog = n_exog;
   return result;
 }
+
+// Internal C++ function (called from other C++ code) — Nullable overload
+VARResult fVAR_cpp(const arma::mat &y, int p, int c,
+                   Rcpp::Nullable<arma::mat> exog) {
+  if (exog.isNotNull()) {
+    arma::mat exog_mat = Rcpp::as<arma::mat>(exog);
+    return fVAR_cpp_impl(y, p, c, &exog_mat);
+  }
+  return fVAR_cpp_impl(y, p, c, nullptr);
+}
+
+// Pre-converted exog overload: avoids Rcpp::as in hot loops
+VARResult fVAR_cpp(const arma::mat &y, int p, int c,
+                   const arma::mat &exog) {
+  return fVAR_cpp_impl(y, p, c, &exog);
+}
+
 
 //' Vector Autoregression (VAR) Model Estimation
 //'
@@ -64,9 +82,9 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
 //'   (Np + c + M) x N, where the first row is the intercept (if c = 1),
 //'   followed by N*p lag-coefficient rows, then M exogenous-coefficient rows;
 //'   residuals — (T-p) x N matrix of OLS residuals;
-//'   sigma_full — N x N residual covariance matrix normalised by
-//'   (T - 1 - p - N*p), consistent with the degrees-of-freedom correction
-//'   used in Cholesky, IV, and BQ identification;
+//'   sigma — N x N residual covariance matrix with degrees-of-freedom
+//'   correction: denominator is (T - p) - c - N*p - n_exog, matching
+//'   Bloom (2009) and Kaenzig (2021);
 //'   p — lag order (echoed from input);
 //'   c — intercept indicator (echoed from input);
 //'   n_exog — number of exogenous variables (0 if none provided).
@@ -99,7 +117,7 @@ Rcpp::List fVAR(const arma::mat &y, int p, int c,
 
   return Rcpp::List::create(Rcpp::Named("beta") = result.beta,
                             Rcpp::Named("residuals") = result.residuals,
-                            Rcpp::Named("sigma_full") = result.sigma_full,
+                            Rcpp::Named("sigma") = result.sigma,
                             Rcpp::Named("p") = result.p,
                             Rcpp::Named("c") = result.c,
                             Rcpp::Named("n_exog") = result.n_exog);

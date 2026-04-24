@@ -63,7 +63,7 @@ wold <- fwoldIRF(var_result, horizon = 20)
 
 # IV identification
 s <- c(1, 0.5, 0.3)
-sigma <- var_result$sigma_full
+sigma <- var_result$sigma
 S <- t(chol(sigma))
 
 # Compute FEVD

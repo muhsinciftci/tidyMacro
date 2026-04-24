@@ -12,9 +12,16 @@ struct BootstrapVARResult {
 
 // Internal C++ function (for use in other C++ code)
 // Accepts VARResult struct directly for efficient C++ to C++ calls
-BootstrapVARResult fbootstrapVAR_cpp(const arma::mat& y, 
+BootstrapVARResult fbootstrapVAR_cpp(const arma::mat& y,
                                      const VARResult& var_result,
                                      const std::string& bootscheme);
+
+// Overload with exogenous regressors: exog_ptr points to the full T x M
+// matrix (same one passed to fVAR). Pass nullptr when there are no exog.
+BootstrapVARResult fbootstrapVAR_cpp(const arma::mat& y,
+                                     const VARResult& var_result,
+                                     const std::string& bootscheme,
+                                     const arma::mat* exog_ptr);
 
 // R wrapper function (for calling from R)
 Rcpp::List fbootstrapVAR(const arma::mat& y, 

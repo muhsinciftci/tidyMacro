@@ -1,0 +1,149 @@
+---
+title: "Replication: Beaudry and Portier (2014)"
+subtitle: "News-Driven Business Cycles: Insights and Challenges"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "100%"
+)
+```
+
+## Overview
+
+This document replicates the news shock identification of @beaudryportier2014. A news shock is identified as the shock that (i) has **no contemporaneous effect on TFP** and (ii) **maximizes the long-run response of TFP** at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.
+
+## Setup
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(tictoc)
+library(tidyMacro)
+
+set_theme(ftheme_tidyMacro())
+```
+
+## Data
+
+```{r}
+#| label: data
+
+# Variables: log TFP, log SP500, log Consumption, log Hours
+y        <- BeaudryPortier2014 |> as.matrix()
+T_obs    <- nrow(y)
+N        <- ncol(y)
+varnames <- colnames(y)
+```
+
+## VAR Estimation
+
+```{r}
+#| label: var-estimation
+
+p <- 2
+c <- 1
+
+# Estimate VAR: y_t = c + A_1 y_{t-1} + ... + A_p y_{t-p} + e_t
+var_result <- fVAR(y, p = p, c = c)
+
+# Variance-covariance matrix of reduced-form residuals
+Sigma <- var_result$sigma
+```
+
+## News Shock Identification
+
+The news shock is identified as the shock that has zero impact on TFP but maximises the long-run response of TFP at horizon $H = 40$. Let $\Psi_h$ denote the $h$-step Wold coefficient matrices and $S$ the lower Cholesky factor of $\Sigma$. We search for a unit vector $\mathbf{h}$ such that the structural impact vector is:
+
+$$
+\mathbf{b} = S \begin{pmatrix} 0 \\ \mathbf{h}/\|\mathbf{h}\| \end{pmatrix}
+$$
+
+and the last-horizon response of TFP, $e_1^\top \Psi_H \mathbf{b}$, is maximized.
+
+```{r}
+#| label: identification
+
+horizon <- 40
+
+# Wold IRFs by inverting (I - A(L))
+wold <- fwoldIRF(var_result, horizon = horizon)
+
+# Lower Cholesky factor of Sigma
+S <- t(chol(Sigma))
+
+# LR-Max point estimate: closed-form solution, sign-normalised
+struct_irf <- fmaxIRF(wold, S, var_idx = 1L)
+```
+
+
+## Bootstrap Confidence Bands: LR-Max Identification
+
+```{r}
+#| label: bootstrap-max
+
+tic()
+boot_max <- fbootstrapMaxCorrected(
+  y          = y,
+  var_result = var_result,
+  nboot1     = 2000,
+  nboot2     = 4000,
+  horizon    = horizon,
+  var_idx    = 1,          # maximise long-run effect on TFP (variable 1)
+  cumulate   = integer(0), # no cumulation (levels data)
+  prc        = 68,
+  prc2       = 68
+)
+toc()
+```
+
+```{r}
+#| label: fig-irf-boot-max
+#| fig-cap: "IRF to news shock with 90%/68% LR-Max bootstrap bands"
+
+fplotirfLR(
+  point       = struct_irf,
+  boot_result = boot_max,
+  varnames    = varnames,
+  facet_ncol  = 2
+)
+```
+
+## Bootstrap Confidence Bands: Uhlig Max-Share Identification
+
+```{r}
+#| label: bootstrap-uhlig
+
+# Point estimate: FEV-maximising h2, sign-normalised
+struct_irf_uhlig <- fuhligIRF(wold, S, idx = 1L)
+
+tic()
+boot_uhlig <- fbootstrapUhligCorrected(
+  y          = y,
+  var_result = var_result,
+  nboot1     = 2000,
+  nboot2     = 4000,
+  horizon    = horizon,
+  idx        = 1L,        # maximise FEV share of TFP (variable 1)
+  cumulate   = integer(0),
+  prc        = 68 # Match original study
+)
+toc()
+```
+
+```{r}
+#| label: fig-irf-boot-uhlig
+#| fig-cap: "IRF to news shock with 90%/68% Uhlig max-share bootstrap bands"
+
+fplotirfLR(
+  point       = struct_irf_uhlig,
+  boot_result = boot_uhlig,
+  varnames    = varnames,
+  facet_ncol  = 2
+)
+```

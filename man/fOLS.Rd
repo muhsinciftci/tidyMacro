@@ -4,55 +4,33 @@
 \alias{fOLS}
 \title{Ordinary Least Squares Regression}
 \usage{
-fOLS(y, X, c = 1L)
+fOLS(y, X, c = 1L, lag = 0L)
 }
 \arguments{
-\item{y}{Dependent variable matrix! not vector}
+\item{y}{Dependent variable matrix (T x 1)}
 
 \item{X}{Independent variables matrix (T x N)}
 
-\item{c}{Integer indicator for intercept (1 if intercept included, 0 otherwise)}
+\item{c}{Integer indicator for intercept (1 if included, 0 otherwise)}
+
+\item{lag}{Number of lags for HAC (0 = Newey-West rule of thumb)}
+
+\item{robust}{SE type: 0 = standard, 1 = White (heteroskedasticity-robust),
+2 = Newey-West HAC}
 }
 \value{
 A list containing:
   \itemize{
-    \item beta: Coefficient estimates ((N+1) x 1 if c=1, N x 1 if c=0)
-    \item fitted: Fitted values (T x 1)
-    \item err: Residuals (T x 1)
-    \item r2: R-squared statistic (scalar)
-    \item fitted_partial: Fitted values excluding intercept (T x 1)
+    \item beta: Coefficient estimates
+    \item fitted: Fitted values
+    \item err: Residuals
+    \item r2: R-squared
+    \item r2adj: Adjusted R-squared
+    \item F: F-statistic for overall significance
+    \item Frobust: Robust F-statistic (only if robust > 0)
+    \item fitted_partial: Fitted values excluding intercept
   }
 }
 \description{
 Ordinary Least Squares Regression
-}
-\details{
-This function performs ordinary least squares (OLS) regression. The coefficient
-estimates are computed using the normal equations:
-\deqn{\hat{\beta} = (X'X)^{-1}X'y}
-
-The R-squared statistic measures the proportion of variance explained:
-\deqn{R^2 = 1 - \frac{RSS}{TSS}}
-where RSS is the residual sum of squares and TSS is the total sum of squares.
-
-If an intercept is included (c=1), fitted_partial contains the fitted values
-excluding the intercept contribution, useful for assessing the explanatory
-power of the regressors alone.
-}
-\examples{
-\dontrun{
-# Generate sample data
-set.seed(123)
-y <- rnorm(100)
-X <- matrix(rnorm(200), 100, 2)
-
-# OLS with intercept
-result <- fOLS(y, X, c = 1)
-print(result$beta)
-print(result$r2)
-
-# OLS without intercept
-result_no_int <- fOLS(y, X, c = 0)
-}
-
 }

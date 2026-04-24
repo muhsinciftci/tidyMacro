@@ -85,10 +85,10 @@ HistDecResult fhistdec_cpp(const arma::mat& y,
 //'
 //' @param y TxN numeric matrix of original (undemeaned) data.
 //' @param fVAR List returned by \code{fVAR()}, containing at minimum
-//'   \code{beta}, \code{residuals}, \code{sigma_full}, \code{p}, \code{c},
+//'   \code{beta}, \code{residuals}, \code{sigma}, \code{p}, \code{c},
 //'   and \code{n_exog}.
 //' @param K NxN structural impact matrix. For Cholesky identification pass
-//'   \code{t(chol(sigma_full))}; for BQ identification pass the matrix
+//'   \code{t(chol(sigma))}; for BQ identification pass the matrix
 //'   returned by \code{solve(C1, D1)}.
 //' @param series Integer (1-indexed) selecting which variable to decompose.
 //'
@@ -114,13 +114,13 @@ HistDecResult fhistdec_cpp(const arma::mat& y,
 //' \dontrun{
 //' # Cholesky identification
 //' var_result <- fVAR(y, p = 12, c = 1)
-//' K_chol <- t(chol(var_result$sigma_full))
+//' K_chol <- t(chol(var_result$sigma))
 //' hd <- fhistdec(y, var_result, K_chol, series = 1)
 //'
 //' # BQ identification
 //' wold  <- fwoldIRF(var_result, horizon = 40)
 //' C1    <- apply(wold, c(1, 2), sum)
-//' D1    <- t(chol(C1 %*% var_result$sigma_full %*% t(C1)))
+//' D1    <- t(chol(C1 %*% var_result$sigma %*% t(C1)))
 //' K_bq  <- solve(C1, D1)
 //' hd_bq <- fhistdec(y, var_result, K_bq, series = 1)
 //' }
@@ -139,7 +139,7 @@ Rcpp::List fhistdec(const arma::mat& y,
     VARResult var_result;
     var_result.beta       = Rcpp::as<arma::mat>(fVAR["beta"]);
     var_result.residuals  = Rcpp::as<arma::mat>(fVAR["residuals"]);
-    var_result.sigma_full = Rcpp::as<arma::mat>(fVAR["sigma_full"]);
+    var_result.sigma = Rcpp::as<arma::mat>(fVAR["sigma"]);
     var_result.p          = Rcpp::as<int>(fVAR["p"]);
     var_result.c          = Rcpp::as<int>(fVAR["c"]);
     var_result.n_exog     = Rcpp::as<int>(fVAR["n_exog"]);

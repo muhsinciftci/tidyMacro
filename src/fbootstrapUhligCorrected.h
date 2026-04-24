@@ -8,12 +8,14 @@
 BootstrapUhligResult
 fbootstrapUhligCorrected_cpp(const arma::mat& y, const VARResult& var_result,
                               int nboot1, int nboot2, int horizon, int idx,
-                              double prc, const arma::uvec& cumulate,
+                              double prc, double prc2, const arma::uvec& cumulate,
+                              Rcpp::Nullable<arma::mat> exog,
                               int n_threads);
 
 Rcpp::List fbootstrapUhligCorrected(const arma::mat& y, const Rcpp::List& var_result,
                                      int nboot1, int nboot2, int horizon, int idx,
-                                     double prc, const arma::uvec& cumulate,
+                                     double prc, double prc2, const arma::uvec& cumulate,
+                                     Rcpp::Nullable<arma::mat> exog,
                                      int n_threads);
 
 #endif // FBOOTSTRAPUHLIGCORRECTED_H

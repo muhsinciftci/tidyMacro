@@ -1,0 +1,218 @@
+/*-- scss:defaults --*/
+
+// Financial Times colour palette
+$ft-cream:       #FFF1E5;
+$ft-light-cream: #F2DFCE;
+$ft-claret:      #990F3D;
+$ft-dark:        #33302E;
+$ft-mid:         #A0998A;
+$ft-blue:        #0F5499;
+$ft-orange:      #FF8000;
+$ft-teal:        #0D7680;
+$ft-white:       #FFFFFF;
+
+// Bootstrap variable overrides
+$body-bg:              $ft-cream;
+$body-color:           $ft-dark;
+$link-color:           $ft-claret;
+$link-hover-color:     #6b0a2b;
+$headings-color:       $ft-dark;
+$headings-font-weight: 700;
+
+$font-family-base:      Georgia, "Times New Roman", Times, serif;
+$headings-font-family:  Arial, Helvetica, sans-serif;
+$font-size-base:        1rem;
+$line-height-base:      1.7;
+
+$code-bg:    $ft-light-cream;
+$code-color: $ft-dark;
+$border-color: $ft-light-cream;
+
+$navbar-bg:        $ft-dark;
+$navbar-fg:        $ft-cream;
+$navbar-hl:        $ft-orange;
+
+$footer-bg:        $ft-dark;
+$footer-fg:        $ft-cream;
+
+$callout-color-tip:       $ft-teal;
+$callout-color-important: $ft-claret;
+$callout-color-note:      $ft-blue;
+$callout-color-warning:   $ft-orange;
+
+
+/*-- scss:rules --*/
+
+// ── Body & typography ────────────────────────────────────────────────────────
+body {
+  background-color: $ft-cream;
+  color: $ft-dark;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: Arial, Helvetica, sans-serif;
+  color: $ft-dark;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 2rem;   border-bottom: 3px solid $ft-claret; padding-bottom: 0.4rem; }
+h2 { font-size: 1.5rem; border-bottom: 1px solid $ft-light-cream; padding-bottom: 0.2rem; }
+h3 { font-size: 1.2rem; }
+
+p { line-height: 1.75; }
+
+a {
+  color: $ft-claret;
+  text-decoration: none;
+  &:hover { text-decoration: underline; color: #6b0a2b; }
+}
+
+// ── Navbar ───────────────────────────────────────────────────────────────────
+.navbar {
+  background-color: $ft-dark !important;
+  border-bottom: 3px solid $ft-claret;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+
+  .navbar-brand {
+    color: $ft-cream !important;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .nav-link {
+    color: rgba($ft-cream, 0.85) !important;
+    padding: 0.4rem 0.8rem;
+    transition: color 0.15s ease;
+    &:hover, &.active {
+      color: $ft-orange !important;
+    }
+  }
+
+  .dropdown-menu {
+    background-color: $ft-dark;
+    border: 1px solid rgba($ft-cream, 0.15);
+    border-top: 2px solid $ft-claret;
+    border-radius: 0;
+
+    .dropdown-item {
+      color: rgba($ft-cream, 0.85);
+      font-size: 0.875rem;
+      &:hover {
+        background-color: rgba($ft-cream, 0.08);
+        color: $ft-orange;
+      }
+    }
+  }
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────────
+.nav-footer {
+  background-color: $ft-dark;
+  color: rgba($ft-cream, 0.7);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
+  border-top: 3px solid $ft-claret;
+  padding: 1rem 0;
+
+  a { color: $ft-orange; }
+}
+
+// ── Table of contents ────────────────────────────────────────────────────────
+#TOC {
+  border-left: 3px solid $ft-claret;
+  padding-left: 1rem;
+
+  .active > a {
+    color: $ft-claret !important;
+    font-weight: 600;
+  }
+
+  a {
+    color: $ft-mid;
+    font-size: 0.85rem;
+    font-family: Arial, Helvetica, sans-serif;
+    &:hover { color: $ft-claret; }
+  }
+}
+
+// ── Code blocks ──────────────────────────────────────────────────────────────
+pre {
+  background-color: $ft-light-cream;
+  border: 1px solid darken($ft-light-cream, 8%);
+  border-left: 3px solid $ft-claret;
+  border-radius: 2px;
+  font-size: 0.85rem;
+}
+
+code { color: $ft-dark; background-color: $ft-light-cream; }
+
+// ── Callout boxes ────────────────────────────────────────────────────────────
+.callout {
+  border-radius: 2px;
+  border-left-width: 4px;
+}
+.callout-tip       { border-left-color: $ft-teal !important; }
+.callout-important { border-left-color: $ft-claret !important; }
+.callout-note      { border-left-color: $ft-blue !important; }
+.callout-warning   { border-left-color: $ft-orange !important; }
+
+// ── Tables ───────────────────────────────────────────────────────────────────
+table {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  width: 100%;
+
+  th {
+    background-color: $ft-dark;
+    color: $ft-cream;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  td { padding: 0.45rem 0.75rem; border-bottom: 1px solid $ft-light-cream; }
+  tr:hover { background-color: rgba($ft-light-cream, 0.6); }
+}
+
+// ── Hero section (index page) ────────────────────────────────────────────────
+.hero-banner {
+  background: linear-gradient(135deg, $ft-dark 0%, #4a3728 100%);
+  color: $ft-cream;
+  padding: 3.5rem 2rem;
+  margin-bottom: 2rem;
+  border-bottom: 4px solid $ft-claret;
+
+  h1 { color: $ft-cream; border: none; font-size: 2.8rem; }
+  p  { color: rgba($ft-cream, 0.85); font-size: 1.1rem; }
+}
+
+// ── Page layout tweaks ───────────────────────────────────────────────────────
+.quarto-title-block { margin-bottom: 1.5rem; }
+
+.quarto-title .title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: $ft-dark;
+}
+
+.quarto-title .subtitle {
+  font-size: 1rem;
+  color: $ft-mid;
+  font-style: italic;
+  font-family: Georgia, serif;
+}
+
+// Author/date metadata
+.quarto-title-meta {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.82rem;
+  color: $ft-mid;
+  border-top: 1px solid $ft-light-cream;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}

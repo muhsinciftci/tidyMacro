@@ -7,7 +7,7 @@ src/*.dll
 *.zip
 
 # Installed package files
-/inst/
+inst/
 
 # RStudio / IDE
 .Rproj.user/
@@ -17,3 +17,9 @@ src/*.dll
 
 # macOS
 .DS_Store
+
+# Project planning and local instructions
+TODO.md
+CLAUDE.md
+CODEX.md
+.claude/

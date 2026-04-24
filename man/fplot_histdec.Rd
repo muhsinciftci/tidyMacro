@@ -8,12 +8,14 @@ fplot_histdec(
   histdec_list,
   shock,
   shockname,
+  shocknames = NULL,
   dates = NULL,
-  p = 0L,
+  p = 0,
   return_data = FALSE,
   facet_ncol = 2,
+  facet_scales = c("free", "free_y", "free_x", "fixed"),
   shock_fill = "#407EC9",
-  resid_fill = "#E87722",
+  other_fills = "#E87722",
   total_color = "#1a1a1a",
   total_linewidth = 0.8,
   area_alpha = 1
@@ -21,31 +23,41 @@ fplot_histdec(
 }
 \arguments{
 \item{histdec_list}{Named list of (T-p) x N matrices, one per variable to
-plot. Each element is the \code{$histdec} output of \code{fhistdec()} called
-for that variable. Names are used as facet labels.}
+plot. Each element is the \code{$histdec} output of \code{fhistdec()}
+called for that variable. Names are used as facet labels.}
 
-\item{shock}{Integer (1-indexed) selecting the shock of interest.}
+\item{shock}{Integer (1-indexed) selecting the primary shock of interest.}
 
 \item{shockname}{Character string label for the selected shock (legend entry).}
 
-\item{dates}{Optional vector of dates (Date, numeric, or integer). Can be the
-full T-length vector (trimmed internally using \code{p}) or the already-
-trimmed (T-p)-length vector. Default \code{NULL} uses an integer index.}
+\item{shocknames}{Optional character vector of length N with names for
+\emph{all} shocks. When supplied the non-selected shocks are shown as
+individually named stacked areas instead of a single "Residual" bar.
+Default \code{NULL} (falls back to "Residual").}
 
-\item{p}{Integer lag order of the VAR. Used only when \code{dates} has length
-T (full sample) to trim to \code{dates[(p+1):T]}. Default \code{0L}.}
+\item{dates}{Optional vector of dates (Date, numeric, or integer). Can be
+the full T-length vector (trimmed internally using \code{p}) or the
+already-trimmed (T-p)-length vector. Default \code{NULL} uses an integer
+index.}
 
-\item{return_data}{Logical. If \code{TRUE} returns the wide-format tibble
-(columns: \code{date}, \code{variable}, shockname, \code{Residual},
-\code{Total}) instead of the plot. Default \code{FALSE}.}
+\item{p}{Integer lag order of the VAR. Used only when \code{dates} has
+length T to trim to \code{dates[(p+1):T]}. Default \code{0}.}
+
+\item{return_data}{Logical. If \code{TRUE} returns the long-format tibble
+instead of the plot. Default \code{FALSE}.}
 
 \item{facet_ncol}{Number of columns in the facet grid. Default \code{2}.}
 
-\item{shock_fill}{Fill color for the shock contribution area
+\item{facet_scales}{Scale option for \code{facet_wrap}: one of
+\code{"free"} (default), \code{"free_y"}, \code{"free_x"},
+or \code{"fixed"}.}
+
+\item{shock_fill}{Fill color for the primary shock area
 (default: \code{"#407EC9"}).}
 
-\item{resid_fill}{Fill color for the residual (other shocks) area
-(default: \code{"#E87722"}).}
+\item{other_fills}{Character vector of fill colors for the remaining shocks.
+Recycled if shorter than \code{N - 1}. Default \code{"#E87722"} (single
+color used for the "Residual" bar or cycled across named other shocks).}
 
 \item{total_color}{Color for the total line overlay
 (default: \code{"#1a1a1a"}).}
@@ -55,45 +67,43 @@ T (full sample) to trim to \code{dates[(p+1):T]}. Default \code{0L}.}
 \item{area_alpha}{Transparency for the stacked areas (default: \code{1}).}
 }
 \value{
-A ggplot object (if \code{return_data = FALSE}) or a tibble with
-  columns \code{date}, \code{variable}, \code{series}, and \code{value}.
+A ggplot object or a tibble (if \code{return_data = TRUE}) with
+  columns \code{date}, \code{variable}, \code{series}, \code{value}.
 }
 \description{
 Plots the historical decomposition for multiple variables, showing the
-contribution of the chosen structural shock, the residual (all other shocks),
-and the total explained variation as a stacked bar chart with a total line
-overlay. Mirrors the MATLAB Bloom replication figure with facets per variable.
+contribution of each structural shock as individual stacked areas, plus
+a total line overlay. Mirrors the MATLAB Bloom replication figure with
+facets per variable.
 }
 \details{
-For each variable and each time period t the plot shows:
-\itemize{
-  \item \strong{Shock bar} — \code{histdec[t, shock]}: contribution of the
-    selected structural shock.
-  \item \strong{Residual bar} — sum of \code{histdec[t, -shock]}: combined
-    contribution of all other shocks.
-  \item \strong{Total line} — sum of both bars: total explained variation.
-}
+When \code{shocknames} is \code{NULL} all non-selected shocks are summed
+into a single "Residual" bar (original behaviour, suitable for the Bloom
+replication). When \code{shocknames} is supplied each shock gets its own
+named stacked area — useful for the BQ case where the second shock has a
+meaningful label (e.g. "Non-Technology").
 }
 \examples{
 \dontrun{
-var_result <- fVAR(y, p = 12, c = 1)
-K      <- t(chol(var_result$sigma_full))
-shock  <- match("UNCERT", colnames(y))
-series <- setdiff(seq_len(ncol(y)), shock)
-
-# Call fhistdec for each variable and collect into a named list
-histdec_list <- setNames(
-    lapply(series, function(i) fhistdec(y, var_result, K, i)$histdec),
-    colnames(y)[series]
+# BQ case — name both shocks
+fplot_histdec(
+    histdec_list = histdec_all,
+    shock        = 1,
+    shockname    = "Technology",
+    shocknames   = c("Technology", "Non-Technology"),
+    dates        = dates,
+    p            = p,
+    facet_ncol   = 1
 )
 
+# Cholesky case — collapse others into "Residual" (default)
 fplot_histdec(
     histdec_list = histdec_list,
     shock        = shock,
     shockname    = "Uncertainty",
     dates        = dates_vec,
     p            = 12
-) + ftheme_tidyMacro()
+)
 }
 
 }

@@ -10,11 +10,12 @@ fhistdec(y, fVAR, K, series)
 \item{y}{TxN numeric matrix of original (undemeaned) data.}
 
 \item{fVAR}{List returned by \code{fVAR()}, containing at minimum
-\code{beta}, \code{residuals}, \code{sigma_full}, \code{p}, \code{c},
+\code{beta}, \code{residuals}, \code{sigma}, \code{p}, \code{c},
 and \code{n_exog}.}
 
-\item{K}{NxN lower-triangular Cholesky factor of the residual covariance
-matrix (i.e. \code{t(chol(sigma_full))}).}
+\item{K}{NxN structural impact matrix. For Cholesky identification pass
+\code{t(chol(sigma))}; for BQ identification pass the matrix
+returned by \code{solve(C1, D1)}.}
 
 \item{series}{Integer (1-indexed) selecting which variable to decompose.}
 }
@@ -28,8 +29,10 @@ A list with two elements:
 }
 \description{
 Decomposes a chosen variable's realisation into contributions from each
-structural shock, identified via a lower-triangular Cholesky factor K.
-Mirrors the MATLAB \code{hist_decmp(y, beta, residuals, c, p, K, series)}.
+structural shock, identified via an impact matrix K. Supports both
+Cholesky (lower-triangular K) and Blanchard-Quah (general K)
+identification. Mirrors the MATLAB
+\code{hist_decmp(y, beta, residuals, c, p, K, series)}.
 }
 \details{
 The structural shocks are recovered as
@@ -44,19 +47,21 @@ structural shocks \eqn{\varepsilon_{t:-1:0,j}}:
 }
 \examples{
 \dontrun{
+# Cholesky identification
 var_result <- fVAR(y, p = 12, c = 1)
-K <- t(chol(var_result$sigma_full))
-series <- match("UNCERT", colnames(y))
+K_chol <- t(chol(var_result$sigma))
+hd <- fhistdec(y, var_result, K_chol, series = 1)
 
-hd <- fhistdec(y, var_result, K, series)
-
-# hd$histdec is (T-p) x N; hd$ystar is the demeaned series
-matplot(hd$histdec, type = "l")
-lines(hd$ystar, lwd = 2)
+# BQ identification
+wold  <- fwoldIRF(var_result, horizon = 40)
+C1    <- apply(wold, c(1, 2), sum)
+D1    <- t(chol(C1 \%*\% var_result$sigma \%*\% t(C1)))
+K_bq  <- solve(C1, D1)
+hd_bq <- fhistdec(y, var_result, K_bq, series = 1)
 }
 
 }
 \seealso{
 \code{\link{fVAR}}, \code{\link{fcholeskyIRF}},
-  \code{\link{fwoldIRF}}, \code{\link{plothistdec}}
+  \code{\link{fwoldIRF}}, \code{\link{fplot_histdec}}
 }

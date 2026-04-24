@@ -6,14 +6,13 @@
 \usage{
 fplotirf_chol(
   point,
-  upper,
-  lower,
+  boot_result,
   shock,
   varnames,
-  prc,
   return_data = FALSE,
   ribbon_fill = "#407EC9",
-  ribbon_alpha = 0.3,
+  ribbon_alpha = 0.2,
+  ribbon_alpha2 = 0.35,
   line_color = "#910048",
   zero_line_color = "#707372",
   facet_scales = "free",
@@ -21,70 +20,40 @@ fplotirf_chol(
 )
 }
 \arguments{
-\item{point}{Array of point estimates (N x N x horizon)}
+\item{point}{Array of point estimates (N x N x horizon), typically from
+\code{fcholeskyIRF()}.}
 
-\item{upper}{Array of upper confidence bounds (N x N x horizon)}
+\item{boot_result}{List returned by \code{fbootstrapChol()} or
+\code{fbootstrapCholCorrected()}. Must contain \code{upper} and
+\code{lower}. If \code{upper2} and \code{lower2} are present, a second
+(inner) confidence band is drawn automatically.}
 
-\item{lower}{Array of lower confidence bounds (N x N x horizon)}
+\item{shock}{Integer, which shock to plot (1-indexed, 1 to N).}
 
-\item{shock}{Integer, which shock to plot (1-indexed, typically 1 to N)}
+\item{varnames}{Character vector of variable names (length N).}
 
-\item{varnames}{Character vector of variable names (length N)}
-
-\item{prc}{Numeric, confidence level percentage (e.g., 68 or 95)}
-
-\item{return_data}{Logical, if TRUE returns tibble instead of plot}
+\item{return_data}{Logical, if TRUE returns tibble instead of plot. Default FALSE.}
 
 \item{ribbon_fill}{Color for confidence band fill (default: "#407EC9")}
 
-\item{ribbon_alpha}{Transparency for confidence band (default: 0.3)}
+\item{ribbon_alpha}{Transparency for outer confidence band (default: 0.2)}
+
+\item{ribbon_alpha2}{Transparency for inner confidence band (default: 0.35)}
 
 \item{line_color}{Color for point estimate line (default: "#910048")}
 
 \item{zero_line_color}{Color for horizontal zero line (default: "#707372")}
 
-\item{facet_scales}{Facet scales option: "free", "free_y", "free_x", or "fixed" (default: "free")}
+\item{facet_scales}{Facet scales option: "free", "free_y", "free_x", or
+"fixed" (default: "free")}
 
 \item{facet_ncol}{Number of columns in facet grid (default: NULL, auto-calculated)}
 }
 \value{
-A ggplot object (if return_data = FALSE) or tibble (if return_data = TRUE)
+A ggplot object (if \code{return_data = FALSE}) or a tibble.
 }
 \description{
-Creates a grid of IRF plots showing responses of all variables to a single shock,
-with shaded confidence bands using ggplot2. Designed for Cholesky-identified VARs.
-}
-\details{
-This function extracts the impulse responses of all N variables to a specific shock
-from 3D arrays (typically output from fbootstrapChol). The shock parameter selects
-which column (shock) to visualize across all response variables.
-
-The plot uses the currently active ggplot2 theme. For a consistent look with other
-tidyMacro plots, use \code{ftheme_tidyMacro()} or set it globally with
-\code{set_tidyMacro_theme()}.
-}
-\examples{
-\dontrun{
-# Estimate VAR and compute Cholesky IRF
-var_result <- fVAR(y, p = 2, c = 1)
-wold <- fwoldIRF(var_result, horizon = 20)
-S <- t(chol(var_result$sigma_full))
-point_irf <- fcholeskyIRF(wold, S)
-
-# Bootstrap confidence bands
-boot_result <- fbootstrapChol(y, var_result, nboot = 1000, 
-                              horizon = 20, prc = 68, bootscheme = "residual")
-
-# Plot responses to first shock
-fplotirf_chol(point_irf, boot_result$upper, boot_result$lower, 
-              shock = 1, varnames = c("GDP", "Inflation", "Interest Rate"),
-              prc = 68)
-
-# Use custom theme
-fplotirf_chol(point_irf, boot_result$upper, boot_result$lower, 
-              shock = 1, varnames = c("GDP", "Inflation", "Interest Rate"),
-              prc = 68) +
-  ftheme_tidyMacro()
-}
-
+Creates a grid of IRF plots showing responses of all variables to a single
+shock, with shaded confidence bands using ggplot2. Designed for
+Cholesky-identified VARs.
 }

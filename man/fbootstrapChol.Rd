@@ -2,15 +2,16 @@
 % Please edit documentation in R/RcppExports.R
 \name{fbootstrapChol}
 \alias{fbootstrapChol}
-\title{Bootstrap Cholesky Impulse Response Functions}
+\title{Bootstrap Cholesky Identified Impulse Response Functions}
 \usage{
 fbootstrapChol(
   y,
   var_result,
   nboot,
   horizon,
-  prc,
-  bootscheme,
+  prc = 90,
+  prc2 = 68,
+  bootscheme = "residual",
   exog = NULL,
   n_threads = 0L
 )
@@ -18,23 +19,36 @@ fbootstrapChol(
 \arguments{
 \item{y}{T x N matrix of original endogenous variables.}
 
-\item{var_result}{List from \code{fVAR}.}
+\item{var_result}{List from \code{fVAR()}.}
 
 \item{nboot}{Number of bootstrap replications.}
 
 \item{horizon}{Maximum IRF horizon.}
 
-\item{prc}{Confidence level in percent (e.g. 68).}
+\item{prc}{Outer confidence level in percent (e.g. 90).}
+
+\item{prc2}{Inner confidence level in percent (e.g. 68).}
 
 \item{bootscheme}{\code{"residual"} or \code{"wild"}.}
 
-\item{exog}{Optional T x M exogenous matrix. Default NULL.}
+\item{exog}{Optional T x M matrix of exogenous variables. Must be provided
+if the original VAR was estimated with exogenous variables; must be
+omitted otherwise.}
 
-\item{n_threads}{OpenMP threads. 0 = all cores minus one.}
+\item{n_threads}{Number of OpenMP threads. 0 = all cores minus one.
+Default 0.}
 }
 \value{
-List: \code{bootchol}, \code{upper}, \code{lower}, \code{boot_beta}.
+List with elements:
+  \describe{
+    \item{bootchol}{N x N x (horizon+1) x nboot array of bootstrapped Cholesky IRFs}
+    \item{upper}{N x N x (horizon+1) outer upper confidence bands}
+    \item{lower}{N x N x (horizon+1) outer lower confidence bands}
+    \item{upper2}{N x N x (horizon+1) inner upper confidence bands}
+    \item{lower2}{N x N x (horizon+1) inner lower confidence bands}
+    \item{boot_beta}{N x (Np+c) x nboot array of bootstrapped coefficients}
+  }
 }
 \description{
-Bootstrap Cholesky Impulse Response Functions
+Bootstrap Cholesky Identified Impulse Response Functions
 }

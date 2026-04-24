@@ -14,12 +14,14 @@
 #include <omp.h>
 #endif
 #include <cstdio>
+#include <algorithm>
+#include <vector>
 
 // Internal C++ function (called from other C++ code)
 // Calls _cpp versions of internal functions - no list overhead!
 BootstrapBQResult
 fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
-                 int horizon, double prc, const std::string &bootscheme,
+                 int horizon, double prc, double prc2, const std::string &bootscheme,
                  const arma::uvec &cumulate,
                  Rcpp::Nullable<arma::vec> scaling, int n_threads = 0) {
 
@@ -37,6 +39,16 @@ fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
 
   arma::mat bootbq_flat(slice_sz, nboot, arma::fill::zeros);
   arma::cube boot_beta(N, n_coef, nboot, arma::fill::zeros);
+
+  // Hoist the Rcpp::Nullable<arma::vec> scaling parse out of the parallel loop.
+  bool   has_scaling = scaling.isNotNull();
+  int    scale_idx   = 0;
+  double scale_size  = 0.0;
+  if (has_scaling) {
+    arma::vec s = Rcpp::as<arma::vec>(scaling);
+    scale_idx   = static_cast<int>(s(0)) - 1;
+    scale_size  = s(1);
+  }
 
   int actual_threads = 1;
 
@@ -73,14 +85,14 @@ fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
     const arma::cube &wold_loop = wold_result.irfwold;
 
     // BQ identification: C1 = sum of Wold slices, D1 = lower chol, K = C1\D1
-    // sigma_full from fVAR_cpp already uses (T-1-p-N*p) denominator
+    // sigma from fVAR_cpp uses DF-corrected denominator: (T-p) - c - N*p - n_exog
     arma::mat C1(N, N, arma::fill::zeros);
     for (int h = 0; h < H; ++h) {
       C1 += wold_loop.slice(h);
     }
 
     arma::mat D1;
-    arma::mat LR_cov = C1 * var_loop.sigma_full * C1.t();
+    arma::mat LR_cov = C1 * var_loop.sigma * C1.t();
     if (!arma::chol(D1, LR_cov, "lower")) {
       // Regularise if not positive definite
       LR_cov = 0.5 * (LR_cov + LR_cov.t());
@@ -90,8 +102,9 @@ fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
 
     arma::mat K_loop = arma::solve(C1, D1);
 
-    // Compute BQ IRFs with optional scaling
-    arma::cube bqirf_loop = fbqIRF(wold_loop, K_loop, scaling);
+    // Compute BQ IRFs with optional scaling (pre-parsed — no Rcpp::as here)
+    arma::cube bqirf_loop =
+        fbqIRF_cpp(wold_loop, K_loop, has_scaling, scale_idx, scale_size);
 
     // Cumulate selected variables along horizon (0-based indices in cumulate)
     // Extract to temporary vec first — arma::cumsum does not accept subviews
@@ -107,37 +120,51 @@ fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
   }
 
   // Compute percentile bands
-  const double up_pct  = 50.0 + prc * 0.5;
-  const double low_pct = 50.0 - prc * 0.5;
+  const double up_pct   = 50.0 + prc  * 0.5;
+  const double low_pct  = 50.0 - prc  * 0.5;
+  const double up_pct2  = 50.0 + prc2 * 0.5;
+  const double low_pct2 = 50.0 - prc2 * 0.5;
 
   arma::vec upper_vec(slice_sz);
   arma::vec lower_vec(slice_sz);
+  arma::vec upper2_vec(slice_sz);
+  arma::vec lower2_vec(slice_sz);
 
-  auto pctile = [](const arma::vec &sv, double pct) -> double {
-    const int n = sv.n_elem;
-    double idx = (pct / 100.0) * (n - 1);
-    int lo = static_cast<int>(idx);
-    double frac = idx - lo;
-    return (lo < n - 1) ? sv(lo) * (1.0 - frac) + sv(lo + 1) * frac
-                        : sv(n - 1);
+  auto nth_pct = [](std::vector<double>& v, double pct) -> double {
+    const int n = static_cast<int>(v.size());
+    const double raw = (pct / 100.0) * (n - 1);
+    const int lo = static_cast<int>(raw);
+    const double frac = raw - lo;
+    std::nth_element(v.begin(), v.begin() + lo, v.end());
+    const double lo_val = v[lo];
+    if (frac < 1e-12 || lo + 1 >= n) return lo_val;
+    return lo_val * (1.0 - frac) +
+           *std::min_element(v.begin() + lo + 1, v.end()) * frac;
   };
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
   for (int i = 0; i < slice_sz; ++i) {
-    arma::vec sv = arma::sort(bootbq_flat.row(i).t());
-    upper_vec(i) = pctile(sv, up_pct);
-    lower_vec(i) = pctile(sv, low_pct);
+    arma::rowvec row_rv = bootbq_flat.row(i);
+    std::vector<double> sv(row_rv.begin(), row_rv.end());
+    upper_vec(i)  = nth_pct(sv, up_pct);
+    lower_vec(i)  = nth_pct(sv, low_pct);
+    upper2_vec(i) = nth_pct(sv, up_pct2);
+    lower2_vec(i) = nth_pct(sv, low_pct2);
   }
 
-  arma::cube upper(upper_vec.memptr(), N, N, H, false, true);
-  arma::cube lower(lower_vec.memptr(), N, N, H, false, true);
+  arma::cube upper (upper_vec.memptr(),  N, N, H, false, true);
+  arma::cube lower (lower_vec.memptr(),  N, N, H, false, true);
+  arma::cube upper2(upper2_vec.memptr(), N, N, H, false, true);
+  arma::cube lower2(lower2_vec.memptr(), N, N, H, false, true);
 
   BootstrapBQResult result;
   result.bootbq_flat = bootbq_flat;
   result.upper       = upper;
   result.lower       = lower;
+  result.upper2      = upper2;
+  result.lower2      = lower2;
   result.boot_beta   = boot_beta;
   result.N           = N;
   result.H           = H;
@@ -189,7 +216,7 @@ fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
 //' \dontrun{
 //' var_result <- fVAR(y, p = 2, c = 1)
 //' wold       <- fwoldIRF(var_result, horizon = 40)
-//' Sigma      <- var_result$sigma_full
+//' Sigma      <- var_result$sigma
 //' C1         <- apply(wold, c(1, 2), sum)
 //' D1         <- t(chol(C1 %*% Sigma %*% t(C1)))
 //' K          <- solve(C1, D1)
@@ -204,9 +231,9 @@ fbootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
 //' @export
 // [[Rcpp::export]]
 Rcpp::List fbootstrapBQ(const arma::mat &y, const Rcpp::List &var_result,
-                        int nboot, int horizon, double prc,
-                        const std::string &bootscheme,
-                        const arma::uvec &cumulate,
+                        int nboot, int horizon, double prc = 90.0, double prc2 = 68.0,
+                        const std::string &bootscheme = "residual",
+                        Rcpp::IntegerVector cumulate = Rcpp::IntegerVector(),
                         Rcpp::Nullable<arma::vec> scaling = R_NilValue,
                         int n_threads = 0) {
 
@@ -214,7 +241,7 @@ Rcpp::List fbootstrapBQ(const arma::mat &y, const Rcpp::List &var_result,
   VARResult var_result_struct;
   var_result_struct.beta       = Rcpp::as<arma::mat>(var_result["beta"]);
   var_result_struct.residuals  = Rcpp::as<arma::mat>(var_result["residuals"]);
-  var_result_struct.sigma_full = Rcpp::as<arma::mat>(var_result["sigma_full"]);
+  var_result_struct.sigma = Rcpp::as<arma::mat>(var_result["sigma"]);
   var_result_struct.p          = Rcpp::as<int>(var_result["p"]);
   var_result_struct.c          = Rcpp::as<int>(var_result["c"]);
   var_result_struct.n_exog     = var_result.containsElementNamed("n_exog")
@@ -222,10 +249,12 @@ Rcpp::List fbootstrapBQ(const arma::mat &y, const Rcpp::List &var_result,
                                    : 0;
 
   // Convert cumulate from 1-based (R) to 0-based (C++)
-  arma::uvec cumulate_cpp = cumulate - 1;
+  arma::uvec cumulate_cpp = (cumulate.size() == 0)
+      ? arma::uvec()
+      : Rcpp::as<arma::uvec>(cumulate) - 1;
 
   BootstrapBQResult result = fbootstrapBQ_cpp(y, var_result_struct, nboot,
-                                              horizon, prc, bootscheme,
+                                              horizon, prc, prc2, bootscheme,
                                               cumulate_cpp, scaling, n_threads);
 
   Rcpp::NumericVector bootbq_out(result.bootbq_flat.begin(),
@@ -236,5 +265,7 @@ Rcpp::List fbootstrapBQ(const arma::mat &y, const Rcpp::List &var_result,
   return Rcpp::List::create(Rcpp::Named("bootbq")    = bootbq_out,
                             Rcpp::Named("upper")     = result.upper,
                             Rcpp::Named("lower")     = result.lower,
+                            Rcpp::Named("upper2")    = result.upper2,
+                            Rcpp::Named("lower2")    = result.lower2,
                             Rcpp::Named("boot_beta") = result.boot_beta);
 }

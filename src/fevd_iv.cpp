@@ -90,7 +90,7 @@ FEVDIVResult fevd_iv_cpp(arma::vec s, arma::mat S, arma::cube wold, int N, int h
 //' 
 //' # IV identification
 //' s <- c(1, 0.5, 0.3)
-//' sigma <- var_result$sigma_full
+//' sigma <- var_result$sigma
 //' S <- t(chol(sigma))
 //' 
 //' # Compute FEVD

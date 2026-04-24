@@ -8,6 +8,13 @@
 BootstrapVARResult fbootstrapVAR_cpp(const arma::mat&    y,
                                      const VARResult&    var_result,
                                      const std::string&  bootscheme) {
+    return fbootstrapVAR_cpp(y, var_result, bootscheme, nullptr);
+}
+
+BootstrapVARResult fbootstrapVAR_cpp(const arma::mat&    y,
+                                     const VARResult&    var_result,
+                                     const std::string&  bootscheme,
+                                     const arma::mat*    exog_ptr) {
 
     // ------------------------------------------------------------------ //
     //  Unpack inputs from struct (much faster than from Rcpp::List)       //
@@ -27,16 +34,23 @@ BootstrapVARResult fbootstrapVAR_cpp(const arma::mat&    y,
     // ------------------------------------------------------------------ //
     // beta layout (rows):  [intercept (if c=1)] | [A_1 ; A_2 ; ... ; A_p]
     // Each A_i is N x N, stored as N rows of beta.
+    const int n_exog_local = var_result.n_exog;
+    const int lag_end_row  = c + N * p - 1;
+
     arma::rowvec intercept;
-    arma::mat    Pi;             // (N*p) x N
+    arma::mat    Pi;
 
     if (c == 1) {
-        intercept = beta.row(0);                      // 1 x N
-        Pi        = beta.rows(1, beta.n_rows - 1);    // (N*p) x N
+        intercept = beta.row(0);
+        Pi        = beta.rows(1, lag_end_row);
     } else {
         intercept = arma::zeros<arma::rowvec>(N);
-        Pi        = beta;                              // (N*p) x N
+        Pi        = beta.rows(0, lag_end_row);
     }
+
+    arma::mat B_exog;
+    if (n_exog_local > 0 && exog_ptr != nullptr)
+        B_exog = beta.rows(lag_end_row + 1, beta.n_rows - 1);
 
     // ------------------------------------------------------------------ //
     //  Build bootstrap residual matrix                                     //
@@ -77,9 +91,9 @@ BootstrapVARResult fbootstrapVAR_cpp(const arma::mat&    y,
     }
 
     for (int i = 0; i < T_iter; ++i) {
-        // y_t = intercept + Pi' * ylag + e_t*
-        // Pi is (N*p) x N, so Pi.t() * ylag gives N x 1
         arma::rowvec yt = intercept + (Pi.t() * ylag).t() + boot_resid.row(i);
+        if (n_exog_local > 0 && exog_ptr != nullptr)
+            yt += (B_exog.t() * exog_ptr->row(p + i).t()).t();
         ynext.row(p + i) = yt;
 
         // Update lag vector: shift down and insert new observation at top
@@ -128,7 +142,7 @@ Rcpp::List fbootstrapVAR(const arma::mat&    y,
     VARResult var_result;
     var_result.beta = Rcpp::as<arma::mat>(fVAR_result["beta"]);
     var_result.residuals = Rcpp::as<arma::mat>(fVAR_result["residuals"]);
-    var_result.sigma_full = Rcpp::as<arma::mat>(fVAR_result["sigma_full"]);
+    var_result.sigma = Rcpp::as<arma::mat>(fVAR_result["sigma"]);
     var_result.p = Rcpp::as<int>(fVAR_result["p"]);
     var_result.c = Rcpp::as<int>(fVAR_result["c"]);
     var_result.n_exog = Rcpp::as<int>(fVAR_result["n_exog"]);
