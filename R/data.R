@@ -120,13 +120,12 @@
 #' identified as the shock with no contemporaneous effect on TFP that
 #' maximises the long-run forecast error variance of TFP.
 #'
-#' @format A data frame with rows and 5 columns:
+#' @format A data frame with rows and 4 columns:
 #' \describe{
-#'   \item{Date}{Quarter end date (\code{Date})}
-#'   \item{TFP}{Log total factor productivity, in percent}
-#'   \item{SP500}{Log S&P 500 stock price index, in percent}
-#'   \item{Consumption}{Log real private consumption, in percent}
-#'   \item{Hours}{Log total hours worked, in percent}
+#'   \item{logTFP}{Log total factor productivity (Fernald index, base ≈ 100)}
+#'   \item{logSP500}{Log real S&P 500 stock price}
+#'   \item{logConsumption}{Log real private consumption}
+#'   \item{logHours}{Log total hours worked in the business sector}
 #' }
 #'
 #' @details
@@ -149,6 +148,6 @@
 #' data("BeaudryPortier2014")
 #' head(BeaudryPortier2014)
 #' y <- BeaudryPortier2014 |>
-#'   dplyr::select(TFP, SP500, Consumption, Hours) |>
+#'   dplyr::select(logTFP, logSP500, logConsumption, logHours) |>
 #'   as.matrix()
 "BeaudryPortier2014"

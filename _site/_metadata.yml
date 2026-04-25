@@ -3,6 +3,7 @@ author:
     url: https://mciftci.netlify.app
     affiliation: Goethe University Frankfurt
 date: today
+editor: visual
 format:
   html:
     number-sections: true

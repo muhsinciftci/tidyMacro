@@ -12,13 +12,13 @@ website:
     foreground: "#FFF1E5"
     logo: logo.png
     logo-alt: "tidyMacro"
-    logo-href: index.qmd
+    logo-href: Home.qmd
     title: false
     pinned: true
     collapse: true
     left:
       - text: "Home"
-        href: index.qmd
+        href: Home.qmd
       - text: "Replications"
         menu:
           - text: "Bloom (2009) — Uncertainty Shocks"
@@ -42,7 +42,7 @@ website:
   page-footer:
     left: "Built with [Quarto](https://quarto.org)"
     center: "© 2025 Muhsin Ciftci · Goethe University Frankfurt"
-    right: "[tidyMacro](index.qmd)"
+    right: "[tidyMacro](Home.qmd)"
     background: "#33302E"
     foreground: "#FFF1E5"
 
@@ -51,7 +51,7 @@ website:
 
   open-graph:
     title: "tidyMacro"
-    description: "High-Performance Vector Autoregression in R"
+    description: "High-Performance Structural Vector Autoregressions (SVARs) in R"
 
 format:
   html:

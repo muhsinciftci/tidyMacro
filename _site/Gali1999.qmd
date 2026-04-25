@@ -1,8 +1,10 @@
 ---
 title: "Replication: Galí (1999)"
 subtitle: "Technology, Employment, and the Business Cycle: Do Technology Shocks Explain Aggregate Fluctuations?"
+editor: visual
 editor_options: 
   chunk_output_type: console
+bibliography: references.bib
 ---
 
 ```{r, include=FALSE}
@@ -15,7 +17,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This document replicates the main empirical results of @galí1999, which identifies technology shocks using the Blanchard-Quah (BQ) long-run restriction: only technology shocks can have a permanent effect on labor productivity. The VAR is estimated on US data in first differences, and level responses are recovered by cumulating the IRFs.
+This document replicates the main empirical results of @galí1999 shocks can have a permanent effect on labor productivity.
 
 ## Setup
 
@@ -33,7 +35,10 @@ set_theme(ftheme_tidyMacro())
 ```{r}
 #| label: data
 data("Gali1999")
+Gali1999 |> head()
+```
 
+```{r}
 y <- Gali1999 |> select(Productivity, Hours) |> as.matrix()
 dates <- Gali1999 |> pull(Date)
 
@@ -58,12 +63,6 @@ Sigma <- var_result$sigma
 ```
 
 ## BQ Identification
-
-Galí (1999) assumes only technology shocks have a permanent effect on labour productivity. This imposes a lower-triangular structure on the long-run multiplier matrix $C_1 K$, identified via:
-
-$$
-C_1 = \sum_{h=0}^{H} \Psi_h, \quad D_1 = \text{chol}(C_1 \Sigma C_1')^\top, \quad K = C_1^{-1} D_1
-$$
 
 ```{r}
 #| label: bq-identification
@@ -103,11 +102,11 @@ toc()
 
 ## Impulse Response Functions
 
-Level responses are recovered by cumulating the first-differenced IRFs. The first shock is the technology shock; the second is the non-technology shock.
+Level responses are recovered by accumulating the first-differenced IRFs. The first shock is the technology shock; the second is the non-technology shock.
 
 ```{r}
 #| label: fig-irf
-#| fig-cap: "Impulse response functions to technology and non-technology shocks (90%/68% confidence bands)"
+#| fig-cap: "Impulse response functions to technology and non-technology shocks (68% and 90% confidence bands)"
 
 fplotirf_bq(
   point       = irf_bq,
@@ -128,7 +127,7 @@ fplotirf_bq(
 # Cumulate BQ IRF along horizon (dim 3) to get level responses
 irf_cumu <- irf_bq
 for (h in 2:dim(irf_bq)[3]) {
-  irf_cumu[,, h] <- irf_cumu[,, h] + irf_cumu[,, h - 1]
+  irf_cumu[, , h] <- irf_cumu[, , h] + irf_cumu[, , h - 1]
 }
 
 # FEVD — reuses Cholesky FEVD function (same maths)
@@ -173,11 +172,7 @@ fplot_histdec(
 
 ## Conditional Correlations
 
-Following Galí (1999), we decompose the unconditional correlation between hours and productivity into shock-specific conditional correlations. The conditional correlation for shock $i$ is:
-
-$$
-\rho_i = \frac{\sum_{h=0}^{H} \Psi_{1i,h} \, \Psi_{2i,h}}{\sqrt{\left(\sum_{h=0}^{H} \Psi_{1i,h}^2\right)\left(\sum_{h=0}^{H} \Psi_{2i,h}^2\right)}}
-$$
+Following @galí1999 , we decompose the unconditional correlation between hours and productivity into shock-specific conditional correlations. The conditional correlation for shock $i$ is:
 
 ```{r}
 #| label: cond-corr
@@ -212,5 +207,4 @@ cat("Conditional correlation | Technology shock:     ", round(cond_corr[1], 3), 
 cat("Conditional correlation | Non-Technology shock: ", round(cond_corr[2], 3), "\n")
 ```
 
-The unconditional correlation between hours and productivity is small, at odds with standard RBC models. However, the conditional correlation driven by the technology shock is **negative**: a positive technology shock reduces hours worked. The non-technology shock yields a positive conditional correlation — the pattern RBC theory incorrectly attributed to technology.
-
+Hours and productivity are nearly uncorrelated unconditionally, which sits uncomfortably with standard RBC theory. Once we condition on the source of variation, the picture sharpens: technology improvements are accompanied by a *decline* in hours, producing a negative conditional correlation. It is the non-technology shock that drives hours and productivity in the same direction — precisely the co-movement that RBC models mistakenly ascribed to technology.

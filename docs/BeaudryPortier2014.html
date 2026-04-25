@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Muhsin Ciftci">
-<meta name="dcterms.date" content="2026-04-25">
+<meta name="dcterms.date" content="2026-04-26">
 
 <title>Replication: Beaudry and Portier (2014) – tidyMacro</title>
 <style>
@@ -60,7 +60,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -109,38 +128,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <meta property="og:title" content="tidyMacro">
-<meta property="og:description" content="High-Performance Vector Autoregression in R">
+<meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) in R">
 <meta property="og:image" content="BeaudryPortier2014_files/figure-html/fig-irf-boot-max-1.png">
 <meta property="og:site_name" content="tidyMacro">
 </head>
@@ -152,7 +142,7 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <a href="./Home.html" class="navbar-brand navbar-brand-logo">
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
@@ -164,7 +154,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="./Home.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -201,6 +191,11 @@ window.Quarto = {
 </i> 
 <span class="menu-text"></span></a>
   </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/muhsin-ciftci/"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -221,8 +216,8 @@ window.Quarto = {
   <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data"><span class="header-section-number">3</span> Data</a></li>
   <li><a href="#var-estimation" id="toc-var-estimation" class="nav-link" data-scroll-target="#var-estimation"><span class="header-section-number">4</span> VAR Estimation</a></li>
   <li><a href="#news-shock-identification" id="toc-news-shock-identification" class="nav-link" data-scroll-target="#news-shock-identification"><span class="header-section-number">5</span> News Shock Identification</a></li>
-  <li><a href="#bootstrap-confidence-bands-lr-max-identification" id="toc-bootstrap-confidence-bands-lr-max-identification" class="nav-link" data-scroll-target="#bootstrap-confidence-bands-lr-max-identification"><span class="header-section-number">6</span> Bootstrap Confidence Bands: LR-Max Identification</a></li>
-  <li><a href="#bootstrap-confidence-bands-uhlig-max-share-identification" id="toc-bootstrap-confidence-bands-uhlig-max-share-identification" class="nav-link" data-scroll-target="#bootstrap-confidence-bands-uhlig-max-share-identification"><span class="header-section-number">7</span> Bootstrap Confidence Bands: Uhlig Max-Share Identification</a></li>
+  <li><a href="#bootstrap-confidence-bands" id="toc-bootstrap-confidence-bands" class="nav-link" data-scroll-target="#bootstrap-confidence-bands"><span class="header-section-number">6</span> Bootstrap Confidence Bands</a></li>
+  <li><a href="#compare-the-result-to-barsky2012" id="toc-compare-the-result-to-barsky2012" class="nav-link" data-scroll-target="#compare-the-result-to-barsky2012"><span class="header-section-number">7</span> Compare the result to <span class="citation" data-cites="barsky2012">Barsky and Sims (2012)</span></a></li>
   </ul>
 </nav>
 </nav>
@@ -260,7 +255,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2026</p>
+      <p class="date">April 26, 2026</p>
     </div>
   </div>
   
@@ -274,7 +269,7 @@ window.Quarto = {
 
 <section id="overview" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> Overview</h2>
-<p>This document replicates the news shock identification of <span class="citation" data-cites="beaudryportier2014">(<a href="#ref-beaudryportier2014" role="doc-biblioref"><strong>beaudryportier2014?</strong></a>)</span>. A news shock is identified as the shock that (i) has <strong>no contemporaneous effect on TFP</strong> and (ii) <strong>maximizes the long-run response of TFP</strong> at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.</p>
+<p>This document replicates the news shock identification of <span class="citation" data-cites="beaudry2014">Beaudry and Portier (<a href="#ref-beaudry2014" role="doc-biblioref">2014</a>)</span> . A news shock is identified as the shock that has <strong>no contemporaneous effect on TFP</strong> but <strong>maximizes the long-run response of TFP</strong> at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.</p>
 </section>
 <section id="setup" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="setup"><span class="header-section-number">2</span> Setup</h2>
@@ -289,11 +284,12 @@ window.Quarto = {
 <section id="data" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="data"><span class="header-section-number">3</span> Data</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Variables: log TFP, log SP500, log Consumption, log Hours</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>y        <span class="ot">&lt;-</span> BeaudryPortier2014 <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>T_obs    <span class="ot">&lt;-</span> <span class="fu">nrow</span>(y)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>N        <span class="ot">&lt;-</span> <span class="fu">ncol</span>(y)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>varnames <span class="ot">&lt;-</span> <span class="fu">colnames</span>(y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"BeaudryPortier2014"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>y        <span class="ot">&lt;-</span> BeaudryPortier2014 <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>T_obs    <span class="ot">&lt;-</span> <span class="fu">nrow</span>(y)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>N        <span class="ot">&lt;-</span> <span class="fu">ncol</span>(y)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>varnames <span class="ot">&lt;-</span> <span class="fu">colnames</span>(y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="var-estimation" class="level2" data-number="4">
@@ -302,20 +298,12 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">2</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="dv">1</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate VAR: y_t = c + A_1 y_{t-1} + ... + A_p y_{t-p} + e_t</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>var_result <span class="ot">&lt;-</span> <span class="fu">fVAR</span>(y, <span class="at">p =</span> p, <span class="at">c =</span> c)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Variance-covariance matrix of reduced-form residuals</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> var_result<span class="sc">$</span>sigma</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>var_result <span class="ot">&lt;-</span> <span class="fu">fVAR</span>(y, <span class="at">p =</span> p, <span class="at">c =</span> c)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> var_result<span class="sc">$</span>sigma</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="news-shock-identification" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="news-shock-identification"><span class="header-section-number">5</span> News Shock Identification</h2>
-<p>The news shock is identified as the shock that has zero impact on TFP but maximises the long-run response of TFP at horizon <span class="math inline">\(H = 40\)</span>. Let <span class="math inline">\(\Psi_h\)</span> denote the <span class="math inline">\(h\)</span>-step Wold coefficient matrices and <span class="math inline">\(S\)</span> the lower Cholesky factor of <span class="math inline">\(\Sigma\)</span>. We search for a unit vector <span class="math inline">\(\mathbf{h}\)</span> such that the structural impact vector is:</p>
-<p><span class="math display">\[
-\mathbf{b} = S \begin{pmatrix} 0 \\ \mathbf{h}/\|\mathbf{h}\| \end{pmatrix}
-\]</span></p>
-<p>and the last-horizon response of TFP, <span class="math inline">\(e_1^\top \Psi_H \mathbf{b}\)</span>, is maximized.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>horizon <span class="ot">&lt;-</span> <span class="dv">40</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -325,27 +313,26 @@ window.Quarto = {
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower Cholesky factor of Sigma</span></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">chol</span>(Sigma))</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># LR-Max point estimate: closed-form solution, sign-normalised</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># LR-Max point estimate</span></span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>struct_irf <span class="ot">&lt;-</span> <span class="fu">fmaxIRF</span>(wold, S, <span class="at">var_idx =</span> <span class="dv">1</span>L)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="bootstrap-confidence-bands-lr-max-identification" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="bootstrap-confidence-bands-lr-max-identification"><span class="header-section-number">6</span> Bootstrap Confidence Bands: LR-Max Identification</h2>
+<section id="bootstrap-confidence-bands" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="bootstrap-confidence-bands"><span class="header-section-number">6</span> Bootstrap Confidence Bands</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>boot_max <span class="ot">&lt;-</span> <span class="fu">fbootstrapMaxCorrected</span>(</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">y          =</span> y,</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">var_result =</span> var_result,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot1     =</span> <span class="dv">2000</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot2     =</span> <span class="dv">4000</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot1     =</span> <span class="dv">1000</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot2     =</span> <span class="dv">2000</span>,</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">horizon    =</span> horizon,</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">var_idx    =</span> <span class="dv">1</span>,          <span class="co"># maximise long-run effect on TFP (variable 1)</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">cumulate   =</span> <span class="fu">integer</span>(<span class="dv">0</span>), <span class="co"># no cumulation (levels data)</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc        =</span> <span class="dv">68</span>,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc2       =</span> <span class="dv">68</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.615 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc        =</span> <span class="dv">68</span>          <span class="co"># Match original paper</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.283 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fplotirfLR</span>(</span>
@@ -353,7 +340,7 @@ window.Quarto = {
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">boot_result =</span> boot_max,</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">varnames    =</span> varnames,</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">facet_ncol  =</span> <span class="dv">2</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">y  =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-irf-boot-max" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -361,32 +348,32 @@ window.Quarto = {
 <img src="BeaudryPortier2014_files/figure-html/fig-irf-boot-max-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-boot-max-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: IRF to news shock with 90%/68% LR-Max bootstrap bands
+Figure&nbsp;1: IRF to Tech. news shock — LR-Max bootstrap (68% and 90% confidence bands)
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="bootstrap-confidence-bands-uhlig-max-share-identification" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="bootstrap-confidence-bands-uhlig-max-share-identification"><span class="header-section-number">7</span> Bootstrap Confidence Bands: Uhlig Max-Share Identification</h2>
+<section id="compare-the-result-to-barsky2012" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="compare-the-result-to-barsky2012"><span class="header-section-number">7</span> Compare the result to <span class="citation" data-cites="barsky2012">Barsky and Sims (<a href="#ref-barsky2012" role="doc-biblioref">2012</a>)</span></h2>
+<p>Now we can compare the results to that of <span class="citation" data-cites="barsky2012">Barsky and Sims (<a href="#ref-barsky2012" role="doc-biblioref">2012</a>)</span> and plot IRF results.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Point estimate: FEV-maximising h2, sign-normalised</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>struct_irf_uhlig <span class="ot">&lt;-</span> <span class="fu">fuhligIRF</span>(wold, S, <span class="at">idx =</span> <span class="dv">1</span>L)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>boot_uhlig <span class="ot">&lt;-</span> <span class="fu">fbootstrapUhligCorrected</span>(</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">y          =</span> y,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">var_result =</span> var_result,</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot1     =</span> <span class="dv">2000</span>,</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot2     =</span> <span class="dv">4000</span>,</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">horizon    =</span> horizon,</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">idx        =</span> <span class="dv">1</span>L,        <span class="co"># maximise FEV share of TFP (variable 1)</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">cumulate   =</span> <span class="fu">integer</span>(<span class="dv">0</span>),</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc        =</span> <span class="dv">68</span> <span class="co"># Match original study</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.497 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>struct_irf_uhlig <span class="ot">&lt;-</span> <span class="fu">fuhligIRF</span>(wold, S, <span class="at">idx =</span> <span class="dv">1</span>L)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>boot_uhlig <span class="ot">&lt;-</span> <span class="fu">fbootstrapUhligCorrected</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">y          =</span> y,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">var_result =</span> var_result,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot1     =</span> <span class="dv">1000</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">nboot2     =</span> <span class="dv">2000</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">horizon    =</span> horizon,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">idx        =</span> <span class="dv">1</span>L,        <span class="co"># maximise FEV share of TFP (variable 1)</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">cumulate   =</span> <span class="fu">integer</span>(<span class="dv">0</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc        =</span> <span class="dv">68</span>         <span class="co"># Match original study</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.271 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fplotirfLR</span>(</span>
@@ -394,7 +381,7 @@ Figure&nbsp;1: IRF to news shock with 90%/68% LR-Max bootstrap bands
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">boot_result =</span> boot_uhlig,</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">varnames    =</span> varnames,</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">facet_ncol  =</span> <span class="dv">2</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">y  =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-irf-boot-uhlig" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -402,7 +389,7 @@ Figure&nbsp;1: IRF to news shock with 90%/68% LR-Max bootstrap bands
 <img src="BeaudryPortier2014_files/figure-html/fig-irf-boot-uhlig-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-boot-uhlig-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: IRF to news shock with 90%/68% Uhlig max-share bootstrap bands
+Figure&nbsp;2: IRF to news shock — Uhlig max-share bootstrap (68% and 90% confidence bands)
 </figcaption>
 </figure>
 </div>
@@ -410,9 +397,17 @@ Figure&nbsp;2: IRF to news shock with 90%/68% Uhlig max-share bootstrap bands
 </div>
 
 
+
 </section>
 
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-barsky2012" class="csl-entry" role="listitem">
+Barsky, Robert B., and Eric R. Sims. 2012. <span>“Information, Animal Spirits, and the Meaning of Innovations in Consumer Confidence.”</span> <em>American Economic Review</em> 102 (4): 1343–77. <a href="https://doi.org/10.1257/aer.102.4.1343">https://doi.org/10.1257/aer.102.4.1343</a>.
+</div>
+<div id="ref-beaudry2014" class="csl-entry" role="listitem">
+Beaudry, Paul, and Franck Portier. 2014. <span>“News-Driven Business Cycles: Insights and Challenges.”</span> <em>Journal of Economic Literature</em> 52 (4): 993–1074. <a href="https://doi.org/10.1257/jel.52.4.993">https://doi.org/10.1257/jel.52.4.993</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -828,7 +823,7 @@ Figure&nbsp;2: IRF to news shock with 90%/68% Uhlig max-share bootstrap bands
 <p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
 </div>
     <div class="nav-footer-right">
-<p><a href="./index.html">tidyMacro</a></p>
+<p><a href="./Home.html">tidyMacro</a></p>
 </div>
   </div>
 </footer>

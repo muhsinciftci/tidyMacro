@@ -294,7 +294,7 @@ boot_rec <- fBootstrapIVRecover(
 
 ```{r}
 #| label: fig-irf-recover
-#| fig-cap: "IRFs to monetary policy shock — generalized IV (recoverable case)"
+#| fig-cap: "IRFs to monetary policy shock — generalized IV, recoverable case (68% and 90% confidence bands)"
 
 h_seq <- 0:hor
 
@@ -356,7 +356,7 @@ boot_inv <- fBootstrapIVInvertible(
 
 ```{r}
 #| label: fig-irf-invertible
-#| fig-cap: "IRFs to monetary policy shock — standard SVAR-IV (invertible case)"
+#| fig-cap: "IRFs to monetary policy shock — standard SVAR-IV, invertible case (68% and 90% confidence bands)"
 
 irf_inv_tbl <- tibble(
   variable = rep(varnames, each = hor + 1L),
