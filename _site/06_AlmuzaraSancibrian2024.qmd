@@ -1,0 +1,316 @@
+---
+title: "Panel Local Projections"
+subtitle: "Micro Responses to Macro Shocks — Almuzara & Sancibrián (2024)"
+editor: visual
+bibliography: references.bib
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment  = "#>",
+    out.width = "100%"
+)
+```
+
+## Overview
+
+This chapter demonstrates `fLPpanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro.
+
+Like `fLP()`, the syntax is `fixest`-style and **what-you-see-is-what-you-estimate**:
+
+- Formula `y ~ shock + controls | fe1 + fe2` — fixed effects go after `|`.
+- Panel structure via `panel_id = c("id_col", "time_col")`.
+- Macro expansion `..vars` for character-vector variable lists.
+- Panel-aware `l()` / `f()` operators (lags/leads never cross unit boundaries).
+- Multi-band bands from a single fit via `conf = c(0.68, 0.95)`.
+- Plot with `fPlotLP()`.
+
+Under the hood, the engine handles:
+
+- **High-dimensional fixed effects** via alternating group-mean demeaning.
+- **Unbalanced panels** — per-unit hash-lookup shifts, per-horizon `keep` masks (gaps are preserved, never silently closed).
+- **Cumulative** or standard responses.
+- Two SE regimes: asymptotic *time-clustered* (LAHR) or the @imbens2016 small-sample refinement with component-specific effective degrees of freedom.
+
+Below we replicate the workflow of @almuzara2024micro on a synthetic **unbalanced** sample panel, in a single `fLPpanel()` call, and check numerical agreement against the authors' reference R port.
+
+------------------------------------------------------------------------
+
+## Setup
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(patchwork)
+library(tidyMacro)
+```
+
+------------------------------------------------------------------------
+
+## A sample unbalanced panel
+
+::: callout-note
+The @almuzara2024micro application uses proprietary firm-level Compustat/CRSP micro data. What follows is a **synthetic sample panel** built to have the same structure — a common macro shock, a cross-sectional characteristic that scales the response, unit and time fixed effects, and realistic missingness so that anyone can reproduce the workflow end-to-end.
+:::
+
+```{r}
+#| label: sim-unbalanced
+set.seed(1918)
+
+T_dim <- 30
+N     <- 1000
+
+# Common macro shock, unit-specific characteristic, true β = 1 on s·X.
+macro <- rnorm(T_dim)
+firm  <- 1 + rnorm(N)
+
+df_bal <- data.frame(
+  unit  = rep(1:N, times = T_dim),
+  tt    = rep(1:T_dim, each  = N),
+  shock = rep(macro, each  = N),
+  size  = rep(firm,  times = T_dim)
+) |>
+  mutate(
+    y = size * shock +
+        as.vector(outer(0.5 * firm + rnorm(N), rnorm(T_dim))) +
+        rnorm(n())
+  )
+
+# Realistic unbalancedness: (a) staggered entry, (b) random attrition,
+# (c) sprinkled item-level NAs on the response.
+set.seed(2025)
+entry <- sample.int(6, N, replace = TRUE)          # entry at t ∈ 1..6
+exit  <- pmin(T_dim, 14 + rgeom(N, prob = 0.15))   # exit at t ≥ 15
+sparsity_mask <- runif(nrow(df_bal)) > 0.05        # drop 5% of surviving cells
+
+df_panel <- df_bal |>
+    dplyr::filter(tt >= entry[unit], tt <= exit[unit]) |>
+    dplyr::filter(sparsity_mask[row_number()])
+
+```
+
+Coverage pattern for the first 60 firms:
+
+```{r}
+#| label: fig-panel-coverage
+#| fig-cap: "Observation availability by firm and time. Sparse cells reflect staggered entry, mid-sample attrition, and random missingness."
+df_panel |>
+  filter(unit <= 60) |>
+  ggplot(aes(x = tt, y = factor(unit))) +
+    geom_point(size = 0.6, colour = "#0055A4") +
+    scale_x_continuous(breaks = seq(0, T_dim, 5)) +
+    labs(x = "t", y = "Firm id (first 60 firms)") +
+    theme_minimal(base_size = 11) +
+    theme(axis.text.y = element_blank())
+```
+
+------------------------------------------------------------------------
+
+## Estimation — one `fLPpanel()` call
+
+The formula says *exactly* what the estimator does. `shock:size` is the elementwise product $s_{it}\,X_t$ that generates cross-sectional variation (necessary once the unit-invariant shock is absorbed into `tt` fixed effects). Two-way FE go after `|`.
+
+```{r}
+#| label: lp-panel-fit
+lp_pkg <- fLPpanel(
+  y ~ shock:size | unit + tt,
+  data         = df_panel,
+  panel_id     = c("unit", "tt"),   # id + time in a single argument
+  shock        = "shock:size",      # term label whose IRF we want
+  horizons     = 5,
+  conf         = c(0.68, 0.90),     # two bands from a single fit
+  small_sample = TRUE,              # Imbens–Kolesar (2016) refinement
+  cumulative   = TRUE,              # sum_{k=0..h} y_{i,t+k}
+  n_threads    = 2                  # OpenMP over horizons
+)
+```
+
+Tidy output:
+
+```{r}
+#| label: lp-panel-tidy
+tidyMacro:::tidy.fLPpanel(lp_pkg) |>
+  mutate(across(where(is.numeric), \(x) round(x, 4)))
+```
+
+------------------------------------------------------------------------
+
+## Side-by-side check against `fixest`
+
+`fixest` doesn't ship a dedicated panel-LP function, but a cumulative panel LP is *definitionally* a stack of `feols` fits — one per horizon, with the leaded / cumulated regressand on the LHS and the same shock and fixed-effects on the RHS. We build that stack manually and compare it against `fLPpanel()` on the **same unbalanced sample**.
+
+For an apples-to-apples comparison we fit `fLPpanel()` again with `small_sample = FALSE` so both estimators use asymptotic time-clustered (LAHR) standard errors.
+
+```{r}
+#| label: fixest-fit
+library(fixest)
+
+# Panel-aware cumulative-lead. IMPORTANT: `dplyr::lead(y, k)` shifts by
+# ROW INDEX, so it silently closes internal time gaps in an unbalanced
+# panel. To shift by actual TIME we first `complete()` the (unit, tt)
+# grid — missing cells become NA — then `dplyr::lead` steps along real
+# time, matching fLPpanel's per-unit hash-lookup shift.
+df_grid <- df_panel |>
+  tidyr::complete(unit, tt) |>
+  dplyr::arrange(unit, tt)
+
+lead_cumsum <- function(y, h) {
+  s <- y                                              # h = 0 → y itself
+  if (h > 0) for (k in 1:h) s <- s + dplyr::lead(y, k)
+  s
+}
+
+H <- 5
+
+fixest_tbl <- purrr::map_dfr(0:H, function(h) {
+  df_h <- df_grid |>
+    dplyr::group_by(unit) |>
+    dplyr::mutate(y_h = lead_cumsum(y, h)) |>
+    dplyr::ungroup() |>
+    tidyr::drop_na(y_h, shock, size)      # drop grid cells that were empty
+
+  fit <- fixest::feols(y_h ~ shock:size | unit + tt,
+                       data    = df_h,
+                       cluster = ~tt,      # time-clustered LAHR SE
+                       notes   = FALSE)
+  tibble::tibble(
+    h        = h,
+    estimate = coef(fit)[["shock:size"]],
+    se       = fit$se[["shock:size"]]
+  )
+}) |>
+  dplyr::mutate(
+    lo90 = estimate - stats::qnorm(0.95) * se,
+    hi90 = estimate + stats::qnorm(0.95) * se
+  )
+```
+
+```{r}
+#| label: pkg-refit-asy
+# Refit with asymptotic time-clustered SE for the fixest comparison.
+lp_pkg_asy <- fLPpanel(
+  y ~ shock:size | unit + tt,
+  data         = df_panel,
+  panel_id     = c("unit", "tt"),
+  shock        = "shock:size",
+  horizons     = H,
+  conf         = 0.90,
+  small_sample = FALSE,       # asymptotic LAHR to match fixest
+  cumulative   = TRUE,
+  n_threads    = 2
+)
+```
+
+Point estimates coincide to machine precision — both fits solve the same OLS system on the same effective sample. Standard errors agree up to fixest's finite-sample cluster multiplier $G/(G-1)\cdot(N-1)/(N-k)$, which `fLPpanel` does not apply in its asymptotic LAHR mode:
+
+```{r}
+#| label: fixest-diff
+cat(sprintf(
+  "max |estimate diff| = %.3e\nmax |SE       diff| = %.3e  (fixest cluster small-sample multiplier)\n",
+  max(abs(as.vector(lp_pkg_asy$irfs)    - fixest_tbl$estimate)),
+  max(abs(as.vector(lp_pkg_asy$irfs_se) - fixest_tbl$se))
+))
+```
+
+```{r}
+#| label: fig-panel-lp-fixest
+#| fig-cap: "IRF and 90% band on the unbalanced sample. Left: tidyMacro::fLPpanel() with asymptotic time-clustered SEs. Right: stack of fixest::feols fits, one per horizon, with the same clustering."
+horizons <- 0:H
+blue     <- "#0055A4"
+
+mk_panel <- function(est, lo, hi, title) {
+  ggplot(data.frame(h = horizons, est = est, lo = lo, hi = hi), aes(x = h)) +
+    geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.4) +
+    geom_ribbon(aes(ymin = lo, ymax = hi), fill = blue, alpha = 0.2) +
+    geom_line(aes(y = est), colour = blue, linewidth = 1.2) +
+    geom_point(aes(y = est), colour = blue, size = 3) +
+    scale_x_continuous(breaks = horizons) +
+    labs(title = title, x = "h", y = "Cumulative response") +
+    theme_minimal(base_size = 13)
+}
+
+p_pkg <- mk_panel(as.vector(lp_pkg_asy$irfs),
+                  as.vector(lp_pkg_asy$irfs_lower),
+                  as.vector(lp_pkg_asy$irfs_upper),
+                  "tidyMacro::fLPpanel()")
+p_fx  <- mk_panel(fixest_tbl$estimate,
+                  fixest_tbl$lo90,
+                  fixest_tbl$hi90,
+                  "fixest::feols stack")
+
+p_pkg + p_fx + plot_layout(ncol = 2)
+```
+
+::: {.callout-tip title="What `fLPpanel()` adds over a raw fixest stack"}
+- One call instead of one per horizon.
+- Panel-aware `l()` / `f()` operators that respect unit boundaries.
+- OpenMP-parallel horizon loop (each horizon is independent once y is leaded).
+- Optional @imbens2016 small-sample refinement with component-specific effective degrees of freedom (set `small_sample = TRUE`; not in `fixest`).
+- Multi-band CIs from a single fit (`conf = c(0.68, 0.95)`).
+:::
+
+------------------------------------------------------------------------
+
+## Two-band plot via `fPlotLP()`
+
+The result object has class `c("fLPpanel", "fLP")` so every `fLP` helper transfers:
+
+```{r}
+#| label: fig-panel-lp
+#| fig-cap: "Cumulative response with 68% (inner) and 90% (outer) Imbens-Kolesar bands"
+fPlotLP(lp_pkg) +
+  ggplot2::labs(x = "h", y = "Cumulative response")
+```
+
+------------------------------------------------------------------------
+
+## Other supported specifications
+
+**No interaction, one-way FE.** Bare `shock` term, unit FE only:
+
+```{r}
+#| label: lp-panel-noint
+set.seed(42)
+df_alt <- df_panel |>
+  mutate(shock_i = shock + 0.3 * rnorm(n()),   # firm-varying shock
+         X1      = rnorm(n()))
+df_alt$y_alt <- 1.0 * df_alt$shock_i + 0.3 * df_alt$X1 + rnorm(nrow(df_alt))
+
+fLPpanel(
+  y_alt ~ X1 + shock_i | unit,
+  data     = df_alt,
+  panel_id = c("unit", "tt"),
+  shock    = "shock_i",
+  horizons = 4, n_threads = 2
+)
+```
+
+**No fixed effects.** Omit the `|` entirely — becomes pooled OLS with time-clustered SEs:
+
+```{r}
+#| label: lp-panel-nofe
+fLPpanel(
+  y_alt ~ X1 + shock_i,
+  data     = df_alt,
+  panel_id = c("unit", "tt"),
+  shock    = "shock_i",
+  horizons = 4, n_threads = 2
+)
+```
+
+**Panel-aware lags with macros.** `l()` / `f()` respect unit boundaries; macros expand inside them:
+
+```{r}
+#| label: lp-panel-lags
+controls <- c("shock")
+fLPpanel(
+  y ~ shock:size + l(..controls, 1:2) + l(y, 1:2) | unit + tt,
+  data     = df_panel,
+  panel_id = c("unit", "tt"),
+  shock    = "shock:size",
+  horizons = 5, conf = 0.90, n_threads = 2
+)
+```

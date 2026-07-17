@@ -12,4 +12,9 @@
 ^data/.*\.xlsx$
 ^_pkgdown\.yml$
 ^CLAUDE\.md$
-
+^CODEX\.md$
+^AGENTS\.md$
+^\.claude$
+^\.claude/
+^\.codex$
+^\.codex/

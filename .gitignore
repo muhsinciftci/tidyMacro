@@ -22,4 +22,9 @@ inst/
 TODO.md
 CLAUDE.md
 CODEX.md
+AGENTS.md
 .claude/
+.codex/
+
+/.quarto/
+**/*.quarto_ipynb

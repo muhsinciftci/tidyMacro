@@ -1,0 +1,366 @@
+---
+title: "Local Projections with Shocks and IV"
+subtitle: "A guided tour via Jordà and Taylor (2025)"
+editor: visual
+bibliography: references.bib
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    out.width = "100%"
+)
+```
+
+## Overview
+
+This document is both a **replication** of @jorda2025 and a **feature tour** of `tidyMacro`'s local-projection tools:
+
+- `fLP()` — Jordà (2005) local projections with a `fixest`-style formula, automatic lag / lead operators (`l(x, 1:4)`), macro expansion (`..controls`), multi-equation LHS (`c(y1, y2, y3) ~ ...`) and **multi-level confidence bands from a single fit** (`conf = c(0.68, 0.95)`).
+- `fPlotLP()` — companion plotting function that draws one ribbon per confidence level and facets across LHS variables.
+
+The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences `CPI_{t+h} - CPI_{t-1}` and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls.
+
+**HAC standard errors.** `fLP()` always uses the full Newey-West sandwich `V_h = (X'X)⁻¹ · X'ΩX · (X'X)⁻¹` — the estimator used in Jordà (2005), Stock & Watson (2018), Plagborg-Møller & Wolf (2021), Cesa-Bianchi's VAR Toolbox, Stata's `newey`, R's `sandwich::NeweyWest`, and virtually every published LP application. The Bartlett bandwidth defaults to Miranda-Agrippino & Ricco's `nw_lags + h + 1` rule; set `nw_offset = 0` for the classic Jordà `= h` rule (which matches Cesa-Bianchi's `LPmodel.m` bit-for-bit for the Jordà-Taylor replication).
+
+------------------------------------------------------------------------
+
+## Setup
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(tidyMacro)
+library(zoo)
+library(patchwork)
+
+set_theme(ftheme_tidyMacro())
+```
+
+------------------------------------------------------------------------
+
+## Data
+
+```{r}
+#| label: data
+data("JordaTaylor2025")
+
+jt_lp <- JordaTaylor2025 |>
+  mutate(Date = as.Date(as.yearqtr(Date, format = "%YQ%q"))) |>
+  dplyr::filter(Date >= "1984-10-01", Date <= "2007-10-01") |>
+  transmute(
+      Date,
+      CPI = 100 * logCPI,
+      RRShock,
+      dLogGDP,
+      dLogCPI,
+      dSTIR
+    )
+
+jt_lp |> head()
+```
+
+```{r}
+#| label: fig-data
+#| fig-cap: "Variables used in the LP replications"
+jt_lp |>
+  slice(-1) |>
+  select(Date, CPI, RRShock, dLogGDP, dSTIR) |>
+  pivot_longer(-Date, names_to = "variable") |>
+  ggplot(aes(x = Date, y = value)) +
+    geom_line(linewidth = 0.7) +
+    facet_wrap(~ variable, scales = "free", ncol = 2) +
+    scale_x_date(date_labels = "%Y.%m") +
+    labs(x = NULL, y = NULL)
+```
+
+------------------------------------------------------------------------
+
+## 1 · Classic LP-OLS replication — one fit, two bands
+
+The Jordà-Taylor (2025) result. A single call to `fLP()` delivers both the 68% and 95% bands: pass `conf = c(0.68, 0.95)` and the bands are rebuilt from the raw `irfs_se` in the fit object — no need to estimate twice.
+
+```{r}
+#| label: lp-jt
+controls <- c("dLogGDP", "dLogCPI", "dSTIR")
+
+lp_jt <- fLP(
+  CPI ~ RRShock + l(..controls, 1:4),
+  data       = jt_lp,
+  horizons   = 18,
+  shock      = "RRShock",
+  conf       = c(0.68, 0.95),   # multi-band from one fit
+  nw_lags    = 0,
+  nw_offset  = 0,               # classic Jordà rule; matches OLSmodel.m
+  cumulative = TRUE,
+  n_threads  = 1
+)
+```
+
+### Direct plot
+
+`fPlotLP()` draws one ribbon per band automatically (widest first, so the tighter band sits visually on top).
+
+```{r}
+#| label: fig-jt-direct
+#| fig-cap: "Jordà-Taylor (2025) replication — direct `fPlotLP()` call"
+
+p1 <- fPlotLP(lp_jt) +
+  labs(title = "CPI response to a unit Romer-Romer shock (Auto)",
+       y = "Percent")
+```
+
+### Customized plot from tidy data
+
+Every plot can also be assembled by hand from the tidy plot data.
+
+```{r}
+#| label: fig-jt-custom
+#| fig-cap: "Same fit, hand-rolled ggplot from `fPlotLP(..., return_data = TRUE)`"
+p2 <- fPlotLP(lp_jt, return_data = TRUE) |>
+  ggplot(aes(x = horizon, y = point)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper, group = conf, alpha = conf, fill = NULL),
+                fill = "#407EC9") +
+    geom_line(linewidth = 0.9, colour = "#910048") +
+    geom_hline(yintercept = 0, linewidth = 0.4, linetype = "dashed") +
+    scale_alpha_manual(values = c(`0.95` = 0.18, `0.68` = 0.34)) +
+    scale_x_continuous(breaks = seq(0, 15, 5)) +
+    labs(title = "CPI response to Romer-Romer shock (Manual)", y = "Percent")
+
+
+# Compare charts
+p1 + p2
+```
+
+------------------------------------------------------------------------
+
+## 2 · Many responses to one shock: Multi-equation LHS
+
+`fLP()` accepts a vector-valued LHS: `c(y1, y2, y3) ~ shock + ...`. Each LHS variable is estimated as its own local projection against the shared RHS — in parallel across horizons (OpenMP) — and returned as a single `fLP` object. Combined with `conf = c(0.68, 0.95)`, one call yields a full multi-response × multi-band figure.
+
+```{r}
+#| label: lp-multi
+lp_multi <- fLP(
+  c(CPI, dSTIR) ~ RRShock + l(..controls, 1:4),
+  data       = jt_lp,
+  horizons   = 17,
+  shock      = "RRShock",
+  conf       = c(0.68, 0.95),
+  nw_lags    = 0,
+  nw_offset  = 0,
+  cumulative = TRUE,
+  n_threads  = 1
+)
+```
+
+```{r}
+#| label: fig-multi
+#| fig-cap: "Multi-equation LP — two responses to one Romer-Romer shock, one fit"
+fPlotLP(lp_multi, facet_ncol = 2) +
+  labs(title = "Responses to a Romer-Romer shock (1 fit, 2 LHS × 2 bands)")
+```
+
+Behind the scenes each response has its own regression; only the RHS is shared. This is materially faster than looping in R because the horizon loop is parallelised in C++ and only the OLS cross-products are formed once per horizon. Note also that `fLP()` does **not** auto-augment the RHS — the RHS you write is exactly what enters each regression. For instance, above the `dSTIR` equation happens to have `dSTIR_l1..l4` on the RHS only because `dSTIR` is a member of the `..controls` macro; if you drop it from `controls`, its own lags disappear from the RHS.
+
+------------------------------------------------------------------------
+
+## 3 · Level vs cumulative responses
+
+`cumulative = TRUE` regresses `y_{t+h} - y_{t-1}` on the RHS; `FALSE` regresses the level `y_{t+h}`. Comparing them makes the "level" vs "long-difference" distinction explicit.
+
+```{r}
+#| label: lp-level-vs-cum
+
+lp_cum <- fLP(
+    CPI ~ RRShock + l(..controls, 1:4),
+    data = jt_lp, 
+    horizons = 17, 
+    shock = "RRShock",
+    conf = c(0.68, 0.90), 
+    nw_lags = 0, 
+    nw_offset = 0,
+    cumulative = TRUE,  
+    n_threads = 1
+)
+
+lp_lev <- fLP(
+    CPI ~ RRShock + l(..controls, 1:4),
+    data = jt_lp, 
+    horizons = 17, 
+    shock = "RRShock",
+    conf = c(0.68, 0.90), 
+    nw_lags = 0, 
+    nw_offset = 0,
+    cumulative = FALSE,  
+    n_threads = 1
+)
+```
+
+```{r}
+
+fPlotLP(lp_cum) + ggtitle('Cumulative Response') + fPlotLP(lp_lev) + ggtitle('Level Response')
+```
+
+------------------------------------------------------------------------
+
+## 4 · Newey-West bandwidth choices
+
+`fLP()` uses the Bartlett-kernel Newey-West sandwich throughout. The bandwidth at horizon `h` is `max(nw_lags + h + nw_offset, 0)`. Two conventions:
+
+| `nw_offset` | Effective bandwidth | Where it comes from |
+|------------------------|------------------------|------------------------|
+| `1L` (default) | `nw_lags + h + 1` | Miranda-Agrippino & Ricco |
+| `0L` | `nw_lags + h` | Classic Jordà (2005); matches Cesa-Bianchi's `LPmodel.m` (Jordà-Taylor 2025) |
+
+Point estimates are of course identical across choices — only the standard errors move. The classic Jordà rule is the tighter of the two here.
+
+```{r}
+#| label: lp-nw-options
+lp_jorda <- fLP(CPI ~ RRShock + l(..controls, 1:4),
+                data = jt_lp, horizons = 17, shock = "RRShock",
+                conf = 0.90, nw_lags = 0, nw_offset = 0,
+                cumulative = TRUE, n_threads = 1)
+
+lp_mar   <- fLP(CPI ~ RRShock + l(..controls, 1:4),
+                data = jt_lp, horizons = 17, shock = "RRShock",
+                conf = 0.90, nw_lags = 0, nw_offset = 1,
+                cumulative = TRUE, n_threads = 1)
+
+# IRFs are identical; only the NW bandwidth (and hence SEs) differ.
+all.equal(as.numeric(lp_jorda$irfs), as.numeric(lp_mar$irfs))
+```
+
+```{r}
+#| label: fig-nw
+#| fig-cap: "Same IRF, different NW bandwidth rule at 90%"
+bind_rows(
+  fPlotLP(lp_jorda, return_data = TRUE) |> mutate(rule = "Jordà (h)"),
+  fPlotLP(lp_mar,   return_data = TRUE) |> mutate(rule = "Miranda-Agrippino (h+1)")
+) |>
+  ggplot(aes(x = horizon, y = point, colour = rule, fill = rule)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper, color = rule), alpha = 0.5) +
+    geom_line(linewidth = 0.9) +
+    geom_hline(yintercept = 0, linewidth = 0.4, linetype = "dashed") +
+    labs(title = "CPI response — NW bandwidth comparison at 90%",
+         x = "Horizon", y = "Percent", colour = NULL, fill = NULL)
+```
+
+------------------------------------------------------------------------
+
+## 5 · LP-IV — Unemployment response to an FFR shock
+
+`fLPIV()` estimates local projections with an **external instrument**, mirroring `fLP()`'s formula-based syntax. Replicates Jordà & Taylor (2025) Figure 6a: the unemployment response to a unit federal-funds-rate shock, instrumented by the Romer-Romer (RR) narrative shock.
+
+The specification (Ex6 tab of the JT2025 workbook, monthly 1985M1-2000M1):
+
+- **LHS**: `Unemployment` (long difference, `y_{t+h} - y_{t-1}`)
+- **Endogenous treatment**: `FFRates` (the fed funds rate)
+- **Exogenous controls**: six lags of `Unemployment`, `Inflation`, `FFRates`
+- **Instruments**: contemporaneous RR shock plus six lags (over-identified 2SLS)
+- **HAC**: Newey-West with a fixed bandwidth of 6 (Stata's `vce(hac nw 6)`)
+
+The result is delivered horizon-by-horizon via Frisch-Waugh-Lovell 2SLS with a delta-method HAC standard error — the same recipe as Cesa-Bianchi's `LPmodel.m` in LP-IV mode.
+
+```{r}
+#| label: lp-iv-data
+data("JordaTaylor2025IV")
+
+jt_iv <- JordaTaylor2025IV |>
+  filter(Date >= as.POSIXct("1985-01-01"),
+         Date <= as.POSIXct("2000-01-01")) |>
+  transmute(Date,
+            urate = Unemployment,
+            infl  = Inflation,
+            ffr   = FFRates,
+            rz    = RRShock)
+```
+
+```{r}
+#| label: fig-iv-data
+#| fig-cap: "Variables used in the LP-IV replication"
+jt_iv |>
+  pivot_longer(-Date, names_to = "variable") |>
+  ggplot(aes(x = Date, y = value)) +
+    geom_line(linewidth = 0.7) +
+    facet_wrap(~ variable, scales = "free", ncol = 2) +
+    labs(x = NULL, y = NULL)
+```
+
+```{r}
+#| label: lp-iv-fit
+iv_ctrl <- c("urate", "infl", "ffr")
+
+lp_iv <- fLPIV(
+  urate ~ ffr + l(..iv_ctrl, 1:6),
+  instruments = ~ l(rz, 0:6),
+  data        = jt_iv,
+  endog       = "ffr",
+  horizons    = 48,
+  conf        = c(0.68, 0.95),
+  nw_lags_iv  = 6,             # fixed HAC bandwidth = Stata's vce(hac nw 6)
+  cumulative  = TRUE,
+  n_threads   = 1
+)
+
+lp_iv
+```
+
+The print method summarises the endogenous treatment, control set, instrument formula, and the Newey-West bandwidth rule (fixed vs horizon-varying).
+
+### Impulse response and first-stage strength
+
+```{r}
+#| label: fig-iv-irf
+#| fig-cap: "Jordà-Taylor (2025) Figure 6a: unemployment response to an FFR shock instrumented by the RR narrative shock"
+fPlotLP(lp_iv) +
+  labs(title = "Unemployment to a unit FFR shock (LP-IV)",
+       subtitle = "Instrument: Romer-Romer shock (0 + 6 lags), NW bandwidth = 6",
+       y = "Percentage points")
+```
+
+```{r}
+#| label: fig-iv-fs
+#| fig-cap: "First-stage F-statistic across horizons (values below 10 flag a weak-instrument concern)"
+tibble::tibble(horizon = 0:48, F = as.numeric(lp_iv$Fstat_fs)) |>
+  ggplot(aes(x = horizon, y = F)) +
+    geom_col(fill = "#407EC9", alpha = 0.75) +
+    geom_hline(yintercept = 10, colour = "#910048", linetype = "dashed") +
+    labs(x = "Horizon", y = "First-stage F",
+         title = "First-stage F across horizons")
+```
+
+The `Fstat_fs` and `rsqr_fs` fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising.
+
+------------------------------------------------------------------------
+
+## 6 · Tidy output for downstream work
+
+`tidy.fLP()` returns a long data frame. For single-band fits, the shape matches the historical `broom`-style output (`estimate`, `se`, `lower`, `upper`). For multi-band fits, one `lower_X` / `upper_X` column pair is produced per confidence level. It works on both `fLP()` and `fLPIV()` results.
+
+```{r}
+#| label: tidy-multi
+tidy.fLP(lp_jt) |> head(6)
+```
+
+```{r}
+#| label: tidy-single
+tidy.fLP(lp_jorda) |> head()
+```
+
+```{r}
+#| label: tidy-iv
+tidy.fLP(lp_iv) |> head(6)
+```
+
+------------------------------------------------------------------------
+
+## Summary
+
+- **One fit for many responses.** `c(y1, y2, y3) ~ shock + ...` runs one LP per LHS in parallel across horizons.
+- **One fit for many bands.** `conf = c(0.68, 0.95)` builds every band from the same `irfs_se`; no re-estimation.
+- **`fPlotLP()`** paints those responses and bands directly, or returns a tibble via `return_data = TRUE` for hand-rolled ggplots. It works on `fLP()` and `fLPIV()` fits interchangeably.
+- **HAC standard errors.** `fLP()` and `fLPIV()` both use full Newey-West sandwiches (`fLPIV()` via the delta-method IV form). `nw_offset = 0` and `nw_lags_iv = k` reproduce the Jordà-Taylor (2025) MATLAB standard errors.
+- **LP-IV.** `fLPIV()` mirrors `fLP()`'s formula syntax and adds an `instruments = ~ …` argument; the endogenous treatment is named via `endog = "…"`. Multi-band and multi-LHS support are inherited.

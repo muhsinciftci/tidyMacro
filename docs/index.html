@@ -2,12 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Muhsin Ciftci">
-<meta name="dcterms.date" content="2026-04-26">
+<meta name="dcterms.date" content="2026-07-18">
+<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
 <title>tidyMacro</title>
 <style>
@@ -48,11 +49,13 @@ div.csl-indent {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
+<link href="./01_Bloom2009.html" rel="next">
 <link href="./logo.png" rel="icon" type="image/png">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -60,10 +63,10 @@ div.csl-indent {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-acf12a64177840b8d86f2d4f01b2e9fb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-794dac35bff935d997c68c3e8f2914f5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-243ff5925296cc7b34704e1102c31ac2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -95,11 +98,12 @@ div.csl-indent {
 
 
 <meta property="og:title" content="tidyMacro">
-<meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) in R">
+<meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
+<meta property="og:image" content="logo.png">
 <meta property="og:site_name" content="tidyMacro">
 </head>
 
-<body class="floating nav-fixed quarto-light">
+<body class="nav-sidebar docked nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -111,81 +115,116 @@ div.csl-indent {
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
   </div>
-            <div id="quarto-search" class="" title="Search"></div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-  <span class="navbar-toggler-icon"></span>
-</button>
-          <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
-<span class="menu-text">Home</span></a>
-  </li>  
-  <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-replications" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Replications</span>
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-replications">    
-        <li>
-    <a class="dropdown-item" href="./Bloom2009.html">
- <span class="dropdown-text">Bloom (2009) — Uncertainty Shocks</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="./Gali1999.html">
- <span class="dropdown-text">Galí (1999) — Technology Shocks</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="./BeaudryPortier2014.html">
- <span class="dropdown-text">Beaudry &amp; Portier (2014) — News Shocks</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="./Kaenzig2021.html">
- <span class="dropdown-text">Kaenzig (2021) — Oil Supply News</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="./ForniGambettiRicco.html">
- <span class="dropdown-text">Forni, Gambetti &amp; Ricco (2022) — Non-Invertible Shocks</span></a>
-  </li>  
-    </ul>
-  </li>
-</ul>
-            <ul class="navbar-nav navbar-nav-scroll ms-auto">
-  <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/muhsinciftci/tidyMacro"> <i class="bi bi-github" role="img" aria-label="GitHub">
-</i> 
-<span class="menu-text"></span></a>
-  </li>  
-  <li class="nav-item compact">
-    <a class="nav-link" href="https://www.linkedin.com/in/muhsin-ciftci/"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
-</i> 
-<span class="menu-text"></span></a>
-  </li>  
-</ul>
-          </div> <!-- /navcollapse -->
-            <div class="quarto-navbar-tools">
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
 </div>
+          <div id="quarto-search" class="" title="Search"></div>
       </div> <!-- /container-fluid -->
     </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
-  
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Replications</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_1_Gali1999.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Long run restrictions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_2_BeaudryPortier2014.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_Kaenzig2021.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-    </div>
+    
 <!-- main -->
-<main class="content column-page" id="quarto-document-content">
+<main class="content column-page-right" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">tidyMacro</h1>
-<p class="subtitle lead">High-Performance Vector Autoregression in R</p>
+<p class="subtitle lead">High-Performance Vector Autoregressions and Local Projections in R</p>
 </div>
 
+<div>
+  <div class="description">
+    Replication gallery and documentation for the tidyMacro R package
+  </div>
+</div>
 
-<div class="quarto-title-meta-author column-page">
+<div class="quarto-title-meta-author column-page-right">
   <div class="quarto-title-meta-heading">Author</div>
   <div class="quarto-title-meta-heading">Affiliation</div>
   
@@ -199,13 +238,13 @@ div.csl-indent {
       </div>
   </div>
 
-<div class="quarto-title-meta column-page">
+<div class="quarto-title-meta column-page-right">
 
       
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 26, 2026</p>
+      <p class="date">July 18, 2026</p>
     </div>
   </div>
   
@@ -217,7 +256,9 @@ div.csl-indent {
 </header>
 
 
-<p><code>tidyMacro</code> is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo).</p>
+<p><img src="logo.png" title="tidyMacro" class="quarto-cover-image nolightbox img-fluid"></p>
+<p>Welcome to the main website of tidyMacro.</p>
+<p>tidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).</p>
 <div class="callout callout-style-default callout-tip callout-titled" title="Functionality">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -232,16 +273,14 @@ div.csl-indent {
 <div class="callout-body-container callout-body">
 <ul>
 <li>Fast VAR &amp; VARX reduced form estimations</li>
-<li>Zero dependency on other packages. Ground up written in C++. All visualizations made with <code>ggplot2</code> in R.</li>
+<li>Local projections estimations with clean syntax, support for macros</li>
+<li>Zero dependency on other packages. Ground up written in C++. All visualizations made with ggplot2 in R.</li>
 <li>Publication-ready plots out of the box. Each plot is a ggplot2 object, can be ex post customized</li>
-<li>The package comes with a proper theme: <code>set_tidyMacro_theme()</code></li>
-<li>Parallel bootstrap computations via OpenMP for maximum speed. You can avoid parallel computations using n_threads = 1. Without using this option, n-1 cores will be used for parallel computations, where n is the number of cores in your Mac/PC.
-<ul>
-<li>If you encounter a problem when Rstudio/Positron kicks you out, you may use this option.</li>
-</ul></li>
+<li>The package comes with a proper theme</li>
+<li>Parallel bootstrap computations via OpenMP for maximum speed.</li>
 <li>Excellent documentation with detailed examples for every function</li>
-<li>Import data via tidyverse, clean, modify and then supply your final data piping <code>as.matrix()</code> for Armadillo calculations</li>
-<li>Example data sets for each replication: Already <strong>transformed</strong> data</li>
+<li>Import data via tidyverse, clean, modify and then supply your final data piping as matrix for Armadillo calculations</li>
+<li>Example data sets for each replication: Already transformed data</li>
 </ul>
 </div>
 </div>
@@ -320,13 +359,25 @@ div.csl-indent {
 </ul></li>
 <li><strong>Identification via Sign, Narrative and Zero Restrictions</strong> ⛔</li>
 <li><strong>Identification via Non-Gaussianity</strong> ⛔</li>
-<li><strong>Local Projections</strong> ⛔
+<li><strong>Local Projections</strong> ✅
 <ul>
-<li>Local projections with Exogenous Shocks</li>
-<li>Local projections IV</li>
-<li>Panel Local projections</li>
-<li>State Dependent Local projections</li>
-<li>Bayesian Local projections</li>
+<li>Local projections with Exogenous Shocks
+<ul>
+<li>Replicaion: <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> ✅</li>
+</ul></li>
+<li>Local projections IV
+<ul>
+<li>Replication: <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> ✅</li>
+</ul></li>
+<li>Panel Local projections
+<ul>
+<li>Replication: <span class="citation" data-cites="almuzara2024micro">Almuzara and Sancibrián (<a href="#ref-almuzara2024micro" role="doc-biblioref">2024</a>)</span> ✅</li>
+</ul></li>
+<li>Local Projections Difference in Differences ✅
+<ul>
+<li>Replication: <span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span></li>
+</ul></li>
+<li>State Dependent Local projections ⛔</li>
 </ul></li>
 </ol>
 </div>
@@ -334,14 +385,18 @@ div.csl-indent {
 </div>
 
 
-
-
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-almuzara2024micro" class="csl-entry" role="listitem">
+Almuzara, Martı́n, and Vı́ctor Sancibrián. 2024. <span>“Micro Responses to Macro Shocks.”</span> <em>FRB of New York Staff Report</em>, no. 1090.
+</div>
 <div id="ref-beaudry2014" class="csl-entry" role="listitem">
 Beaudry, Paul, and Franck Portier. 2014. <span>“News-Driven Business Cycles: Insights and Challenges.”</span> <em>Journal of Economic Literature</em> 52 (4): 993–1074. <a href="https://doi.org/10.1257/jel.52.4.993">https://doi.org/10.1257/jel.52.4.993</a>.
 </div>
 <div id="ref-bloom2009" class="csl-entry" role="listitem">
 Bloom, Nicholas. 2009. <span>“The Impact of Uncertainty Shocks.”</span> <em>Econometrica</em> 77 (3): 623–85. <a href="https://doi.org/10.3982/ECTA6248">https://doi.org/10.3982/ECTA6248</a>.
+</div>
+<div id="ref-dube2025" class="csl-entry" role="listitem">
+Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <span>“A Local Projections Approach to Difference-in-Differences.”</span> <em>Journal of Applied Econometrics</em> 40 (7): 741–58. <a href="https://doi.org/10.1002/jae.70000">https://doi.org/10.1002/jae.70000</a>.
 </div>
 <div id="ref-forni2022" class="csl-entry" role="listitem">
 Forni, Mario, Luca Gambetti, and Giovanni Ricco. 2022. <em>External Instrument SVAR Analysis for Noninvertible Shocks</em>. <a href="https://warwick.ac.uk/fac/soc/economics/research/workingpapers/2022/twerp_1444_-_ricco.pdf">https://warwick.ac.uk/fac/soc/economics/research/workingpapers/2022/twerp_1444_-_ricco.pdf</a>.
@@ -352,13 +407,18 @@ Galí, Jordi. 1999. <span>“Technology, Employment, and the Business Cycle: Do 
 <div id="ref-gertler2015" class="csl-entry" role="listitem">
 Gertler, Mark, and Peter Karadi. 2015. <span>“Monetary Policy Surprises, Credit Costs, and Economic Activity.”</span> <em>American Economic Journal: Macroeconomics</em> 7 (1): 44–76. <a href="https://doi.org/10.1257/mac.20130329">https://doi.org/10.1257/mac.20130329</a>.
 </div>
+<div id="ref-jorda2025" class="csl-entry" role="listitem">
+Jorda, Oscar, and Alan M. Taylor. 2025. <span>“Local <span>Projections</span>.”</span> <em>Journal of Economic Literature</em> 63 (1): 59–110. <a href="https://doi.org/10.1257/jel.20241521">https://doi.org/10.1257/jel.20241521</a>.
+</div>
 <div id="ref-kaenzig2021" class="csl-entry" role="listitem">
 Känzig, Diego R. 2021. <span>“The Macroeconomic Effects of Oil Supply News: Evidence from OPEC Announcements.”</span> <em>American Economic Review</em> 111 (4): 1092–125. <a href="https://doi.org/10.1257/aer.20190964">https://doi.org/10.1257/aer.20190964</a>.
 </div>
 <div id="ref-rigobon2003" class="csl-entry" role="listitem">
 Rigobon, Roberto. 2003. <span>“Identification Through Heteroskedasticity.”</span> <em>The Review of Economics and Statistics</em> 85 (4): 777–92. <a href="https://doi.org/10.1162/003465303772815727">https://doi.org/10.1162/003465303772815727</a>.
 </div>
-</div></section></div></main> <!-- /main -->
+</div>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -764,6 +824,15 @@ Rigobon, Roberto. 2003. <span>“Identification Through Heteroskedasticity.”</
     }
   });
   </script>
+<nav class="page-navigation column-page-right">
+  <div class="nav-page nav-page-previous">
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./01_Bloom2009.html" class="pagination-link" aria-label="Short run restrictions">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
@@ -772,7 +841,7 @@ Rigobon, Roberto. 2003. <span>“Identification Through Heteroskedasticity.”</
 </div>   
     <div class="nav-footer-center">
 <p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
-</div>
+<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p><a href="./index.html">tidyMacro</a></p>
 </div>

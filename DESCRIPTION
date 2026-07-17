@@ -23,7 +23,7 @@ Suggests:
 VignetteBuilder: knitr
 LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)
-RoxygenNote: 7.3.2
 LazyData: true
 URL: https://github.com/muhsinciftci/tidyMacro
 BugReports: https://github.com/muhsinciftci/tidyMacro/issues
+Config/roxygen2/version: 8.0.0

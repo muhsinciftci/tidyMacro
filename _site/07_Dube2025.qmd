@@ -1,0 +1,155 @@
+---
+title: "Local Projections Difference-in-Differences"
+subtitle: "Replicating Dube, Girardi, Jordà and Taylor 2025"
+editor: visual
+editor_options:
+  chunk_output_type: console
+bibliography: references.bib
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>",
+    out.width = "100%"
+)
+```
+
+## Overview
+
+This chapter replicates the two empirical applications of @dube2025 with `tidyMacro`'s LP-DiD tools:
+
+- `fLPDID()` — the LP-DiD estimator in C++ (OpenMP-parallel over horizons), with clean-control samples for absorbing and non-absorbing treatments, optional reweighting to the equally-weighted ATT, PMD baselines, and CR1 cluster-robust standard errors matching Stata's `reghdfe`.
+- `fPlotLPDID()` — companion event-study plot; pass several named results for a faceted comparison.
+
+The interface mirrors `fLPpanel()`: a fixest-style formula with `..macro` expansion and panel-aware operators — `l(x, 1:4)` for lags, `f(x, k)` for leads, and `d(x)` for first differences, so DGJT's "four lags of the outcome in levels and changes" is simply `l(lshare, 1:4) + l(d(lshare), 1:4)`. Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference.
+
+LP-DiD estimates, for each horizon $h$, the long-difference regression
+
+$$y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
+\;+\; \tau_t \;+\; \varepsilon_{it},$$
+
+restricted to a **clean-control sample**: newly treated units ($\Delta D_{it}=1$) and units that remain untreated over the relevant window. Pre-treatment horizons replace $y_{i,t+h}$ with $y_{i,t-j}$ and serve as placebo tests, with $\beta_{-1}=0$ as the normalization.
+
+```{r setup}
+library(tidyMacro)
+library(tidyverse)
+set_theme(ftheme_tidyMacro())
+
+data("BankingDeregulation")
+data("DemocracyGrowth")
+```
+
+## Banking deregulation and the labor share
+
+The first application (DGJT, Figure 3) revisits the effect of US **inter-state banking deregulation** on the private labor share: 46 states, 1970–1996, absorbing staggered treatment.
+
+```{r banking}
+bank_fe <- fLPDID(
+    lshare ~ bank,
+    data     = BankingDeregulation, 
+    panel_id = c("id", "year"),
+    treat    = "bank", 
+    post     = 9, pre = 9
+)
+
+bank_ylags <- fLPDID(
+    lshare ~ bank + l(lshare, 1:4) + l(d(lshare), 1:4),
+    data = BankingDeregulation, 
+    panel_id = c("id", "year"),
+    treat = "bank", post = 9, pre = 9
+)
+
+# additional controls via a ..macro, as in fixest
+ctrl <- c("grgsp", "corptax", "unionmem")
+
+bank_full <- fLPDID(
+    lshare ~ bank + l(lshare, 1:4) + l(d(lshare), 1:4) + l(..ctrl, 1:4),
+    data = BankingDeregulation, 
+    panel_id = c("id", "year"),
+    treat = "bank", post = 9, pre = 9
+)
+```
+
+```{r banking-plot, fig.width=9, fig.height=4}
+fPlotLPDID(`Only year FEs`               = bank_fe,
+           `+ lagged labor share`        = bank_ylags,
+           `+ lagged share and controls` = bank_full,
+           ncol  = 3, ci = "bars", scales = "fixed",
+           title = "Banking deregulation and the labor share (LP-DiD)",
+           xlab  = "Years since deregulation",
+           ylab  = "Labor share")
+```
+
+Across specifications the LP-DiD estimates are small and statistically indistinguishable from zero — DGJT's point: the large negative effects found by two-way fixed-effects event studies in this setting are an artifact of forbidden comparisons, not a feature of the data. The same exercise for intra-state branching amounts to `fLPDID(lshare ~ branch, ..., treat = "branch")`.
+
+## Variance-weighted vs. equally-weighted ATT
+
+By default the LP-DiD OLS coefficient is a **variance-weighted** average of clean $2\times2$ comparisons — efficient, but it overweights treatment cohorts observed when the treated share is small. Setting `reweight = TRUE` inverts the implicit weights ($w = 1/(1-p_t)$) and recovers the **equally-weighted** ATT.
+
+```{r banking-reweight}
+bank_rw <- fLPDID(lshare ~ bank,
+                  data = BankingDeregulation, panel_id = c("id", "year"),
+                  treat = "bank", post = 9, pre = 9,
+                  reweight = TRUE)
+```
+
+```{r banking-reweight-plot, fig.width=8, fig.height=3.8}
+fPlotLPDID(`Variance-weighted (OLS)` = bank_fe,
+           `Equally-weighted ATT`    = bank_rw,
+           ncol  = 3, ci = "bars", scales = "fixed",
+           title = "Weighting and the estimand",
+           xlab  = "Years since deregulation",
+           ylab  = "Labor share")
+```
+
+## Democracy and growth (non-absorbing treatment)
+
+The second application (DGJT, Figure 4) revisits @acemoglu2019 . Treatment is **non-absorbing** — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP (`l(lgdp, 1:4)`) and clean-control samples are built recursively over a stabilization window of $L = 20$ years.
+
+Three flavors of the clean-control condition (`ccc`):
+
+- `ccc = 0` — no restriction beyond the transition definition (the original ANRR local-projection specification);
+- `ccc = 1` — treated and controls must have a *clean past* (no democracy transitions within the last $L$ years);
+- `ccc = 2` — controls must additionally remain clean up to $t+h$.
+
+```{r democracy}
+demo_anrr <- fLPDID(lgdp ~ dem + l(lgdp, 1:4),
+                    data = DemocracyGrowth, panel_id = c("id", "year"),
+                    treat = "dem", post = 30, pre = 20,
+                    nonabsorbing = TRUE, L = 20, ccc = 0)
+
+demo_ccc1 <- fLPDID(lgdp ~ dem + l(lgdp, 1:4),
+                    data = DemocracyGrowth, panel_id = c("id", "year"),
+                    treat = "dem", post = 30, pre = 20,
+                    nonabsorbing = TRUE, L = 20, ccc = 1)
+
+demo_ccc2 <- fLPDID(lgdp ~ dem + l(lgdp, 1:4),
+                    data = DemocracyGrowth, panel_id = c("id", "year"),
+                    treat = "dem", post = 30, pre = 20,
+                    nonabsorbing = TRUE, L = 20, ccc = 2)
+```
+
+```{r democracy-plot, fig.width=9, fig.height=4}
+fPlotLPDID(
+  `ANRR LP specification` = demo_anrr,
+  `LP-DiD (CCC 1)`        = demo_ccc1,
+  `LP-DiD (CCC 2)`        = demo_ccc2,
+  ncol  = 3, scales = 'free',
+  title = "Democracy and growth (LP-DiD)",
+  xlab  = "Years since democratization",
+  ylab  = "GDP per capita (log x 100)"
+) +
+  ylim(-40, 60)
+```
+
+Democratization raises GDP per capita by roughly 15–25 log points over 25–30 years, with flat pre-trends. Restricting to clean controls (`ccc = 1, 2`) moderates the ANRR estimates, as contaminated comparisons are removed from the control group.
+
+## Notes on the implementation
+
+- **Weighting.** `reweight = TRUE` implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is not yet in the C++ engine.
+- **Baselines.** `pmd = TRUE` replaces the $y_{t-1}$ baseline with the average of all pre-period outcomes, which reduces noise under measurement error.
+- **Inference.** Standard errors are CR1 cluster-robust with $c = \tfrac{G}{G-1}\,\tfrac{N-1}{N-K}$ and $K$ counting the absorbed time fixed effects, matching Stata's `reghdfe ..., absorb(year) vce(cluster id)`.
+- **Missing-value semantics.** The recursive clean-control sets follow Stata's conventions at panel boundaries: a missing treatment change counts as "no change"; a missing lagged clean-control flag counts as failing the condition. This matters for matching the original results observation-for-observation.
+
+## References

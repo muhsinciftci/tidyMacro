@@ -151,3 +151,71 @@
 #'   dplyr::select(logTFP, logSP500, logConsumption, logHours) |>
 #'   as.matrix()
 "BeaudryPortier2014"
+
+
+#' US Banking Deregulation and the Labor Share
+#'
+#' Annual state-level panel (46 US states, 1970–1996) on the private labor
+#' share and staggered banking deregulation, from the replication package of
+#' Dube, Girardi, Jordà and Taylor (LP-DiD). Treatment is absorbing.
+#'
+#' @format A data frame with 1,242 rows and 12 columns:
+#' \describe{
+#'   \item{id}{Integer state identifier}
+#'   \item{state}{State abbreviation}
+#'   \item{year}{Year, 1970–1996}
+#'   \item{lshare}{Private labor share (compensation / private GSP)}
+#'   \item{bank}{Inter-state banking deregulation in force (0/1)}
+#'   \item{branch}{Intra-state branching deregulation in force (0/1)}
+#'   \item{grgsp}{Growth rate of gross state product}
+#'   \item{corptax}{State corporate tax rate}
+#'   \item{unionmem}{Union membership share}
+#'   \item{popgrowth}{Population growth}
+#'   \item{lnunemp}{Log unemployment rate}
+#'   \item{lnhpi}{Log house price index}
+#' }
+#'
+#' @references
+#' Dube, A., Girardi, D., Jordà, Ò., & Taylor, A. M. (2023). A Local
+#' Projections Approach to Difference-in-Differences Event Studies.
+#' NBER Working Paper No. 31184.
+#'
+#' @examples
+#' data("BankingDeregulation")
+#' m <- fLPDID(lshare ~ bank, data = BankingDeregulation,
+#'             panel_id = c("id", "year"), treat = "bank",
+#'             post = 9, pre = 9)
+"BankingDeregulation"
+
+
+#' Democracy and Growth (ANRR / DDCG Panel)
+#'
+#' Annual country-level panel on democracy and GDP per capita from Acemoglu,
+#' Naidu, Restrepo and Robinson (2019), as shipped in the Dube-Girardi-
+#' Jordà-Taylor LP-DiD replication package. Treatment (democracy) is
+#' non-absorbing: countries democratize and revert.
+#'
+#' @format A data frame with 5 columns:
+#' \describe{
+#'   \item{id}{Integer country identifier (World Bank code)}
+#'   \item{country}{Country name}
+#'   \item{year}{Year}
+#'   \item{lgdp}{Log GDP per capita, multiplied by 100}
+#'   \item{dem}{Democracy indicator (0/1; \code{NA} where undefined)}
+#' }
+#'
+#' @references
+#' Acemoglu, D., Naidu, S., Restrepo, P., & Robinson, J. A. (2019).
+#' Democracy Does Cause Growth. \emph{Journal of Political Economy},
+#' 127(1), 47–100.
+#'
+#' Dube, A., Girardi, D., Jordà, Ò., & Taylor, A. M. (2023). A Local
+#' Projections Approach to Difference-in-Differences Event Studies.
+#' NBER Working Paper No. 31184.
+#'
+#' @examples
+#' data("DemocracyGrowth")
+#' m <- fLPDID(lgdp ~ dem + l(lgdp, 1:4), data = DemocracyGrowth,
+#'             panel_id = c("id", "year"), treat = "dem",
+#'             post = 30, pre = 20, nonabsorbing = TRUE, L = 20, ccc = 1)
+"DemocracyGrowth"

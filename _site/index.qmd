@@ -1,6 +1,6 @@
 ---
 title: "tidyMacro"
-subtitle: "High-Performance Vector Autoregression in R"
+subtitle: "High-Performance Vector Autoregressions and Local Projections in R"
 source: visual
 editor: visual
 bibliography: references.bib
@@ -17,18 +17,20 @@ knitr::opts_chunk$set(
 suppressWarnings('tidyverse')
 ```
 
-`tidyMacro` is an R package for fast estimation of Vector Autoregression (VAR) models via C++ (Rcpp/RcppArmadillo).
+Welcome to the main website of tidyMacro.
+
+tidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).
 
 ::: {.callout-tip collapse="false" title="Functionality"}
 - Fast VAR & VARX reduced form estimations
-- Zero dependency on other packages. Ground up written in C++. All visualizations made with `ggplot2` in R.
+- Local projections estimations with clean syntax, support for macros
+- Zero dependency on other packages. Ground up written in C++. All visualizations made with ggplot2 in R.
 - Publication-ready plots out of the box. Each plot is a ggplot2 object, can be ex post customized
-- The package comes with a proper theme: `set_tidyMacro_theme()`
-- Parallel bootstrap computations via OpenMP for maximum speed. You can avoid parallel computations using n_threads = 1. Without using this option, n-1 cores will be used for parallel computations, where n is the number of cores in your Mac/PC.
-  - If you encounter a problem when Rstudio/Positron kicks you out, you may use this option.
+- The package comes with a proper theme
+- Parallel bootstrap computations via OpenMP for maximum speed.
 - Excellent documentation with detailed examples for every function
-- Import data via tidyverse, clean, modify and then supply your final data piping `as.matrix()` for Armadillo calculations
-- Example data sets for each replication: Already **transformed** data
+- Import data via tidyverse, clean, modify and then supply your final data piping as matrix for Armadillo calculations
+- Example data sets for each replication: Already transformed data
 :::
 
 ::: {.callout-important collapse="false" title="Models - Identification - Decompositions"}
@@ -73,10 +75,14 @@ suppressWarnings('tidyverse')
     - Replication: @kaenzig2021
 6.  **Identification via Sign, Narrative and Zero Restrictions** ⛔
 7.  **Identification via Non-Gaussianity** ⛔
-8.  **Local Projections** ⛔
+8.  **Local Projections** ✅
     - Local projections with Exogenous Shocks
+      - Replicaion: @jorda2025 ✅
     - Local projections IV
+      - Replication: @jorda2025 ✅
     - Panel Local projections
-    - State Dependent Local projections
-    - Bayesian Local projections
+      - Replication: @almuzara2024micro ✅
+    - Local Projections Difference in Differences ✅
+      - Replication: @dube2025
+    - State Dependent Local projections ⛔
 :::

@@ -107,6 +107,84 @@ fBootstrapIVRecover <- function(y, instr, var_result, noise, delta, nboot, p, c,
     .Call(`_tidyMacro_fBootstrapIVRecover`, y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, prc, prc2)
 }
 
+#' Check Sign Restrictions for One Shock
+#'
+#' For a candidate orthonormal rotation Q applied to the Cholesky IRFs,
+#' tests whether the impulse responses for a given shock satisfy the imposed
+#' sign restrictions at all specified horizons.
+#'
+#' @param irf N x N x H cube of structural IRFs (e.g. \code{cholirf \%*\% Q}
+#'   slice-by-slice).
+#' @param shock Integer (1-indexed). Which column of \code{irf} to examine.
+#' @param restr Numeric row vector of length N. Sign restrictions per variable:
+#'   \code{+1} (must be positive), \code{-1} (must be negative), \code{0} (unrestricted).
+#' @param hor_vec Integer vector of horizons to check (1-indexed, where 1 = impact).
+#'
+#' @return Integer scalar:
+#'   \itemize{
+#'     \item \code{+1} all restrictions pass at every checked horizon
+#'     \item \code{ 0} all restrictions fail at every horizon; flipping the sign of
+#'       this shock column would fix them all
+#'     \item \code{-1} mixed result; this draw of Q must be discarded
+#'   }
+#'
+#' @details
+#' Implements the restriction-checking step of the algorithm in Rubio-Ramirez,
+#' Waggoner & Zha (2010). Restrictions with \code{restr[i] = 0} are treated as
+#' "generic" (no restriction) and are ignored when counting satisfied constraints.
+#'
+#' @examples
+#' \dontrun{
+#' # After computing cholirf and drawing Q:
+#' Q   <- fGenerateQ(3)
+#' irf <- array(NA, dim = c(3,3,21))
+#' for (h in 1:21) irf[,,h] <- cholirf[,,h] %*% Q
+#'
+#' # Check monetary policy shock (col 3): FFR up, GDP and PCE down at impact
+#' restr   <- c(-1, -1, 1)
+#' hor_vec <- c(1L)
+#' fCheckRestrictions(irf, shock = 3, restr = restr, hor_vec = hor_vec)
+#' }
+#'
+#' @seealso \code{\link{fGenerateQ}}, \code{\link{fSignRestrictions}}
+#'
+#' @export
+fCheckRestrictions <- function(irf, shock, restr, hor_vec) {
+    .Call(`_tidyMacro_fCheckRestrictions`, irf, shock, restr, hor_vec)
+}
+
+#' Draw a Random Orthonormal Matrix (RZW 2010)
+#'
+#' Generates an N x N orthonormal matrix Q (QQ' = Q'Q = I) by applying QR
+#' decomposition to a matrix of i.i.d. standard normals and normalising the
+#' diagonal of R to be positive, yielding a unique decomposition.
+#'
+#' @param N Integer. Dimension of the square matrix.
+#'
+#' @return An N x N orthonormal matrix.
+#'
+#' @details
+#' Draw M ~ N(0, I_{N x N}), compute the QR decomposition M = QR, then set
+#' Q[,i] = -Q[,i] whenever R[i,i] < 0.  The resulting Q is uniformly
+#' distributed on the Stiefel manifold (Haar measure), as required for
+#' sign-restriction identification.
+#'
+#' @references
+#' Rubio-Ramirez, J. F., Waggoner, D. F., & Zha, T. (2010). Structural vector
+#' autoregressions: Theory of identification and algorithms for inference.
+#' \emph{Review of Economic Studies}, 77(2), 665--696.
+#'
+#' @examples
+#' \dontrun{
+#' Q <- fGenerateQ(3)
+#' round(t(Q) %*% Q, 10)  # should be identity
+#' }
+#'
+#' @export
+fGenerateQ <- function(N) {
+    .Call(`_tidyMacro_fGenerateQ`, N)
+}
+
 #' Compute Confidence Bands from Bootstrap IRF Cube
 #'
 #' Computes upper, lower, and median bands from a 3-D bootstrap IRF array
@@ -147,6 +225,90 @@ fGetBands <- function(bootirf, prc = 68.0) {
 #' @export
 fGetShock <- function(residuals, sigma_full, s, shockSize = 1.0, normalize = "unit") {
     .Call(`_tidyMacro_fGetShock`, residuals, sigma_full, s, shockSize, normalize)
+}
+
+#' Classical Local Projections — C++ Engine
+#'
+#' Low-level engine called by \code{fLP()}. Prefer the high-level wrapper
+#' which provides formula-based syntax and macro expansion.
+#'
+#' @param Y Numeric matrix (T x n_y). LHS variable(s).
+#' @param X Numeric matrix (T x k). RHS variables — no constant, no automatic
+#'   lags. Pass exactly what you want on the RHS.
+#' @param H Integer. Maximum horizon (projections run for h = 0, 1, ..., H).
+#' @param shock_col Integer (0-indexed). Which column of \code{X} is the shock.
+#' @param conf_level Numeric. Confidence level for bands, e.g. 0.90.
+#' @param nw_lags_base Integer. Base Newey-West bandwidth. At horizon h the
+#'   effective bandwidth is \code{max(nw_lags_base + h + nw_offset, 0)}
+#'   (Bartlett kernel).
+#' @param store_full Logical. If \code{TRUE}, return full coefficient and
+#'   standard-error matrices for every horizon.
+#' @param cumulative Logical. If \code{TRUE}, regress
+#'   \eqn{y_{t+h} - y_{t-1}} on the RHS (cumulative response). Default
+#'   \code{FALSE}.
+#' @param n_threads Integer. OpenMP threads for the horizon loop. 0 = all
+#'   cores minus one. Default 0.
+#' @param nw_offset Integer. Shift applied to the NW bandwidth rule
+#'   (effective bandwidth = \code{nw_lags_base + h + nw_offset}, floored at
+#'   0). Default \code{1L}, the Miranda-Agrippino & Ricco convention
+#'   (bandwidth grows as h+1). Set to \code{0L} to reproduce the classic
+#'   Jorda (2005) rule, bandwidth = h. \code{fLP}'s \code{h} is 0-indexed
+#'   (h=0 is the impact horizon), which makes this the exact equivalent of
+#'   Cesa-Bianchi's VAR Toolbox \code{LPmodel.m}
+#'   (\code{OLSmodel(Y,X,0,hh-1)} with 1-indexed \code{hh}), e.g. for the
+#'   Jorda-Taylor (2025) replication.
+#'
+#' @return A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
+#'   \code{irfs_se} (raw, unscaled SE of the shock coefficient — lets
+#'   callers build confidence bands at any level without re-running the
+#'   engine), and optionally \code{betas} and \code{ses}.
+#'
+#' @keywords internal
+fLP_cpp <- function(Y, X, H, shock_col, conf_level, nw_lags_base, store_full = FALSE, cumulative = FALSE, n_threads = 0L, nw_offset = 1L) {
+    .Call(`_tidyMacro_fLP_cpp`, Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset)
+}
+
+fLPDID_cpp <- function(y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads) {
+    .Call(`_tidyMacro_fLPDID_cpp`, y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads)
+}
+
+#' Local Projections with External Instrument — C++ Engine
+#'
+#' Low-level engine called by \code{fLPIV()}. Prefer the high-level wrapper.
+#'
+#' @param Y Numeric matrix (T x n_y). Outcome variable(s).
+#' @param D Numeric vector (T). Endogenous treatment.
+#' @param Z Numeric matrix (T x n_z). External instrument set — build any
+#'   lags externally (e.g. via \code{l(z, 0:k)} in the wrapper).
+#' @param C Numeric matrix (T x n_c). Exogenous controls; NO intercept (the
+#'   engine adds one internally). May be empty (0 columns).
+#' @param H Integer. Maximum horizon (h = 0, 1, ..., H).
+#' @param conf_level Numeric. Confidence level for bands, e.g. 0.90.
+#' @param nw_lags_iv Integer. Newey-West Bartlett bandwidth for the IV score.
+#'   \code{> 0}: fixed bandwidth (Stata's \code{vce(hac nw <k>)});
+#'   \code{== 0}: horizon-varying bandwidth = h (just-identified LP rule).
+#' @param cumulative Logical. \code{TRUE} regresses \eqn{y_{t+h} - y_{t-1}};
+#'   \code{FALSE} regresses the level \eqn{y_{t+h}}.
+#' @param n_threads Integer. OpenMP threads. \code{0} = all cores minus one.
+#'
+#' @return A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
+#'   \code{irfs_se}, \code{Fstat_fs} (first-stage F per horizon) and
+#'   \code{rsqr_fs} (first-stage R^2 per horizon).
+#'
+#' @keywords internal
+fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE, n_threads = 0L) {
+    .Call(`_tidyMacro_fLPIV_cpp`, Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads)
+}
+
+#' Panel Local Projections — Internal C++ engine
+#'
+#' Internal engine implementing the estimator of Almuzara & Sancibrián
+#' (NY Fed SR 1090, 2024). Users should call \code{fLPpanel()} instead.
+#'
+#' @keywords internal
+#' @noRd
+fLPpanel_cpp <- function(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample = FALSE, cumulative = FALSE, n_threads = 0L) {
+    .Call(`_tidyMacro_fLPpanel_cpp`, y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads)
 }
 
 #' Weak-IV Robust Impulse Response Inference (Montiel-Olea, Stock, Watson 2021)
