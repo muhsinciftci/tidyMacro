@@ -1,0 +1,136 @@
+---
+title: "Identification via Heteroskedasticity"
+subtitle: "Oil Supply News via Regime-Based Variance Shifts (Kaenzig 2021)"
+editor: visual
+bibliography: references.bib
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  out.width = "100%"
+)
+```
+
+## Overview
+
+This chapter identifies the same oil supply news shock as in @känzig2021, but instead of using the high-frequency instrument as a proxy it exploits the shift in the variance of structural shocks around OPEC announcement months, following @rigobon2003. OPEC-announcement months serve as the high-variance regime.
+
+## Model and Identification
+
+With two variance regimes indexed by $z_t \in \{0, 1\}$, the impact vector $s$ satisfies
+
+$$\Sigma_1 - \Sigma_0 = s s' (\lambda_1 - \lambda_0), \qquad \lambda_j > 0,$$
+
+which identifies $s$ up to sign and scale without exclusion restrictions.
+
+------------------------------------------------------------------------
+
+## Setup
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(tidyMacro)
+library(tictoc)
+
+set_theme(ftheme_tidyMacro())
+```
+
+------------------------------------------------------------------------
+
+## Data
+
+```{r}
+#| label: data
+data("Kaenzig2021")
+
+finaldata <- Kaenzig2021 |>
+    select(Oil_Price, World_Oil_Prod, World_Oil_Inven, World_IP, US_IP, US_CPI) |>
+    as.matrix()
+
+# The instrument is used only to build the regime indicator
+iv_oil <- Kaenzig2021 |>
+    select(iv_kanzig_final) |>
+    drop_na() |>
+    as.matrix()
+
+varnames <- c("Oil Price", "World Oil Prod.", "World Oil Inven.",
+              "World IP", "US IP", "US CPI")
+```
+
+## VAR Estimation
+
+```{r}
+#| label: var-estimation
+p <- 12
+c <- 1
+
+var_result <- fVAR(finaldata, p, c)
+residuals  <- var_result$residuals
+
+hor     <- 48
+adjustu <- c(nrow(residuals) - nrow(iv_oil) + 1, nrow(residuals))
+```
+
+## Point Estimate
+
+The regime indicator is 1 in OPEC-announcement months and 0 otherwise.
+
+```{r}
+#| label: hetero-point
+indsR1 <- as.integer(iv_oil[, 1] != 0)
+cat("OPEC announcement months:", sum(indsR1), "of", length(indsR1), "\n")
+
+hetero_pt <- fheteroIRF(
+    var_result = var_result,
+    Z          = iv_oil,
+    adjustu    = adjustu,
+    indsR1     = indsR1,
+    hor        = hor,
+    nvar       = 1,
+    scale      = 1
+)
+```
+
+## Bootstrap
+
+```{r}
+#| label: hetero-boot
+#| cache: false
+
+tic()
+boot_hetero <- fbootstrapHetero(
+    y          = finaldata,
+    var_result = var_result,
+    Z          = iv_oil,
+    indsR1     = indsR1,
+    adjustu    = adjustu,
+    nboot      = 10000,
+    blocksize  = 0,
+    hor        = hor,
+    nvar       = 1,
+    scale      = 1,
+    n_threads  = 3
+)
+toc()
+```
+
+## Impulse Response Functions
+
+```{r}
+#| label: fig-irf-hetero
+#| fig-cap: "IRFs identified via heteroskedasticity — OPEC-announcement months as the high-variance regime (68% and 90% confidence bands)"
+
+fplotirfHetero(
+    result     = boot_hetero,
+    varnames   = varnames,
+    shockname  = "Oil Shock (Hetero)",
+    scale      = 10,
+    facet_ncol = 3
+) +
+  labs(x = NULL, y = NULL)
+```
+
+## References {.unnumbered}

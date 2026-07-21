@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>6&nbsp; External instrument SVAR analysis for noninvertible shocks – tidyMacro</title>
+<title>8&nbsp; External instrument SVAR analysis for noninvertible shocks – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -82,14 +81,13 @@ div.csl-indent {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./05_JordaTaylor2025.html" rel="next">
-<link href="./03_Kaenzig2021.html" rel="prev">
+<link href="./03_3_Kaenzig2021_InternalIV.html" rel="prev">
 <link href="./logo.png" rel="icon" type="image/png">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -177,6 +175,9 @@ window.Quarto = {
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">true</span>
+    </a>
   </div>
         <div class="quarto-navbar-tools tools-end">
     <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
@@ -189,7 +190,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Replications</a></li><li class="breadcrumb-item"><a href="./04_ForniGambettiRicco.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./04_ForniGambettiRicco.html"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -204,13 +205,13 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Replications</span></a>
+ <span class="menu-text">Chapters</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -236,32 +237,44 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./03_Kaenzig2021.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span></a>
+  <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
       </ul>
@@ -275,9 +288,9 @@ window.Quarto = {
 <!-- main -->
 <main class="content column-page-right" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Replications</a></li><li class="breadcrumb-item"><a href="./04_ForniGambettiRicco.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./04_ForniGambettiRicco.html"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></h1>
+<h1 class="title"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></h1>
 </div>
 
 
@@ -294,14 +307,18 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">6.1</span> Overview</h2>
+<section id="overview" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">8.1</span> Overview</h2>
 <p>This document illustrates the usage of the <strong>Generalized SVAR-IV</strong> procedure proposed by <span class="citation" data-cites="forni2022">Forni et al. (<a href="#ref-forni2022" role="doc-biblioref">2022</a>)</span> . I use example data set from <span class="citation" data-cites="gertler2015">Gertler and Karadi (<a href="#ref-gertler2015" role="doc-biblioref">2015</a>)</span> with three variables and a high frequency instrument. We have three cases at hand:</p>
 <ol type="1">
 <li><strong>Invertibility / Fundamentalness</strong>: the shock is a linear combination of <em>present</em> VAR residuals <span class="math inline">\(\Rightarrow\)</span> can recover IRFs, shock, FEVD, HD.</li>
 <li><strong>Non-invertibility, but Recoverability</strong>: the shock is a linear combination of (past), present and <em>future</em> VAR residuals <span class="math inline">\(\Rightarrow\)</span> can recover IRFs, shock, HD, and FEVD by spectral methods.</li>
 <li><strong>Non-recoverability</strong>: we can only obtain <em>relative</em> IRFs (some response scaled, usually to 1); no shock, no HD.</li>
 </ol>
+<p>Throughout, the instrument must satisfy the standard proxy conditions:</p>
+<p><span class="math display">\[\mathbb{E}[z_t \varepsilon_{1t}] = \alpha \neq 0,
+\qquad
+\mathbb{E}[z_t \varepsilon_{kt}] = 0, \quad k = 2, \dots, K.\]</span></p>
 <p>These three cases give rise to the following empirical procedure:</p>
 <ol type="1">
 <li>Regress the instrument onto its own lags and the lags of other variables. Obtain the cleaned instrument as the residual of this regression.</li>
@@ -312,8 +329,8 @@ window.Quarto = {
 </ol>
 <hr>
 </section>
-<section id="setup" class="level2" data-number="6.2">
-<h2 data-number="6.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">6.2</span> Setup</h2>
+<section id="setup" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">8.2</span> Setup</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
@@ -323,8 +340,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="helper-functions" class="level2" data-number="6.3">
-<h2 data-number="6.3" class="anchored" data-anchor-id="helper-functions"><span class="header-section-number">6.3</span> Helper Functions</h2>
+<section id="helper-functions" class="level2" data-number="8.3">
+<h2 data-number="8.3" class="anchored" data-anchor-id="helper-functions"><span class="header-section-number">8.3</span> Helper Functions</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean the instrument: regress on own lags and lags of X, return residuals.</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>clean_instrument <span class="ot">&lt;-</span> <span class="cf">function</span>(instr, p, X) {</span>
@@ -337,8 +354,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="data" class="level2" data-number="6.4">
-<h2 data-number="6.4" class="anchored" data-anchor-id="data"><span class="header-section-number">6.4</span> Data</h2>
+<section id="data" class="level2" data-number="8.4">
+<h2 data-number="8.4" class="anchored" data-anchor-id="data"><span class="header-section-number">8.4</span> Data</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"GK2015"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -355,8 +372,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="parameters" class="level2" data-number="6.5">
-<h2 data-number="6.5" class="anchored" data-anchor-id="parameters"><span class="header-section-number">6.5</span> Parameters</h2>
+<section id="parameters" class="level2" data-number="8.5">
+<h2 data-number="8.5" class="anchored" data-anchor-id="parameters"><span class="header-section-number">8.5</span> Parameters</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>p    <span class="ot">&lt;-</span> <span class="dv">7</span>L</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>c    <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
@@ -366,16 +383,16 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="step-1-clean-the-instrument" class="level2" data-number="6.6">
-<h2 data-number="6.6" class="anchored" data-anchor-id="step-1-clean-the-instrument"><span class="header-section-number">6.6</span> Step 1 — Clean the Instrument</h2>
+<section id="step-1-clean-the-instrument" class="level2" data-number="8.6">
+<h2 data-number="8.6" class="anchored" data-anchor-id="step-1-clean-the-instrument"><span class="header-section-number">8.6</span> Step 1 — Clean the Instrument</h2>
 <p>Regress <span class="math inline">\(z_0(t)\)</span> on its own lags and the lags of the VAR variables to remove predictable components.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">clean_instrument</span>(instr, p, X)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
-<section id="step-2-var-estimation" class="level2" data-number="6.7">
-<h2 data-number="6.7" class="anchored" data-anchor-id="step-2-var-estimation"><span class="header-section-number">6.7</span> Step 2 — VAR Estimation</h2>
+<section id="step-2-var-estimation" class="level2" data-number="8.7">
+<h2 data-number="8.7" class="anchored" data-anchor-id="step-2-var-estimation"><span class="header-section-number">8.7</span> Step 2 — VAR Estimation</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>var_result <span class="ot">&lt;-</span> <span class="fu">fVAR</span>(X, p, c)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>eps        <span class="ot">&lt;-</span> var_result<span class="sc">$</span>residuals</span>
@@ -389,8 +406,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="step-3-f-test-for-invertibility" class="level2" data-number="6.8">
-<h2 data-number="6.8" class="anchored" data-anchor-id="step-3-f-test-for-invertibility"><span class="header-section-number">6.8</span> Step 3 — F-test for Invertibility</h2>
+<section id="step-3-f-test-for-invertibility" class="level2" data-number="8.8">
+<h2 data-number="8.8" class="anchored" data-anchor-id="step-3-f-test-for-invertibility"><span class="header-section-number">8.8</span> Step 3 — F-test for Invertibility</h2>
 <p>Regress the cleaned instrument <span class="math inline">\(z_1(t)\)</span> on current and <span class="math inline">\(r\)</span> future VAR residuals. Test that the coefficients on future residuals are jointly zero (Null = invertible).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>inv <span class="ot">&lt;-</span> <span class="fu">fTestInvertibility</span>(z, eps, r)</span>
@@ -400,8 +417,8 @@ window.Quarto = {
 <p>A small p-value rejects invertibility — future residuals help predict the instrument.</p>
 <hr>
 </section>
-<section id="step-4-ljung-box-test-for-recoverability" class="level2" data-number="6.9">
-<h2 data-number="6.9" class="anchored" data-anchor-id="step-4-ljung-box-test-for-recoverability"><span class="header-section-number">6.9</span> Step 4 — Ljung-Box Test for Recoverability</h2>
+<section id="step-4-ljung-box-test-for-recoverability" class="level2" data-number="8.9">
+<h2 data-number="8.9" class="anchored" data-anchor-id="step-4-ljung-box-test-for-recoverability"><span class="header-section-number">8.9</span> Step 4 — Ljung-Box Test for Recoverability</h2>
 <p>Obtain the fitted value <span class="math inline">\(\hat{z}_1(t) = \hat{\delta}(F)\hat{e}(t)\)</span> from the regression above and test for autocorrelation (Null = recoverability).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>rec <span class="ot">&lt;-</span> <span class="fu">fTestRecoverability</span>(inv<span class="sc">$</span>fit, <span class="at">lags =</span> <span class="dv">2</span>L)</span>
@@ -416,18 +433,23 @@ window.Quarto = {
 <p>A large p-value: Not able to reject recoverability — we proceed under the recoverable case.</p>
 <hr>
 </section>
-<section id="the-recoverable-case" class="level2" data-number="6.10">
-<h2 data-number="6.10" class="anchored" data-anchor-id="the-recoverable-case"><span class="header-section-number">6.10</span> The Recoverable Case</h2>
-<section id="b-structural-shock" class="level3" data-number="6.10.1">
-<h3 data-number="6.10.1" class="anchored" data-anchor-id="b-structural-shock"><span class="header-section-number">6.10.1</span> (b) Structural Shock</h3>
+<section id="the-recoverable-case" class="level2" data-number="8.10">
+<h2 data-number="8.10" class="anchored" data-anchor-id="the-recoverable-case"><span class="header-section-number">8.10</span> The Recoverable Case</h2>
+<p>Key objects:</p>
+<p><span class="math display">\[\hat{\xi}(t) = \frac{\hat{z}_1(t)}{a_1}, \qquad a_1 = \operatorname{sd}\big(\hat{z}_1(t)\big),
+\qquad
+b(L) = \frac{C(L)\, \Psi(L)}{\sqrt{a_2}},\]</span></p>
+<p>where <span class="math inline">\(\Psi(L)\)</span> collects the coefficients from regressing <span class="math inline">\(\hat{e}(t)\)</span> on current and past <span class="math inline">\(z_1(t)\)</span>, <span class="math inline">\(C(L)\)</span> is the Wold polynomial, and <span class="math inline">\(a_2 = \sum_{j} \psi_j' \Sigma^{-1} \psi_j\)</span>.</p>
+<section id="b-structural-shock" class="level3" data-number="8.10.1">
+<h3 data-number="8.10.1" class="anchored" data-anchor-id="b-structural-shock"><span class="header-section-number">8.10.1</span> (b) Structural Shock</h3>
 <p>The shock is <span class="math inline">\(\hat{\xi}(t) = \hat{z}_1(t) / a_1\)</span> where <span class="math inline">\(a_1 = \text{sd}(\hat{z}_1(t))\)</span>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>a1       <span class="ot">&lt;-</span> <span class="fu">sd</span>(fit)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>mp_shock <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(fit) <span class="sc">/</span> a1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="a-absolute-irfs" class="level3" data-number="6.10.2">
-<h3 data-number="6.10.2" class="anchored" data-anchor-id="a-absolute-irfs"><span class="header-section-number">6.10.2</span> (a) Absolute IRFs</h3>
+<section id="a-absolute-irfs" class="level3" data-number="8.10.2">
+<h3 data-number="8.10.2" class="anchored" data-anchor-id="a-absolute-irfs"><span class="header-section-number">8.10.2</span> (a) Absolute IRFs</h3>
 <p>The absolute IRF is <span class="math inline">\(b(L) = C(L)\Psi(L) / a_2\)</span> where <span class="math inline">\(\Psi(L)\)</span> is obtained by regressing <span class="math inline">\(\hat{e}(t)\)</span> onto current and past values of the instrument <span class="math inline">\(z_1(t)\)</span>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Regress eps(r+1:end) on [1, z(r+1:end), z_lag1, ..., z_lagr]</span></span>
@@ -448,8 +470,8 @@ window.Quarto = {
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (v <span class="cf">in</span> cumu) irf_cumu[v, ] <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(irf_cumu[v, ])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="c-historical-decomposition" class="level3" data-number="6.10.3">
-<h3 data-number="6.10.3" class="anchored" data-anchor-id="c-historical-decomposition"><span class="header-section-number">6.10.3</span> (c) Historical Decomposition</h3>
+<section id="c-historical-decomposition" class="level3" data-number="8.10.3">
+<h3 data-number="8.10.3" class="anchored" data-anchor-id="c-historical-decomposition"><span class="header-section-number">8.10.3</span> (c) Historical Decomposition</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>T_hd      <span class="ot">&lt;-</span> T_eps <span class="sc">-</span> r</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>wold_long <span class="ot">&lt;-</span> <span class="fu">fwoldIRF</span>(var_result, <span class="at">horizon =</span> T_hd)</span>
@@ -504,15 +526,15 @@ window.Quarto = {
 <img src="04_ForniGambettiRicco_files/figure-html/fig-hist-dec-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hist-dec-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.1: Historical decomposition: contribution of MP shock to each variable
+Figure&nbsp;8.1: Historical decomposition: contribution of MP shock to each variable
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="d-spectral-fevd" class="level3" data-number="6.10.4">
-<h3 data-number="6.10.4" class="anchored" data-anchor-id="d-spectral-fevd"><span class="header-section-number">6.10.4</span> (d) Spectral FEVD</h3>
+<section id="d-spectral-fevd" class="level3" data-number="8.10.4">
+<h3 data-number="8.10.4" class="anchored" data-anchor-id="d-spectral-fevd"><span class="header-section-number">8.10.4</span> (d) Spectral FEVD</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bands       <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">18</span>), <span class="fu">c</span>(<span class="dv">18</span>, <span class="dv">96</span>), <span class="fu">c</span>(<span class="dv">96</span>, <span class="dv">360</span>))</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>band_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Erratic (2–18m)"</span>, <span class="st">"Business cycle (18–96m)"</span>, <span class="st">"Long run (96–360m)"</span>)</span>
@@ -545,8 +567,8 @@ Figure&nbsp;6.1: Historical decomposition: contribution of MP shock to each vari
 <span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; IP Growth              0.2941                  0.2533             0.2687</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="bootstrap-irfs-recoverable-case" class="level3" data-number="6.10.5">
-<h3 data-number="6.10.5" class="anchored" data-anchor-id="bootstrap-irfs-recoverable-case"><span class="header-section-number">6.10.5</span> Bootstrap IRFs — Recoverable Case</h3>
+<section id="bootstrap-irfs-recoverable-case" class="level3" data-number="8.10.5">
+<h3 data-number="8.10.5" class="anchored" data-anchor-id="bootstrap-irfs-recoverable-case"><span class="header-section-number">8.10.5</span> Bootstrap IRFs — Recoverable Case</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>nboot <span class="ot">&lt;-</span> <span class="dv">2000</span>L</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -590,7 +612,7 @@ Figure&nbsp;6.1: Historical decomposition: contribution of MP shock to each vari
 <img src="04_ForniGambettiRicco_files/figure-html/fig-irf-recover-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-recover-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.2: IRFs to monetary policy shock — generalized IV, recoverable case (68% and 90% confidence bands)
+Figure&nbsp;8.2: IRFs to monetary policy shock — generalized IV, recoverable case (68% and 90% confidence bands)
 </figcaption>
 </figure>
 </div>
@@ -599,8 +621,8 @@ Figure&nbsp;6.2: IRFs to monetary policy shock — generalized IV, recoverable c
 <hr>
 </section>
 </section>
-<section id="the-invertible-case-standard-svar-iv" class="level2" data-number="6.11">
-<h2 data-number="6.11" class="anchored" data-anchor-id="the-invertible-case-standard-svar-iv"><span class="header-section-number">6.11</span> The Invertible Case — Standard SVAR-IV</h2>
+<section id="the-invertible-case-standard-svar-iv" class="level2" data-number="8.11">
+<h2 data-number="8.11" class="anchored" data-anchor-id="the-invertible-case-standard-svar-iv"><span class="header-section-number">8.11</span> The Invertible Case — Standard SVAR-IV</h2>
 <p>For comparison, we apply the standard SVAR-IV procedure <strong>assuming invertibility.</strong> This would of course be wrong but here we show what would result in</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Stage 1: regress eps on cleaned instrument, get impact vector</span></span>
@@ -614,8 +636,8 @@ Figure&nbsp;6.2: IRFs to monetary policy shock — generalized IV, recoverable c
 <span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>irf_cumu_inv <span class="ot">&lt;-</span> irf_n</span>
 <span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (v <span class="cf">in</span> cumu) irf_cumu_inv[v, ] <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(irf_cumu_inv[v, ])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="bootstrap-irfs-invertible-case-wild" class="level3" data-number="6.11.1">
-<h3 data-number="6.11.1" class="anchored" data-anchor-id="bootstrap-irfs-invertible-case-wild"><span class="header-section-number">6.11.1</span> Bootstrap IRFs — Invertible Case (Wild)</h3>
+<section id="bootstrap-irfs-invertible-case-wild" class="level3" data-number="8.11.1">
+<h3 data-number="8.11.1" class="anchored" data-anchor-id="bootstrap-irfs-invertible-case-wild"><span class="header-section-number">8.11.1</span> Bootstrap IRFs — Invertible Case (Wild)</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>boot_inv <span class="ot">&lt;-</span> <span class="fu">fBootstrapIVInvertible</span>(</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">y          =</span> X,</span>
@@ -653,7 +675,7 @@ Figure&nbsp;6.2: IRFs to monetary policy shock — generalized IV, recoverable c
 <img src="04_ForniGambettiRicco_files/figure-html/fig-irf-invertible-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-invertible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.3: IRFs to monetary policy shock — standard SVAR-IV, invertible case (68% and 90% confidence bands)
+Figure&nbsp;8.3: IRFs to monetary policy shock — standard SVAR-IV, invertible case (68% and 90% confidence bands)
 </figcaption>
 </figure>
 </div>
@@ -662,11 +684,11 @@ Figure&nbsp;6.3: IRFs to monetary policy shock — standard SVAR-IV, invertible 
 <hr>
 </section>
 </section>
-<section id="the-non-recoverable-case-relative-irfs-and-bounds" class="level2" data-number="6.12">
-<h2 data-number="6.12" class="anchored" data-anchor-id="the-non-recoverable-case-relative-irfs-and-bounds"><span class="header-section-number">6.12</span> The Non-Recoverable Case — Relative IRFs and Bounds</h2>
+<section id="the-non-recoverable-case-relative-irfs-and-bounds" class="level2" data-number="8.12">
+<h2 data-number="8.12" class="anchored" data-anchor-id="the-non-recoverable-case-relative-irfs-and-bounds"><span class="header-section-number">8.12</span> The Non-Recoverable Case — Relative IRFs and Bounds</h2>
 <p>If the shock were non-recoverable, we can only identify <em>relative</em> IRFs and compute bounds on the absolute IRFs and spectral FEVD.</p>
-<section id="relative-irfs" class="level3" data-number="6.12.1">
-<h3 data-number="6.12.1" class="anchored" data-anchor-id="relative-irfs"><span class="header-section-number">6.12.1</span> Relative IRFs</h3>
+<section id="relative-irfs" class="level3" data-number="8.12.1">
+<h3 data-number="8.12.1" class="anchored" data-anchor-id="relative-irfs"><span class="header-section-number">8.12.1</span> Relative IRFs</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Relative IRF: gammaL normalised by gammaL(1,1,1) — the impact on 1YB</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>irf_rel      <span class="ot">&lt;-</span> gammaL[, <span class="dv">1</span>, ] <span class="sc">/</span> gammaL[<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>]   <span class="co"># N x (hor+1)</span></span>
@@ -693,15 +715,15 @@ Figure&nbsp;6.3: IRFs to monetary policy shock — standard SVAR-IV, invertible 
 <img src="04_ForniGambettiRicco_files/figure-html/fig-irf-relative-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-relative-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.4: Relative IRFs (non-recoverable case)
+Figure&nbsp;8.4: Relative IRFs (non-recoverable case)
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="bounds-on-absolute-irfs" class="level3" data-number="6.12.2">
-<h3 data-number="6.12.2" class="anchored" data-anchor-id="bounds-on-absolute-irfs"><span class="header-section-number">6.12.2</span> Bounds on Absolute IRFs</h3>
+<section id="bounds-on-absolute-irfs" class="level3" data-number="8.12.2">
+<h3 data-number="8.12.2" class="anchored" data-anchor-id="bounds-on-absolute-irfs"><span class="header-section-number">8.12.2</span> Bounds on Absolute IRFs</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>alpha_u <span class="ot">&lt;-</span> <span class="fu">sd</span>(z)</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -747,15 +769,15 @@ Figure&nbsp;6.4: Relative IRFs (non-recoverable case)
 <img src="04_ForniGambettiRicco_files/figure-html/fig-irf-bounds-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-bounds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.5: Bounds on absolute IRFs (non-recoverable case): upper (blue) and lower (orange)
+Figure&nbsp;8.5: Bounds on absolute IRFs (non-recoverable case): upper (blue) and lower (orange)
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="bounds-on-spectral-fevd-business-cycle-band" class="level3" data-number="6.12.3">
-<h3 data-number="6.12.3" class="anchored" data-anchor-id="bounds-on-spectral-fevd-business-cycle-band"><span class="header-section-number">6.12.3</span> Bounds on Spectral FEVD (Business Cycle Band)</h3>
+<section id="bounds-on-spectral-fevd-business-cycle-band" class="level3" data-number="8.12.3">
+<h3 data-number="8.12.3" class="anchored" data-anchor-id="bounds-on-spectral-fevd-business-cycle-band"><span class="header-section-number">8.12.3</span> Bounds on Spectral FEVD (Business Cycle Band)</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>bd_bc      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">18</span>, <span class="dv">96</span>)</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>gammaL_mat <span class="ot">&lt;-</span> gammaL[, <span class="dv">1</span>, ]   <span class="co"># N x (hor+1)</span></span>
@@ -775,6 +797,10 @@ Figure&nbsp;6.5: Bounds on absolute IRFs (non-recoverable case): upper (blue) an
 <span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 CPI Inflation    0.0088    0.045 </span></span>
 <span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 IP Growth        0.0361    0.184</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -785,7 +811,6 @@ Forni, Mario, Luca Gambetti, and Giovanni Ricco. 2022. <em>External Instrument S
 Gertler, Mark, and Peter Karadi. 2015. <span>“Monetary Policy Surprises, Credit Costs, and Economic Activity.”</span> <em>American Economic Journal: Macroeconomics</em> 7 (1): 44–76. <a href="https://doi.org/10.1257/mac.20130329">https://doi.org/10.1257/mac.20130329</a>.
 </div>
 </div>
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -1196,13 +1221,13 @@ Gertler, Mark, and Peter Karadi. 2015. <span>“Monetary Policy Surprises, Credi
   </script>
 <nav class="page-navigation column-page-right">
   <div class="nav-page nav-page-previous">
-      <a href="./03_Kaenzig2021.html" class="pagination-link" aria-label="Proxy SVAR (External Instruments)">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span>
+      <a href="./03_3_Kaenzig2021_InternalIV.html" class="pagination-link" aria-label="Internal Instruments: Cholesky on Augmented VAR">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="./05_JordaTaylor2025.html" class="pagination-link" aria-label="Local Projections with Shocks and IV">
-        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

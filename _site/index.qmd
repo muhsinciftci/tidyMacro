@@ -1,8 +1,9 @@
 ---
-title: "tidyMacro"
+title: "Home"
 subtitle: "High-Performance Vector Autoregressions and Local Projections in R"
 source: visual
 editor: visual
+number-sections: false
 bibliography: references.bib
 ---
 
@@ -17,7 +18,7 @@ knitr::opts_chunk$set(
 suppressWarnings('tidyverse')
 ```
 
-Welcome to the main website of tidyMacro.
+***Welcome to the website of tidyMacro!**.*
 
 tidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).
 
@@ -35,6 +36,7 @@ tidyMacro is an R package for fast estimation and identification of Structural V
 
 ::: {.callout-important collapse="false" title="Models - Identification - Decompositions"}
 1.  **Identification via short-run / recursive ordering** ✅
+
     - Impulse response functions ✅
       - Residual based bootstraps
       - Wild bootstraps
@@ -42,13 +44,17 @@ tidyMacro is an R package for fast estimation and identification of Structural V
     - Variance Decomposition ✅
     - Historical Decomposition ✅
     - Replication: @bloom2009
+
 2.  **Identification via long run restrictions**
+
     - Impulse response functions ✅
     - Bias corrected impulse Response functions ✅
     - Variance Decomposition ✅
     - Replication 1: @gali1999
     - Replication 2: @beaudry2014
+
 3.  **Identification via external instruments (Proxy-SVAR)** ✅
+
     - Impulse Response functions ✅
       - Moving block bootstraps
     - Forecast error variance Decomposition ✅
@@ -60,22 +66,30 @@ tidyMacro is an R package for fast estimation and identification of Structural V
     - Weak IV Robust IRF ✅
       - **Delta method**
       - **Anderson-Rubin**
-    - Replication: @kaenzig2021
+    - Replication: @kaenzig2021 — see [Proxy SVAR chapter](03_1_Kaenzig2021_ExternalIV.qmd)
     - **External instrument SVAR analysis for noninvertible shocks** following @forni2022 ✅
       - Invertibility test ✅
       - Recoverability test ✅
       - Calculate IRF, HD, FEVD and relative IRF if none. ✅
       - Replication: @forni2022 using a small VAR using @gertler2015 instrument and data
+
 4.  **Identification via Internal instruments** ✅
+
     - Adding instrument to VAR as the first variable, then IRF identified recursively
     - Other options in short run / recursive identification apply here
-    - Replication: @kaenzig2021
+    - Replication: @kaenzig2021 — see [Internal Instruments chapter](03_3_Kaenzig2021_InternalIV.qmd)
+
 5.  **Identification via Heteroskedasticity** following @rigobon2003 ✅
+
     - Impulse Response functions ✅
-    - Replication: @kaenzig2021
+    - Replication: @kaenzig2021 — see [Heteroskedasticity chapter](03_2_Kaenzig2021_Hetero.qmd)
+
 6.  **Identification via Sign, Narrative and Zero Restrictions** ⛔
+
 7.  **Identification via Non-Gaussianity** ⛔
+
 8.  **Local Projections** ✅
+
     - Local projections with Exogenous Shocks
       - Replicaion: @jorda2025 ✅
     - Local projections IV
@@ -86,3 +100,25 @@ tidyMacro is an R package for fast estimation and identification of Structural V
       - Replication: @dube2025
     - State Dependent Local projections ⛔
 :::
+
+------------------------------------------------------------------------
+
+### 📚 How to Cite {.unnumbered}
+
+::: {.callout-warning appearance="default" icon="true" title="Please cite this work as:"}
+Ciftci, Muhsin (2026). *tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconometrics.* Available at SSRN: <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339>
+
+``` bibtex
+@article{ciftci2026tidymacro,
+  title   = {tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconometrics},
+  author  = {Ciftci, Muhsin},
+  year    = {2026},
+  journal = {SSRN Electronic Journal},
+  url     = {https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339}
+}
+```
+:::
+
+ 
+
+## References {.unnumbered}

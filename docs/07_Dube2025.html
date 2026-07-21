@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>9&nbsp; Local Projections Difference-in-Differences – tidyMacro</title>
+<title>11&nbsp; Local Projections Difference-in-Differences – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -82,7 +81,6 @@ div.csl-indent {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
@@ -176,6 +174,9 @@ window.Quarto = {
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">true</span>
+    </a>
   </div>
         <div class="quarto-navbar-tools tools-end">
     <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
@@ -188,7 +189,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Replications</a></li><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -203,13 +204,13 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Replications</span></a>
+ <span class="menu-text">Chapters</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -235,32 +236,44 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./03_Kaenzig2021.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span></a>
+  <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
       </ul>
@@ -274,9 +287,9 @@ window.Quarto = {
 <!-- main -->
 <main class="content column-page-right" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Replications</a></li><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></h1>
+<h1 class="title"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></h1>
 <p class="subtitle lead">Replicating Dube, Girardi, Jordà and Taylor 2025</p>
 </div>
 
@@ -294,8 +307,8 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="9.1">
-<h2 data-number="9.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">9.1</span> Overview</h2>
+<section id="overview" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">11.1</span> Overview</h2>
 <p>This chapter replicates the two empirical applications of <span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span> with <code>tidyMacro</code>’s LP-DiD tools:</p>
 <ul>
 <li><code>fLPDID()</code> — the LP-DiD estimator in C++ (OpenMP-parallel over horizons), with clean-control samples for absorbing and non-absorbing treatments, optional reweighting to the equally-weighted ATT, PMD baselines, and CR1 cluster-robust standard errors matching Stata’s <code>reghdfe</code>.</li>
@@ -305,7 +318,13 @@ window.Quarto = {
 <p>LP-DiD estimates, for each horizon <span class="math inline">\(h\)</span>, the long-difference regression</p>
 <p><span class="math display">\[y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
 \;+\; \tau_t \;+\; \varepsilon_{it},\]</span></p>
-<p>restricted to a <strong>clean-control sample</strong>: newly treated units (<span class="math inline">\(\Delta D_{it}=1\)</span>) and units that remain untreated over the relevant window. Pre-treatment horizons replace <span class="math inline">\(y_{i,t+h}\)</span> with <span class="math inline">\(y_{i,t-j}\)</span> and serve as placebo tests, with <span class="math inline">\(\beta_{-1}=0\)</span> as the normalization.</p>
+<p>restricted to a <strong>clean-control sample</strong>: newly treated units (<span class="math inline">\(\Delta D_{it}=1\)</span>) and units that remain untreated over the relevant window. Pre-treatment horizons replace <span class="math inline">\(y_{i,t+h}\)</span> with <span class="math inline">\(y_{i,t-j}\)</span> and serve as placebo tests, with <span class="math inline">\(\beta_{-1}=0\)</span> as the normalization:</p>
+<p><span class="math display">\[y_{i,t-j} - y_{i,t-1} \;=\; \beta_{-j}\, \Delta D_{it} \;+\; X_{it}'\gamma_{-j} \;+\; \tau_t \;+\; \varepsilon_{it},
+\qquad j = 2, \dots, \text{pre}.\]</span></p>
+<p>The default OLS coefficient is a variance-weighted average of clean <span class="math inline">\(2\times 2\)</span> comparisons; the equally-weighted ATT is recovered by inverting the implicit weights,</p>
+<p><span class="math display">\[w_{it} = \frac{1}{1 - p_t},\]</span></p>
+<p>and <code>pmd = TRUE</code> replaces the <span class="math inline">\(y_{i,t-1}\)</span> baseline with the pre-treatment mean <span class="math inline">\(\bar{y}_{i,&lt;t}\)</span>. Standard errors are CR1 cluster-robust with correction</p>
+<p><span class="math display">\[c = \frac{G}{G-1} \cdot \frac{N-1}{N-K}.\]</span></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -315,8 +334,8 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"DemocracyGrowth"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="banking-deregulation-and-the-labor-share" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="banking-deregulation-and-the-labor-share"><span class="header-section-number">9.2</span> Banking deregulation and the labor share</h2>
+<section id="banking-deregulation-and-the-labor-share" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="banking-deregulation-and-the-labor-share"><span class="header-section-number">11.2</span> Banking deregulation and the labor share</h2>
 <p>The first application (DGJT, Figure 3) revisits the effect of US <strong>inter-state banking deregulation</strong> on the private labor share: 46 states, 1970–1996, absorbing staggered treatment.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>bank_fe <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
@@ -362,8 +381,8 @@ window.Quarto = {
 </div>
 <p>Across specifications the LP-DiD estimates are small and statistically indistinguishable from zero — DGJT’s point: the large negative effects found by two-way fixed-effects event studies in this setting are an artifact of forbidden comparisons, not a feature of the data. The same exercise for intra-state branching amounts to <code>fLPDID(lshare ~ branch, ..., treat = "branch")</code>.</p>
 </section>
-<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">9.3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
+<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="11.3">
+<h2 data-number="11.3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">11.3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
 <p>By default the LP-DiD OLS coefficient is a <strong>variance-weighted</strong> average of clean <span class="math inline">\(2\times2\)</span> comparisons — efficient, but it overweights treatment cohorts observed when the treated share is small. Setting <code>reweight = TRUE</code> inverts the implicit weights (<span class="math inline">\(w = 1/(1-p_t)\)</span>) and recovers the <strong>equally-weighted</strong> ATT.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bank_rw <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(lshare <span class="sc">~</span> bank,</span>
@@ -387,8 +406,8 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="9.4">
-<h2 data-number="9.4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">9.4</span> Democracy and growth (non-absorbing treatment)</h2>
+<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="11.4">
+<h2 data-number="11.4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">11.4</span> Democracy and growth (non-absorbing treatment)</h2>
 <p>The second application (DGJT, Figure 4) revisits <span class="citation" data-cites="acemoglu2019">Acemoglu et al. (<a href="#ref-acemoglu2019" role="doc-biblioref">2019</a>)</span> . Treatment is <strong>non-absorbing</strong> — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP (<code>l(lgdp, 1:4)</code>) and clean-control samples are built recursively over a stabilization window of <span class="math inline">\(L = 20\)</span> years.</p>
 <p>Three flavors of the clean-control condition (<code>ccc</code>):</p>
 <ul>
@@ -433,8 +452,8 @@ window.Quarto = {
 </div>
 <p>Democratization raises GDP per capita by roughly 15–25 log points over 25–30 years, with flat pre-trends. Restricting to clean controls (<code>ccc = 1, 2</code>) moderates the ANRR estimates, as contaminated comparisons are removed from the control group.</p>
 </section>
-<section id="notes-on-the-implementation" class="level2" data-number="9.5">
-<h2 data-number="9.5" class="anchored" data-anchor-id="notes-on-the-implementation"><span class="header-section-number">9.5</span> Notes on the implementation</h2>
+<section id="notes-on-the-implementation" class="level2" data-number="11.5">
+<h2 data-number="11.5" class="anchored" data-anchor-id="notes-on-the-implementation"><span class="header-section-number">11.5</span> Notes on the implementation</h2>
 <ul>
 <li><strong>Weighting.</strong> <code>reweight = TRUE</code> implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is not yet in the C++ engine.</li>
 <li><strong>Baselines.</strong> <code>pmd = TRUE</code> replaces the <span class="math inline">\(y_{t-1}\)</span> baseline with the average of all pre-period outcomes, which reduces noise under measurement error.</li>
@@ -442,8 +461,8 @@ window.Quarto = {
 <li><strong>Missing-value semantics.</strong> The recursive clean-control sets follow Stata’s conventions at panel boundaries: a missing treatment change counts as “no change”; a missing lagged clean-control flag counts as failing the condition. This matters for matching the original results observation-for-observation.</li>
 </ul>
 </section>
-<section id="references" class="level2" data-number="9.6">
-<h2 data-number="9.6" class="anchored" data-anchor-id="references"><span class="header-section-number">9.6</span> References</h2>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -865,7 +884,7 @@ Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <spa
 <nav class="page-navigation column-page-right">
   <div class="nav-page nav-page-previous">
       <a href="./06_AlmuzaraSancibrian2024.html" class="pagination-link" aria-label="Panel Local Projections">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

@@ -18,6 +18,24 @@ knitr::opts_chunk$set(
 
 This document replicates the main empirical results of @bloom2009, which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is $log(x) * 100$
 
+## Model and Identification
+
+Reduced-form VAR($p$):
+
+$$y_t = c + A_1 y_{t-1} + \cdots + A_p y_{t-p} + u_t, \qquad u_t \sim (0, \Sigma)$$
+
+Structural shocks: $u_t = B_0 \varepsilon_t$ with $\varepsilon_t \sim (0, I_K)$, so the data only pin down
+
+$$\Sigma = B_0 B_0'.$$
+
+Recursive (Cholesky) identification sets the upper triangle of $B_0$ to zero:
+
+$$\Sigma = P P', \qquad B_0 = P \ \text{(lower triangular)}.$$
+
+Structural IRFs from the Wold coefficients $\Phi_h$:
+
+$$\Theta_h = \Phi_h B_0, \qquad h = 0, 1, \dots, H.$$
+
 ## Setup
 
 ```{r}
@@ -153,6 +171,10 @@ fplotirf_chol(
 
 ## Forecast Error Variance Decomposition
 
+Share of the $h$-step forecast error variance of variable $k$ due to shock $j$:
+
+$$\mathrm{FEVD}_{k,j}(h) = \frac{\sum_{s=0}^{h-1} (\Theta_s)_{kj}^2}{\sum_{s=0}^{h-1} \sum_{\ell=1}^{K} (\Theta_s)_{k\ell}^2}.$$
+
 ```{r}
 #| label: fig-fevd
 #| fig-cap: "Forecast error variance decomposition: share explained by uncertainty shock"
@@ -170,6 +192,12 @@ fplot_vardec(
 ------------------------------------------------------------------------
 
 ## Historical Decomposition
+
+Each observation decomposes into deterministic components plus cumulated shock contributions (companion form for $p > 1$):
+
+$$y_t = \sum_{s=0}^{t-1} \Phi^s c + \Phi^t y_0 + \sum_{s=0}^{t-1} \Theta_s \varepsilon_{t-s},
+\qquad
+HD_{k,t}^{(j)} = \sum_{s=0}^{t-1} (\Theta_s)_{kj}\, \varepsilon_{j,t-s}.$$
 
 ```{r}
 #| label: fig-histdec
@@ -193,3 +221,5 @@ fplot_histdec(
 ) +
     scale_x_date(date_breaks = "7 years", date_labels = "%Y")
 ```
+
+## References {.unnumbered}

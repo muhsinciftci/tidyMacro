@@ -176,9 +176,10 @@
 #' }
 #'
 #' @references
-#' Dube, A., Girardi, D., Jordà, Ò., & Taylor, A. M. (2023). A Local
-#' Projections Approach to Difference-in-Differences Event Studies.
-#' NBER Working Paper No. 31184.
+#' Dube, A., Girardi, D., Jordà, Ò., & Taylor, A. M. (2025). A Local
+#' Projections Approach to Difference-in-Differences.
+#' \emph{Journal of Applied Econometrics}, 40(7), 741–758.
+#' \doi{10.1002/jae.70000}
 #'
 #' @examples
 #' data("BankingDeregulation")
@@ -209,9 +210,10 @@
 #' Democracy Does Cause Growth. \emph{Journal of Political Economy},
 #' 127(1), 47–100.
 #'
-#' Dube, A., Girardi, D., Jordà, Ò., & Taylor, A. M. (2023). A Local
-#' Projections Approach to Difference-in-Differences Event Studies.
-#' NBER Working Paper No. 31184.
+#' Dube, A., Girardi, D., Jordà, Ò., & Taylor, A. M. (2025). A Local
+#' Projections Approach to Difference-in-Differences.
+#' \emph{Journal of Applied Econometrics}, 40(7), 741–758.
+#' \doi{10.1002/jae.70000}
 #'
 #' @examples
 #' data("DemocracyGrowth")

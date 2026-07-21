@@ -29,7 +29,18 @@ LP-DiD estimates, for each horizon $h$, the long-difference regression
 $$y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
 \;+\; \tau_t \;+\; \varepsilon_{it},$$
 
-restricted to a **clean-control sample**: newly treated units ($\Delta D_{it}=1$) and units that remain untreated over the relevant window. Pre-treatment horizons replace $y_{i,t+h}$ with $y_{i,t-j}$ and serve as placebo tests, with $\beta_{-1}=0$ as the normalization.
+restricted to a **clean-control sample**: newly treated units ($\Delta D_{it}=1$) and units that remain untreated over the relevant window. Pre-treatment horizons replace $y_{i,t+h}$ with $y_{i,t-j}$ and serve as placebo tests, with $\beta_{-1}=0$ as the normalization:
+
+$$y_{i,t-j} - y_{i,t-1} \;=\; \beta_{-j}\, \Delta D_{it} \;+\; X_{it}'\gamma_{-j} \;+\; \tau_t \;+\; \varepsilon_{it},
+\qquad j = 2, \dots, \text{pre}.$$
+
+The default OLS coefficient is a variance-weighted average of clean $2\times 2$ comparisons; the equally-weighted ATT is recovered by inverting the implicit weights,
+
+$$w_{it} = \frac{1}{1 - p_t},$$
+
+and `pmd = TRUE` replaces the $y_{i,t-1}$ baseline with the pre-treatment mean $\bar{y}_{i,<t}$. Standard errors are CR1 cluster-robust with correction
+
+$$c = \frac{G}{G-1} \cdot \frac{N-1}{N-K}.$$
 
 ```{r setup}
 library(tidyMacro)
@@ -152,4 +163,4 @@ Democratization raises GDP per capita by roughly 15–25 log points over 25–30
 - **Inference.** Standard errors are CR1 cluster-robust with $c = \tfrac{G}{G-1}\,\tfrac{N-1}{N-K}$ and $K$ counting the absorbed time fixed effects, matching Stata's `reghdfe ..., absorb(year) vce(cluster id)`.
 - **Missing-value semantics.** The recursive clean-control sets follow Stata's conventions at panel boundaries: a missing treatment change counts as "no change"; a missing lagged clean-control flag counts as failing the condition. This matters for matching the original results observation-for-observation.
 
-## References
+## References {.unnumbered}

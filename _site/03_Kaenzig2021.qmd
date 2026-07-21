@@ -17,6 +17,20 @@ knitr::opts_chunk$set(
 
 This document replicates the main empirical results of @känzig2021 , which identifies oil supply news shocks using a high-frequency external instrument (proxy SVAR). The instrument captures exogenous variation in oil supply driven by OPEC production decisions, measured as oil futures price changes in a narrow window around OPEC announcements.
 
+## Model and Identification
+
+Ordering the shock of interest first, a valid instrument $z_t$ satisfies relevance and exogeneity:
+
+$$\mathbb{E}[z_t \varepsilon_{1t}] = \alpha \neq 0,
+\qquad
+\mathbb{E}[z_t \varepsilon_{kt}] = 0, \quad k = 2, \dots, K.$$
+
+These conditions imply $\mathbb{E}[z_t u_t] = \alpha\, b_1$, so the impact column is recovered up to scale from covariance ratios (a two-stage regression of the residuals on $z_t$):
+
+$$\frac{b_{i1}}{b_{11}} = \frac{\mathbb{E}[z_t u_{it}]}{\mathbb{E}[z_t u_{1t}]},
+\qquad
+\Theta_h = \Phi_h\, b_1.$$
+
 ------------------------------------------------------------------------
 
 ## Setup
@@ -321,6 +335,12 @@ fplot_vardec(
 
 ## Identification via Heteroskedasticity
 
+With two variance regimes indexed by $z_t \in \{0, 1\}$, the impact vector $s$ satisfies
+
+$$\Sigma_1 - \Sigma_0 = s s' (\lambda_1 - \lambda_0), \qquad \lambda_j > 0,$$
+
+which identifies $s$ up to sign and scale without exclusion restrictions.
+
 ```{r}
 #| label: hetero-point
 # Treatment indicator: 1 = OPEC announcement month, 0 = other
@@ -529,3 +549,5 @@ fplotirfMSW(
 ) +
   labs(x = NULL, y = NULL)
 ```
+
+## References {.unnumbered}

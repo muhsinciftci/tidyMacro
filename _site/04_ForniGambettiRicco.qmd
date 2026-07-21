@@ -22,6 +22,12 @@ This document illustrates the usage of the **Generalized SVAR-IV** procedure pro
 2.  **Non-invertibility, but Recoverability**: the shock is a linear combination of (past), present and *future* VAR residuals $\Rightarrow$ can recover IRFs, shock, HD, and FEVD by spectral methods.
 3.  **Non-recoverability**: we can only obtain *relative* IRFs (some response scaled, usually to 1); no shock, no HD.
 
+Throughout, the instrument must satisfy the standard proxy conditions:
+
+$$\mathbb{E}[z_t \varepsilon_{1t}] = \alpha \neq 0,
+\qquad
+\mathbb{E}[z_t \varepsilon_{kt}] = 0, \quad k = 2, \dots, K.$$
+
 These three cases give rise to the following empirical procedure:
 
 1.  Regress the instrument onto its own lags and the lags of other variables. Obtain the cleaned instrument as the residual of this regression.
@@ -157,6 +163,14 @@ A large p-value: Not able to reject recoverability — we proceed under the reco
 ------------------------------------------------------------------------
 
 ## The Recoverable Case
+
+Key objects:
+
+$$\hat{\xi}(t) = \frac{\hat{z}_1(t)}{a_1}, \qquad a_1 = \operatorname{sd}\big(\hat{z}_1(t)\big),
+\qquad
+b(L) = \frac{C(L)\, \Psi(L)}{\sqrt{a_2}},$$
+
+where $\Psi(L)$ collects the coefficients from regressing $\hat{e}(t)$ on current and past $z_1(t)$, $C(L)$ is the Wold polynomial, and $a_2 = \sum_{j} \psi_j' \Sigma^{-1} \psi_j$.
 
 ### (b) Structural Shock
 
@@ -474,3 +488,5 @@ tibble(Variable = varnames,
        Lower    = round(fevd_nr_low, 4),
        Upper    = round(fevd_nr_up,  4)) |> print()
 ```
+
+## References {.unnumbered}

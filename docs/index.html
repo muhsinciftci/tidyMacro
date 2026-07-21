@@ -7,10 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Muhsin Ciftci">
-<meta name="dcterms.date" content="2026-07-18">
-<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
+<meta name="dcterms.date" content="2026-07-21">
 
-<title>tidyMacro</title>
+<title>Home</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -25,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 /* CSS for citations */
 div.csl-bib-body { }
@@ -49,7 +83,6 @@ div.csl-indent {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
@@ -114,6 +147,9 @@ div.csl-indent {
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">true</span>
+    </a>
   </div>
         <div class="quarto-navbar-tools tools-end">
     <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
@@ -126,7 +162,7 @@ div.csl-indent {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -141,18 +177,18 @@ div.csl-indent {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
- <span class="menu-text">Replications</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Chapters</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link">
@@ -173,32 +209,44 @@ div.csl-indent {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./03_Kaenzig2021.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span></a>
+  <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
       </ul>
@@ -214,15 +262,10 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">tidyMacro</h1>
+<h1 class="title">Home</h1>
 <p class="subtitle lead">High-Performance Vector Autoregressions and Local Projections in R</p>
 </div>
 
-<div>
-  <div class="description">
-    Replication gallery and documentation for the tidyMacro R package
-  </div>
-</div>
 
 <div class="quarto-title-meta-author column-page-right">
   <div class="quarto-title-meta-heading">Author</div>
@@ -244,7 +287,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 18, 2026</p>
+      <p class="date">July 21, 2026</p>
     </div>
   </div>
   
@@ -257,7 +300,7 @@ div.csl-indent {
 
 
 <p><img src="logo.png" title="tidyMacro" class="quarto-cover-image nolightbox img-fluid"></p>
-<p>Welcome to the main website of tidyMacro.</p>
+<p><em><strong>Welcome to the website of tidyMacro!</strong>.</em></p>
 <p>tidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).</p>
 <div class="callout callout-style-default callout-tip callout-titled" title="Functionality">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
@@ -298,7 +341,7 @@ div.csl-indent {
 <div id="callout-2" class="callout-2-contents callout-collapse collapse show">
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li><strong>Identification via short-run / recursive ordering</strong> ✅
+<li><p><strong>Identification via short-run / recursive ordering</strong> ✅</p>
 <ul>
 <li>Impulse response functions ✅
 <ul>
@@ -310,7 +353,7 @@ div.csl-indent {
 <li>Historical Decomposition ✅</li>
 <li>Replication: <span class="citation" data-cites="bloom2009">Bloom (<a href="#ref-bloom2009" role="doc-biblioref">2009</a>)</span></li>
 </ul></li>
-<li><strong>Identification via long run restrictions</strong>
+<li><p><strong>Identification via long run restrictions</strong></p>
 <ul>
 <li>Impulse response functions ✅</li>
 <li>Bias corrected impulse Response functions ✅</li>
@@ -318,7 +361,7 @@ div.csl-indent {
 <li>Replication 1: <span class="citation" data-cites="gali1999">Galí (<a href="#ref-gali1999" role="doc-biblioref">1999</a>)</span></li>
 <li>Replication 2: <span class="citation" data-cites="beaudry2014">Beaudry and Portier (<a href="#ref-beaudry2014" role="doc-biblioref">2014</a>)</span></li>
 </ul></li>
-<li><strong>Identification via external instruments (Proxy-SVAR)</strong> ✅
+<li><p><strong>Identification via external instruments (Proxy-SVAR)</strong> ✅</p>
 <ul>
 <li>Impulse Response functions ✅
 <ul>
@@ -337,7 +380,7 @@ div.csl-indent {
 <li><strong>Delta method</strong></li>
 <li><strong>Anderson-Rubin</strong></li>
 </ul></li>
-<li>Replication: <span class="citation" data-cites="kaenzig2021">Känzig (<a href="#ref-kaenzig2021" role="doc-biblioref">2021</a>)</span></li>
+<li>Replication: <span class="citation" data-cites="kaenzig2021">Känzig (<a href="#ref-kaenzig2021" role="doc-biblioref">2021</a>)</span> — see <a href="./03_1_Kaenzig2021_ExternalIV.html">Proxy SVAR chapter</a></li>
 <li><strong>External instrument SVAR analysis for noninvertible shocks</strong> following <span class="citation" data-cites="forni2022">Forni et al. (<a href="#ref-forni2022" role="doc-biblioref">2022</a>)</span> ✅
 <ul>
 <li>Invertibility test ✅</li>
@@ -346,20 +389,20 @@ div.csl-indent {
 <li>Replication: <span class="citation" data-cites="forni2022">Forni et al. (<a href="#ref-forni2022" role="doc-biblioref">2022</a>)</span> using a small VAR using <span class="citation" data-cites="gertler2015">Gertler and Karadi (<a href="#ref-gertler2015" role="doc-biblioref">2015</a>)</span> instrument and data</li>
 </ul></li>
 </ul></li>
-<li><strong>Identification via Internal instruments</strong> ✅
+<li><p><strong>Identification via Internal instruments</strong> ✅</p>
 <ul>
 <li>Adding instrument to VAR as the first variable, then IRF identified recursively</li>
 <li>Other options in short run / recursive identification apply here</li>
-<li>Replication: <span class="citation" data-cites="kaenzig2021">Känzig (<a href="#ref-kaenzig2021" role="doc-biblioref">2021</a>)</span></li>
+<li>Replication: <span class="citation" data-cites="kaenzig2021">Känzig (<a href="#ref-kaenzig2021" role="doc-biblioref">2021</a>)</span> — see <a href="./03_3_Kaenzig2021_InternalIV.html">Internal Instruments chapter</a></li>
 </ul></li>
-<li><strong>Identification via Heteroskedasticity</strong> following <span class="citation" data-cites="rigobon2003">Rigobon (<a href="#ref-rigobon2003" role="doc-biblioref">2003</a>)</span> ✅
+<li><p><strong>Identification via Heteroskedasticity</strong> following <span class="citation" data-cites="rigobon2003">Rigobon (<a href="#ref-rigobon2003" role="doc-biblioref">2003</a>)</span> ✅</p>
 <ul>
 <li>Impulse Response functions ✅</li>
-<li>Replication: <span class="citation" data-cites="kaenzig2021">Känzig (<a href="#ref-kaenzig2021" role="doc-biblioref">2021</a>)</span></li>
+<li>Replication: <span class="citation" data-cites="kaenzig2021">Känzig (<a href="#ref-kaenzig2021" role="doc-biblioref">2021</a>)</span> — see <a href="./03_2_Kaenzig2021_Hetero.html">Heteroskedasticity chapter</a></li>
 </ul></li>
-<li><strong>Identification via Sign, Narrative and Zero Restrictions</strong> ⛔</li>
-<li><strong>Identification via Non-Gaussianity</strong> ⛔</li>
-<li><strong>Local Projections</strong> ✅
+<li><p><strong>Identification via Sign, Narrative and Zero Restrictions</strong> ⛔</p></li>
+<li><p><strong>Identification via Non-Gaussianity</strong> ⛔</p></li>
+<li><p><strong>Local Projections</strong> ✅</p>
 <ul>
 <li>Local projections with Exogenous Shocks
 <ul>
@@ -383,6 +426,33 @@ div.csl-indent {
 </div>
 </div>
 </div>
+<hr>
+<section id="how-to-cite" class="level3 unnumbered">
+<h3 class="unnumbered anchored" data-anchor-id="how-to-cite">📚 How to Cite</h3>
+<div class="callout callout-style-default callout-warning callout-titled" title="Please cite this work as:">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Please cite this work as:
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ciftci, Muhsin (2026). <em>tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconometrics.</em> Available at SSRN: <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339" class="uri">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339</a></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">ciftci2026tidymacro</span>,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">title</span>   = {tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconometrics},</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">author</span>  = {Ciftci, Muhsin},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">year</span>    = {2026},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">journal</span> = {SSRN Electronic Journal},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">url</span>     = {https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p>&nbsp;</p>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -417,6 +487,7 @@ Känzig, Diego R. 2021. <span>“The Macroeconomic Effects of Oil Supply News: E
 Rigobon, Roberto. 2003. <span>“Identification Through Heteroskedasticity.”</span> <em>The Review of Economics and Statistics</em> 85 (4): 777–92. <a href="https://doi.org/10.1162/003465303772815727">https://doi.org/10.1162/003465303772815727</a>.
 </div>
 </div>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

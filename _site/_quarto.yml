@@ -7,7 +7,7 @@ page-layout: full
 book:
   title: "tidyMacro"
   subtitle: "High-Performance Vector Autoregressions and Local Projections in R"
-  description: "Replication gallery and documentation for the tidyMacro R package"
+  #description: "Replication gallery and documentation for the tidyMacro R package"
   author:
     - name: Muhsin Ciftci
       url: https://mciftci.netlify.app
@@ -21,22 +21,24 @@ book:
     foreground: "#FFF1E5"
     logo: logo.png
     logo-alt: "tidyMacro"
-    title: false
-    pinned: false
+    title: true
+    pinned: true
 
   sidebar:
     style: docked
     background: "#FAF4ED"
-    collapse-level: 1
+    #collapse-level: 1
 
   chapters:
     - index.qmd
-    - part: "Replications"
+    - part: "Chapters"
       chapters:
         - 01_Bloom2009.qmd
         - 02_1_Gali1999.qmd
         - 02_2_BeaudryPortier2014.qmd
-        - 03_Kaenzig2021.qmd
+        - 03_1_Kaenzig2021_ExternalIV.qmd
+        - 03_2_Kaenzig2021_Hetero.qmd
+        - 03_3_Kaenzig2021_InternalIV.qmd
         - 04_ForniGambettiRicco.qmd
         - 05_JordaTaylor2025.qmd
         - 06_AlmuzaraSancibrian2024.qmd

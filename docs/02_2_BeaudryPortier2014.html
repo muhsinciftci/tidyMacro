@@ -6,7 +6,6 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
 <title>4&nbsp; Mixed restrictions – tidyMacro</title>
 <style>
@@ -82,13 +81,12 @@ div.csl-indent {
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./03_Kaenzig2021.html" rel="next">
+<link href="./03_1_Kaenzig2021_ExternalIV.html" rel="next">
 <link href="./02_1_Gali1999.html" rel="prev">
 <link href="./logo.png" rel="icon" type="image/png">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
@@ -130,6 +128,35 @@ div.csl-indent {
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <meta property="og:title" content="tidyMacro">
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
@@ -148,6 +175,9 @@ div.csl-indent {
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">true</span>
+    </a>
   </div>
         <div class="quarto-navbar-tools tools-end">
     <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
@@ -160,7 +190,7 @@ div.csl-indent {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Replications</a></li><li class="breadcrumb-item"><a href="./02_2_BeaudryPortier2014.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./02_2_BeaudryPortier2014.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -175,13 +205,13 @@ div.csl-indent {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">tidyMacro</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Replications</span></a>
+ <span class="menu-text">Chapters</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -207,32 +237,44 @@ div.csl-indent {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./03_Kaenzig2021.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span></a>
+  <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
       </ul>
@@ -246,7 +288,7 @@ div.csl-indent {
 <!-- main -->
 <main class="content column-page-right" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Replications</a></li><li class="breadcrumb-item"><a href="./02_2_BeaudryPortier2014.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./02_2_BeaudryPortier2014.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></h1>
 <p class="subtitle lead">News-Driven Business Cycles: Insights and Challenges</p>
@@ -270,8 +312,18 @@ div.csl-indent {
 <h2 data-number="4.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">4.1</span> Overview</h2>
 <p>This document replicates the news shock identification of <span class="citation" data-cites="beaudry2014">Beaudry and Portier (<a href="#ref-beaudry2014" role="doc-biblioref">2014</a>)</span> . A news shock is identified as the shock that has <strong>no contemporaneous effect on TFP</strong> but <strong>maximizes the long-run response of TFP</strong> at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.</p>
 </section>
-<section id="setup" class="level2" data-number="4.2">
-<h2 data-number="4.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">4.2</span> Setup</h2>
+<section id="model-and-identification" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="model-and-identification"><span class="header-section-number">4.2</span> Model and Identification</h2>
+<p>With <span class="math inline">\(P\)</span> the lower Cholesky factor of <span class="math inline">\(\Sigma\)</span>, any rotation is observationally equivalent:</p>
+<p><span class="math display">\[\Sigma = P P' = (P Q)(P Q)', \qquad Q Q' = I_K.\]</span></p>
+<p>The news shock is the rotation vector <span class="math inline">\(q\)</span> orthogonal to the impact on TFP (variable 1) that maximizes the share of TFP’s forecast error variance up to horizon <span class="math inline">\(H\)</span>:</p>
+<p><span class="math display">\[q^{*} = \arg\max_{q\,:\,q'q = 1,\ (Pq)_1 = 0}
+\frac{\sum_{h=0}^{H} \big[(\Phi_h P q)_1\big]^2}{\sum_{h=0}^{H} \sigma_{11,h}},
+\qquad H = 40,\]</span></p>
+<p>where <span class="math inline">\(\sigma_{11,h}\)</span> is the total forecast error variance of TFP at horizon <span class="math inline">\(h\)</span>. The impact vector is <span class="math inline">\(b^{news} = P q^{*}\)</span> and structural IRFs are <span class="math inline">\(\Theta_h = \Phi_h P q^{*}\)</span>.</p>
+</section>
+<section id="setup" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="setup"><span class="header-section-number">4.3</span> Setup</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tictoc)</span>
@@ -280,8 +332,8 @@ div.csl-indent {
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme</span>(<span class="fu">ftheme_tidyMacro</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="data" class="level2" data-number="4.3">
-<h2 data-number="4.3" class="anchored" data-anchor-id="data"><span class="header-section-number">4.3</span> Data</h2>
+<section id="data" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="data"><span class="header-section-number">4.4</span> Data</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"BeaudryPortier2014"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -291,8 +343,8 @@ div.csl-indent {
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>varnames <span class="ot">&lt;-</span> <span class="fu">colnames</span>(y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="var-estimation" class="level2" data-number="4.4">
-<h2 data-number="4.4" class="anchored" data-anchor-id="var-estimation"><span class="header-section-number">4.4</span> VAR Estimation</h2>
+<section id="var-estimation" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="var-estimation"><span class="header-section-number">4.5</span> VAR Estimation</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">2</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="dv">1</span></span>
@@ -301,8 +353,8 @@ div.csl-indent {
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> var_result<span class="sc">$</span>sigma</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="news-shock-identification" class="level2" data-number="4.5">
-<h2 data-number="4.5" class="anchored" data-anchor-id="news-shock-identification"><span class="header-section-number">4.5</span> News Shock Identification</h2>
+<section id="news-shock-identification" class="level2" data-number="4.6">
+<h2 data-number="4.6" class="anchored" data-anchor-id="news-shock-identification"><span class="header-section-number">4.6</span> News Shock Identification</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>horizon <span class="ot">&lt;-</span> <span class="dv">40</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -316,8 +368,8 @@ div.csl-indent {
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>struct_irf <span class="ot">&lt;-</span> <span class="fu">fmaxIRF</span>(wold, S, <span class="at">var_idx =</span> <span class="dv">1</span>L)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="bootstrap-confidence-bands" class="level2" data-number="4.6">
-<h2 data-number="4.6" class="anchored" data-anchor-id="bootstrap-confidence-bands"><span class="header-section-number">4.6</span> Bootstrap Confidence Bands</h2>
+<section id="bootstrap-confidence-bands" class="level2" data-number="4.7">
+<h2 data-number="4.7" class="anchored" data-anchor-id="bootstrap-confidence-bands"><span class="header-section-number">4.7</span> Bootstrap Confidence Bands</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>boot_max <span class="ot">&lt;-</span> <span class="fu">fbootstrapMaxCorrected</span>(</span>
@@ -331,7 +383,7 @@ div.csl-indent {
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc        =</span> <span class="dv">68</span>          <span class="co"># Match original paper</span></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.715 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.289 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fplotirfLR</span>(</span>
@@ -354,8 +406,8 @@ Figure&nbsp;4.1: IRF to Tech. news shock — LR-Max bootstrap (68% and 90% confi
 </div>
 </div>
 </section>
-<section id="compare-the-result-to-barsky2012" class="level2" data-number="4.7">
-<h2 data-number="4.7" class="anchored" data-anchor-id="compare-the-result-to-barsky2012"><span class="header-section-number">4.7</span> Compare the result to <span class="citation" data-cites="barsky2012">Barsky and Sims (<a href="#ref-barsky2012" role="doc-biblioref">2012</a>)</span></h2>
+<section id="compare-the-result-to-barsky2012" class="level2" data-number="4.8">
+<h2 data-number="4.8" class="anchored" data-anchor-id="compare-the-result-to-barsky2012"><span class="header-section-number">4.8</span> Compare the result to <span class="citation" data-cites="barsky2012">Barsky and Sims (<a href="#ref-barsky2012" role="doc-biblioref">2012</a>)</span></h2>
 <p>Now we can compare the results to that of <span class="citation" data-cites="barsky2012">Barsky and Sims (<a href="#ref-barsky2012" role="doc-biblioref">2012</a>)</span> and plot IRF results.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>struct_irf_uhlig <span class="ot">&lt;-</span> <span class="fu">fuhligIRF</span>(wold, S, <span class="at">idx =</span> <span class="dv">1</span>L)</span>
@@ -372,7 +424,7 @@ Figure&nbsp;4.1: IRF to Tech. news shock — LR-Max bootstrap (68% and 90% confi
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">prc        =</span> <span class="dv">68</span>         <span class="co"># Match original study</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.746 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.246 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fplotirfLR</span>(</span>
@@ -394,6 +446,9 @@ Figure&nbsp;4.2: IRF to news shock — Uhlig max-share bootstrap (68% and 90% co
 </div>
 </div>
 </div>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -819,8 +874,8 @@ Beaudry, Paul, and Franck Portier. 2014. <span>“News-Driven Business Cycles: I
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./03_Kaenzig2021.html" class="pagination-link" aria-label="Proxy SVAR (External Instruments)">
-        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments)</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./03_1_Kaenzig2021_ExternalIV.html" class="pagination-link" aria-label="Proxy SVAR (External Instruments) and Weak-IV Robust Inference">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

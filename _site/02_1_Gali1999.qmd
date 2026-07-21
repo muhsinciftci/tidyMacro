@@ -19,6 +19,16 @@ knitr::opts_chunk$set(
 
 This document replicates the main empirical results of @galí1999 shocks can have a permanent effect on labor productivity.
 
+## Model and Identification
+
+With $\Phi(1) = \sum_{h=0}^{\infty} \Phi_h$ the reduced-form long-run multiplier, the cumulative structural effect is $\Theta(1) = \Phi(1) B_0$. The reduced form identifies the long-run covariance
+
+$$\Omega \equiv \Phi(1)\, \Sigma\, \Phi(1)' = \Theta(1)\, \Theta(1)'.$$
+
+Imposing a lower-triangular $\Theta(1)$ (only technology shocks affect productivity permanently) makes it the unique Cholesky factor of $\Omega$, and the impact matrix follows as
+
+$$\Theta(1) = \operatorname{chol}(\Omega), \qquad B_0 = \Phi(1)^{-1}\, \Theta(1).$$
+
 ## Setup
 
 ```{r}
@@ -174,6 +184,11 @@ fplot_histdec(
 
 Following @galí1999 , we decompose the unconditional correlation between hours and productivity into shock-specific conditional correlations. The conditional correlation for shock $i$ is:
 
+$$\rho_i = \frac{\sum_{h} \theta_{1i,h}\, \theta_{2i,h}}
+{\sqrt{\left(\sum_{h} \theta_{1i,h}^2\right) \left(\sum_{h} \theta_{2i,h}^2\right)}},$$
+
+where $\theta_{ki,h}$ is the response of variable $k$ to shock $i$ at horizon $h$.
+
 ```{r}
 #| label: cond-corr
 
@@ -208,3 +223,5 @@ cat("Conditional correlation | Non-Technology shock: ", round(cond_corr[2], 3), 
 ```
 
 Hours and productivity are nearly uncorrelated unconditionally, which sits uncomfortably with standard RBC theory. Once we condition on the source of variation, the picture sharpens: technology improvements are accompanied by a *decline* in hours, producing a negative conditional correlation. It is the non-technology shock that drives hours and productivity in the same direction — precisely the co-movement that RBC models mistakenly ascribed to technology.
+
+## References {.unnumbered}

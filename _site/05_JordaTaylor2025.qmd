@@ -24,6 +24,26 @@ This document is both a **replication** of @jorda2025 and a **feature tour** of 
 
 The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences `CPI_{t+h} - CPI_{t-1}` and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls.
 
+**LP-OLS.** One direct regression per horizon; under the long-difference convention the LHS is $y_{t+h} - y_{t-1}$:
+
+$$y_{t+h} - y_{t-1} = \alpha_h + \beta_h\, s_t + \gamma_h' w_t + e_{t+h},
+\qquad h = 0, 1, \dots, H,$$
+
+with IRF $\{\hat{\beta}_h\}_{h=0}^{H}$ and Newey-West sandwich variance
+
+$$V_h = (X'X)^{-1}\, X' \Omega X\, (X'X)^{-1},
+\qquad
+L_h = \max\{\texttt{nw\_lags} + h + \texttt{nw\_offset},\, 0\}.$$
+
+**LP-IV.** With endogenous treatment $d_t$ instrumented by $Z_t$, after residualising $Y$, $D$, $Z$ on the exogenous controls (FWL) the 2SLS point estimate and delta-method HAC standard error are
+
+$$\hat{\beta}_h = \frac{\hat{D}'\, Y_r}{\hat{D}'\, D_r},
+\qquad
+\widehat{\mathrm{se}}(\hat{\beta}_h)
+  = \frac{\sqrt{\widehat{\mathrm{LRV}}(\hat{D}_t \varepsilon_t)}}{\lvert \hat{D}'\, D_r \rvert},
+\qquad
+\varepsilon_t = Y_{r,t} - \hat{\beta}_h D_{r,t}.$$
+
 **HAC standard errors.** `fLP()` always uses the full Newey-West sandwich `V_h = (X'X)⁻¹ · X'ΩX · (X'X)⁻¹` — the estimator used in Jordà (2005), Stock & Watson (2018), Plagborg-Møller & Wolf (2021), Cesa-Bianchi's VAR Toolbox, Stata's `newey`, R's `sandwich::NeweyWest`, and virtually every published LP application. The Bartlett bandwidth defaults to Miranda-Agrippino & Ricco's `nw_lags + h + 1` rule; set `nw_offset = 0` for the classic Jordà `= h` rule (which matches Cesa-Bianchi's `LPmodel.m` bit-for-bit for the Jordà-Taylor replication).
 
 ------------------------------------------------------------------------
@@ -364,3 +384,5 @@ tidy.fLP(lp_iv) |> head(6)
 - **`fPlotLP()`** paints those responses and bands directly, or returns a tibble via `return_data = TRUE` for hand-rolled ggplots. It works on `fLP()` and `fLPIV()` fits interchangeably.
 - **HAC standard errors.** `fLP()` and `fLPIV()` both use full Newey-West sandwiches (`fLPIV()` via the delta-method IV form). `nw_offset = 0` and `nw_lags_iv = k` reproduce the Jordà-Taylor (2025) MATLAB standard errors.
 - **LP-IV.** `fLPIV()` mirrors `fLP()`'s formula syntax and adds an `instruments = ~ …` argument; the endogenous treatment is named via `endog = "…"`. Multi-band and multi-LHS support are inherited.
+
+## References {.unnumbered}

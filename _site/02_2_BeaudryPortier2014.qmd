@@ -19,6 +19,20 @@ knitr::opts_chunk$set(
 
 This document replicates the news shock identification of @beaudry2014 . A news shock is identified as the shock that has **no contemporaneous effect on TFP** but **maximizes the long-run response of TFP** at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.
 
+## Model and Identification
+
+With $P$ the lower Cholesky factor of $\Sigma$, any rotation is observationally equivalent:
+
+$$\Sigma = P P' = (P Q)(P Q)', \qquad Q Q' = I_K.$$
+
+The news shock is the rotation vector $q$ orthogonal to the impact on TFP (variable 1) that maximizes the share of TFP's forecast error variance up to horizon $H$:
+
+$$q^{*} = \arg\max_{q\,:\,q'q = 1,\ (Pq)_1 = 0}
+\frac{\sum_{h=0}^{H} \big[(\Phi_h P q)_1\big]^2}{\sum_{h=0}^{H} \sigma_{11,h}},
+\qquad H = 40,$$
+
+where $\sigma_{11,h}$ is the total forecast error variance of TFP at horizon $h$. The impact vector is $b^{news} = P q^{*}$ and structural IRFs are $\Theta_h = \Phi_h P q^{*}$.
+
 ## Setup
 
 ```{r}
@@ -137,3 +151,5 @@ fplotirfLR(
   facet_ncol  = 2
 ) + labs(y  = NULL)
 ```
+
+## References {.unnumbered}

@@ -19,6 +19,22 @@ knitr::opts_chunk$set(
 
 This chapter demonstrates `fLPpanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro.
 
+The estimated panel local projection is
+
+$$y_{i,t+h} = \alpha^{(h)}_{\mathrm{FE}}
+  + \beta_h\, (s_{it}\, x_t)
+  + \gamma_h' w_{it}
+  + \sum_{k=1}^{\min(h,\, p_{\max})} \delta_{hk}'\, v_{i,t-k}
+  + u_{i,t+h},$$
+
+where $x_t$ is the aggregate shock, $s_{it}$ an optional unit-level covariate scaling the response, $w_{it}$ additional controls, and $v_{i,t-k}$ lags of the regressand and shock regressor. Inference is time-clustered:
+
+$$\hat{V}_h = (X'X)^{-1} \Big( \sum_t Z_t Z_t' \Big) (X'X)^{-1},
+\qquad
+Z_t = \sum_i X_{it}\, \hat{u}_{it},$$
+
+with normal critical values by default, or $t$ critical values with the @imbens2016 data-determined degrees of freedom under `small_sample = TRUE`. `cumulative = TRUE` projects $\sum_{r=0}^{h} y_{i,t+r}$.
+
 Like `fLP()`, the syntax is `fixest`-style and **what-you-see-is-what-you-estimate**:
 
 - Formula `y ~ shock + controls | fe1 + fe2` — fixed effects go after `|`.
@@ -314,3 +330,5 @@ fLPpanel(
   horizons = 5, conf = 0.90, n_threads = 2
 )
 ```
+
+## References {.unnumbered}
