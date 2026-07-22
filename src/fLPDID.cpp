@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 // fLPDID.cpp — LP-DiD (Dube-Girardi-Jorda-Taylor) C++ engine
-// See fLPDID.h for the full description. Design mirrors fLPpanel.cpp:
+// See fLPDID.h for the full description. Design mirrors fLPPanel.cpp:
 // per-unit time maps for gap-robust shifts, precomputed read-only caches,
 // OpenMP parallelization over horizons.
 // [[Rcpp::depends(RcppArmadillo)]]

@@ -57,7 +57,7 @@ library(tidyMacro)
 library(zoo)
 library(patchwork)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ------------------------------------------------------------------------

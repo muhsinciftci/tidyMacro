@@ -2,9 +2,9 @@
 #include "fGetBands.h"
 #include "fOLS.h"
 #include "fVAR.h"
-#include "fgenerateVARdata.h"
-#include "flagmakerMatrix.h"
-#include "fwoldIRF.h"
+#include "fGenerateVARData.h"
+#include "fLagMakerMatrix.h"
+#include "fWoldIRF.h"
 #include <RcppArmadillo.h>
 #include <cmath>
 #ifdef _OPENMP
@@ -20,8 +20,8 @@ static arma::vec clean_instr_inv(const arma::vec& instr_raw, int p,
     arma::vec z0 = instr_raw.rows(p, T - 1);
     arma::mat z0_mat(z0.n_elem, 1);
     z0_mat.col(0) = z0;
-    arma::mat lag_i   = flagmakerMatrix(instr_mat, p);
-    arma::mat lag_X   = flagmakerMatrix(y, p);
+    arma::mat lag_i   = fLagMakerMatrix(instr_mat, p);
+    arma::mat lag_X   = fLagMakerMatrix(y, p);
     arma::mat X_clean = arma::join_horiz(lag_i, lag_X);
     return fOLS_cpp(z0_mat, X_clean, 1, 0, 0, 1).err.col(0);
 }
@@ -60,7 +60,7 @@ arma::cube fBootstrapIVInvertible_cpp(
 
         arma::mat eps_wild(m, N, arma::fill::none);
         for (int i = 0; i < m; ++i) eps_wild.row(i) = eps.row(i) * rad(i);
-        arma::mat y_new = fgenerateVARdata(y, p, c, beta, eps_wild);
+        arma::mat y_new = fGenerateVARData(y, p, c, beta, eps_wild);
 
         // 2. Apply same Rademacher signs to instrument (indices p..T-1)
         arma::vec z_new = instr;
@@ -71,7 +71,7 @@ arma::cube fBootstrapIVInvertible_cpp(
 
         // 4. Estimate VAR and Wold IRF
         VARResult     vr_b = fVAR_cpp(y_new, p, c, R_NilValue);
-        WoldIRFResult wr_b = fwoldIRF_cpp(vr_b, hor);
+        WoldIRFResult wr_b = fWoldIRF_cpp(vr_b, hor);
         const arma::mat& eps_b    = vr_b.residuals;
         const arma::mat  Sigma_inv = arma::inv_sympd(vr_b.sigma);
         const arma::cube& wold_b  = wr_b.irfwold;

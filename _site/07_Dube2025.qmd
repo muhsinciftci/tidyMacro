@@ -22,7 +22,7 @@ This chapter replicates the two empirical applications of @dube2025 with `tidyMa
 - `fLPDID()` — the LP-DiD estimator in C++ (OpenMP-parallel over horizons), with clean-control samples for absorbing and non-absorbing treatments, optional reweighting to the equally-weighted ATT, PMD baselines, and CR1 cluster-robust standard errors matching Stata's `reghdfe`.
 - `fPlotLPDID()` — companion event-study plot; pass several named results for a faceted comparison.
 
-The interface mirrors `fLPpanel()`: a fixest-style formula with `..macro` expansion and panel-aware operators — `l(x, 1:4)` for lags, `f(x, k)` for leads, and `d(x)` for first differences, so DGJT's "four lags of the outcome in levels and changes" is simply `l(lshare, 1:4) + l(d(lshare), 1:4)`. Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference.
+The interface mirrors `fLPPanel()`: a fixest-style formula with `..macro` expansion and panel-aware operators — `l(x, 1:4)` for lags, `f(x, k)` for leads, and `d(x)` for first differences, so DGJT's "four lags of the outcome in levels and changes" is simply `l(lshare, 1:4) + l(d(lshare), 1:4)`. Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference.
 
 LP-DiD estimates, for each horizon $h$, the long-difference regression
 
@@ -45,7 +45,7 @@ $$c = \frac{G}{G-1} \cdot \frac{N-1}{N-K}.$$
 ```{r setup}
 library(tidyMacro)
 library(tidyverse)
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 
 data("BankingDeregulation")
 data("DemocracyGrowth")

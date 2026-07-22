@@ -25,7 +25,7 @@ library(tidyverse)
 library(tidyMacro)
 library(tictoc)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ------------------------------------------------------------------------
@@ -64,9 +64,9 @@ y_aug <- cbind(iv_oil_trunc, finaldata)
 
 var_aug  <- fVAR(y_aug, p, c)
 S_aug    <- t(chol(var_aug$sigma))
-wold_aug <- fwoldIRF(var_aug, horizon = hor)
+wold_aug <- fWoldIRF(var_aug, horizon = hor)
 
-point_irf_aug <- fcholeskyIRF(wold_aug, S_aug)
+point_irf_aug <- fCholeskyIRF(wold_aug, S_aug)
 ```
 
 ## Bootstrap
@@ -76,7 +76,7 @@ point_irf_aug <- fcholeskyIRF(wold_aug, S_aug)
 #| cache: true
 
 tic()
-boot_aug <- fbootstrapChol(
+boot_aug <- fBootstrapChol(
     y          = y_aug,
     var_result = var_aug,
     nboot      = 1000,
@@ -99,7 +99,7 @@ Responses are rescaled so that the impact on the oil price matches a 10% jump, m
 # point_irf_aug[2, 1, 1]: oil price (row 2), shock 1, h = 0
 scale_int <- 10 / point_irf_aug[2, 1, 1]
 
-fplotirf_chol(
+fPlotIRFChol(
     point       = point_irf_aug,
     boot_result = boot_aug,
     shock       = 1,

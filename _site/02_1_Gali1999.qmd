@@ -37,7 +37,7 @@ library(tidyverse)
 library(tidyMacro)
 library(tictoc)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ## Data
@@ -78,7 +78,7 @@ Sigma <- var_result$sigma
 #| label: bq-identification
 
 horizon <- 40
-wold <- fwoldIRF(var_result, horizon = horizon)
+wold <- fWoldIRF(var_result, horizon = horizon)
 
 # Long-run multiplier matrix
 C1 <- apply(wold, c(1, 2), sum)
@@ -90,7 +90,7 @@ D1 <- t(chol(C1 %*% Sigma %*% t(C1)))
 K <- solve(C1, D1)
 
 # BQ IRFs (in first differences)
-irf_bq <- fbqIRF(wold, K)
+irf_bq <- fBQIRF(wold, K)
 ```
 
 ## Bootstrap Confidence Bands
@@ -99,7 +99,7 @@ irf_bq <- fbqIRF(wold, K)
 #| label: bootstrap
 
 tic()
-boot_bq <- fbootstrapBQ(
+boot_bq <- fBootstrapBQ(
   y = y,
   var_result = var_result,
   nboot = 1000,
@@ -118,7 +118,7 @@ Level responses are recovered by accumulating the first-differenced IRFs. The fi
 #| label: fig-irf
 #| fig-cap: "Impulse response functions to technology and non-technology shocks (68% and 90% confidence bands)"
 
-fplotirf_bq(
+fPlotIRFBQ(
   point       = irf_bq,
   boot_result = boot_bq,
   varnames    = c("LABPROD", "HOURS"),
@@ -141,10 +141,10 @@ for (h in 2:dim(irf_bq)[3]) {
 }
 
 # FEVD — reuses Cholesky FEVD function (same maths)
-fevd <- fevd_chol(irf_cumu, shock = 0)$fevd
+fevd <- fFEVDChol(irf_cumu, shock = 0)$fevd
 fevd <- fevd[, c(2, 1), ] # optional, for vis purposes
 
-fplot_vardec(
+fPlotVarDec(
   fevd = fevd,
   varnames = c("LABPROD", "HOURS"),
   shocknames = c("Technology", "Non-Technology")
@@ -162,14 +162,14 @@ histdec_all <- vector("list", N)
 ystar_all <- matrix(0, nrow = T - p, ncol = N)
 
 for (series in seq_len(N)) {
-  res <- fhistdec(y, var_result, K, series)
+  res <- fHistDec(y, var_result, K, series)
   histdec_all[[series]] <- res$histdec
   ystar_all[, series] <- res$ystar
 }
 
 names(histdec_all) <- c("LABPROD", "HOURS")
 
-fplot_histdec(
+fPlotHistDec(
   histdec_list = histdec_all,
   shock = 1,
   shockname = "Technology",

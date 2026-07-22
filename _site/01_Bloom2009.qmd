@@ -44,7 +44,7 @@ library(tidyverse)
 library(tidyMacro)
 library(tictoc)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ------------------------------------------------------------------------
@@ -89,8 +89,8 @@ S <- t(chol(sigma))
 
 # Wold IRFs
 horizon   <- 48
-wold      <- fwoldIRF(var_bloom, horizon = horizon)
-point_irf <- fcholeskyIRF(wold, S)
+wold      <- fWoldIRF(var_bloom, horizon = horizon)
+point_irf <- fCholeskyIRF(wold, S)
 ```
 
 ------------------------------------------------------------------------
@@ -102,7 +102,7 @@ point_irf <- fcholeskyIRF(wold, S)
 ```{r}
 #| label: bootstrap-standard
 tic()
-bloom_chol <- fbootstrapChol(
+bloom_chol <- fBootstrapChol(
     y          = y,
     var_result = var_bloom,
     nboot      = 1000,
@@ -119,7 +119,7 @@ toc()
 #| label: bootstrap-corrected
 
 tic()
-bloom_corrected <- fbootstrapCholCorrected(
+bloom_corrected <- fBootstrapCholCorrected(
     y          = y,
     var_result = var_bloom,
     nboot1     = 1000,
@@ -141,7 +141,7 @@ toc()
 #| label: fig-irf-standard
 #| fig-cap: "IRFs to uncertainty shock — standard bootstrap (68% and 90% confidence bands)"
 
-fplotirf_chol(
+fPlotIRFChol(
     point       = point_irf,
     boot_result = bloom_chol,
     shock       = shock,
@@ -157,7 +157,7 @@ fplotirf_chol(
 #| label: fig-irf-corrected
 #| fig-cap: "IRFs to uncertainty shock — bias-corrected bootstrap (68% and 90% confidence bands)"
 
-fplotirf_chol(
+fPlotIRFChol(
     point       = point_irf,
     boot_result = bloom_corrected,
     shock       = shock,
@@ -179,9 +179,9 @@ $$\mathrm{FEVD}_{k,j}(h) = \frac{\sum_{s=0}^{h-1} (\Theta_s)_{kj}^2}{\sum_{s=0}^
 #| label: fig-fevd
 #| fig-cap: "Forecast error variance decomposition: share explained by uncertainty shock"
 
-vardec <- fevd_chol(point_irf, shock = shock)
+vardec <- fFEVDChol(point_irf, shock = shock)
 
-fplot_vardec(
+fPlotVarDec(
     fevd       = vardec$fevd,
     varnames   = var_names,
     shocknames = shockname
@@ -207,11 +207,11 @@ HD_{k,t}^{(j)} = \sum_{s=0}^{t-1} (\Theta_s)_{kj}\, \varepsilon_{j,t-s}.$$
 series <- setdiff(seq_len(N), shock)
 
 histdec_list <- setNames(
-    lapply(series, function(i) fhistdec(y, var_bloom, S, i)$histdec),
+    lapply(series, function(i) fHistDec(y, var_bloom, S, i)$histdec),
     colnames(y)[series]
 )
 
-fplot_histdec(
+fPlotHistDec(
     histdec_list = histdec_list,
     shock        = shock,
     shockname    = shockname,

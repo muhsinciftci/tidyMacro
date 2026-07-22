@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This chapter demonstrates `fLPpanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro.
+This chapter demonstrates `fLPPanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro.
 
 The estimated panel local projection is
 
@@ -51,7 +51,7 @@ Under the hood, the engine handles:
 - **Cumulative** or standard responses.
 - Two SE regimes: asymptotic *time-clustered* (LAHR) or the @imbens2016 small-sample refinement with component-specific effective degrees of freedom.
 
-Below we replicate the workflow of @almuzara2024micro on a synthetic **unbalanced** sample panel, in a single `fLPpanel()` call, and check numerical agreement against the authors' reference R port.
+Below we replicate the workflow of @almuzara2024micro on a synthetic **unbalanced** sample panel, in a single `fLPPanel()` call, and check numerical agreement against the authors' reference R port.
 
 ------------------------------------------------------------------------
 
@@ -125,13 +125,13 @@ df_panel |>
 
 ------------------------------------------------------------------------
 
-## Estimation — one `fLPpanel()` call
+## Estimation — one `fLPPanel()` call
 
 The formula says *exactly* what the estimator does. `shock:size` is the elementwise product $s_{it}\,X_t$ that generates cross-sectional variation (necessary once the unit-invariant shock is absorbed into `tt` fixed effects). Two-way FE go after `|`.
 
 ```{r}
 #| label: lp-panel-fit
-lp_pkg <- fLPpanel(
+lp_pkg <- fLPPanel(
   y ~ shock:size | unit + tt,
   data         = df_panel,
   panel_id     = c("unit", "tt"),   # id + time in a single argument
@@ -148,7 +148,7 @@ Tidy output:
 
 ```{r}
 #| label: lp-panel-tidy
-tidyMacro:::tidy.fLPpanel(lp_pkg) |>
+tidyMacro:::tidy.fLPPanel(lp_pkg) |>
   mutate(across(where(is.numeric), \(x) round(x, 4)))
 ```
 
@@ -156,9 +156,9 @@ tidyMacro:::tidy.fLPpanel(lp_pkg) |>
 
 ## Side-by-side check against `fixest`
 
-`fixest` doesn't ship a dedicated panel-LP function, but a cumulative panel LP is *definitionally* a stack of `feols` fits — one per horizon, with the leaded / cumulated regressand on the LHS and the same shock and fixed-effects on the RHS. We build that stack manually and compare it against `fLPpanel()` on the **same unbalanced sample**.
+`fixest` doesn't ship a dedicated panel-LP function, but a cumulative panel LP is *definitionally* a stack of `feols` fits — one per horizon, with the leaded / cumulated regressand on the LHS and the same shock and fixed-effects on the RHS. We build that stack manually and compare it against `fLPPanel()` on the **same unbalanced sample**.
 
-For an apples-to-apples comparison we fit `fLPpanel()` again with `small_sample = FALSE` so both estimators use asymptotic time-clustered (LAHR) standard errors.
+For an apples-to-apples comparison we fit `fLPPanel()` again with `small_sample = FALSE` so both estimators use asymptotic time-clustered (LAHR) standard errors.
 
 ```{r}
 #| label: fixest-fit
@@ -168,7 +168,7 @@ library(fixest)
 # ROW INDEX, so it silently closes internal time gaps in an unbalanced
 # panel. To shift by actual TIME we first `complete()` the (unit, tt)
 # grid — missing cells become NA — then `dplyr::lead` steps along real
-# time, matching fLPpanel's per-unit hash-lookup shift.
+# time, matching fLPPanel's per-unit hash-lookup shift.
 df_grid <- df_panel |>
   tidyr::complete(unit, tt) |>
   dplyr::arrange(unit, tt)
@@ -207,7 +207,7 @@ fixest_tbl <- purrr::map_dfr(0:H, function(h) {
 ```{r}
 #| label: pkg-refit-asy
 # Refit with asymptotic time-clustered SE for the fixest comparison.
-lp_pkg_asy <- fLPpanel(
+lp_pkg_asy <- fLPPanel(
   y ~ shock:size | unit + tt,
   data         = df_panel,
   panel_id     = c("unit", "tt"),
@@ -220,7 +220,7 @@ lp_pkg_asy <- fLPpanel(
 )
 ```
 
-Point estimates coincide to machine precision — both fits solve the same OLS system on the same effective sample. Standard errors agree up to fixest's finite-sample cluster multiplier $G/(G-1)\cdot(N-1)/(N-k)$, which `fLPpanel` does not apply in its asymptotic LAHR mode:
+Point estimates coincide to machine precision — both fits solve the same OLS system on the same effective sample. Standard errors agree up to fixest's finite-sample cluster multiplier $G/(G-1)\cdot(N-1)/(N-k)$, which `fLPPanel` does not apply in its asymptotic LAHR mode:
 
 ```{r}
 #| label: fixest-diff
@@ -233,7 +233,7 @@ cat(sprintf(
 
 ```{r}
 #| label: fig-panel-lp-fixest
-#| fig-cap: "IRF and 90% band on the unbalanced sample. Left: tidyMacro::fLPpanel() with asymptotic time-clustered SEs. Right: stack of fixest::feols fits, one per horizon, with the same clustering."
+#| fig-cap: "IRF and 90% band on the unbalanced sample. Left: tidyMacro::fLPPanel() with asymptotic time-clustered SEs. Right: stack of fixest::feols fits, one per horizon, with the same clustering."
 horizons <- 0:H
 blue     <- "#0055A4"
 
@@ -251,7 +251,7 @@ mk_panel <- function(est, lo, hi, title) {
 p_pkg <- mk_panel(as.vector(lp_pkg_asy$irfs),
                   as.vector(lp_pkg_asy$irfs_lower),
                   as.vector(lp_pkg_asy$irfs_upper),
-                  "tidyMacro::fLPpanel()")
+                  "tidyMacro::fLPPanel()")
 p_fx  <- mk_panel(fixest_tbl$estimate,
                   fixest_tbl$lo90,
                   fixest_tbl$hi90,
@@ -260,7 +260,7 @@ p_fx  <- mk_panel(fixest_tbl$estimate,
 p_pkg + p_fx + plot_layout(ncol = 2)
 ```
 
-::: {.callout-tip title="What `fLPpanel()` adds over a raw fixest stack"}
+::: {.callout-tip title="What `fLPPanel()` adds over a raw fixest stack"}
 - One call instead of one per horizon.
 - Panel-aware `l()` / `f()` operators that respect unit boundaries.
 - OpenMP-parallel horizon loop (each horizon is independent once y is leaded).
@@ -272,7 +272,7 @@ p_pkg + p_fx + plot_layout(ncol = 2)
 
 ## Two-band plot via `fPlotLP()`
 
-The result object has class `c("fLPpanel", "fLP")` so every `fLP` helper transfers:
+The result object has class `c("fLPPanel", "fLP")` so every `fLP` helper transfers:
 
 ```{r}
 #| label: fig-panel-lp
@@ -295,7 +295,7 @@ df_alt <- df_panel |>
          X1      = rnorm(n()))
 df_alt$y_alt <- 1.0 * df_alt$shock_i + 0.3 * df_alt$X1 + rnorm(nrow(df_alt))
 
-fLPpanel(
+fLPPanel(
   y_alt ~ X1 + shock_i | unit,
   data     = df_alt,
   panel_id = c("unit", "tt"),
@@ -308,7 +308,7 @@ fLPpanel(
 
 ```{r}
 #| label: lp-panel-nofe
-fLPpanel(
+fLPPanel(
   y_alt ~ X1 + shock_i,
   data     = df_alt,
   panel_id = c("unit", "tt"),
@@ -322,7 +322,7 @@ fLPpanel(
 ```{r}
 #| label: lp-panel-lags
 controls <- c("shock")
-fLPpanel(
+fLPPanel(
   y ~ shock:size + l(..controls, 1:2) + l(y, 1:2) | unit + tt,
   data     = df_panel,
   panel_id = c("unit", "tt"),

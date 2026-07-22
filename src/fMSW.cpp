@@ -1,7 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include "fMSW.h"
-#include "flagmakerMatrix.h"
+#include "fLagMakerMatrix.h"
 #include <RcppArmadillo.h>
 #include <cmath>
 #include <vector>
@@ -486,7 +486,7 @@ Rcpp::List fMSW(const Rcpp::List& var_result,
 
     // Build full design matrix for VAR sample, then restrict to proxy sample
     // X_full: (T-p) x (c + N*p)
-    arma::mat lags_full = flagmakerMatrix(finaldata, p);   // (T-p) x N*p
+    arma::mat lags_full = fLagMakerMatrix(finaldata, p);   // (T-p) x N*p
     arma::mat X_full;
     if (c == 1) {
         X_full = arma::join_rows(arma::ones<arma::mat>(T - p, 1), lags_full);

@@ -8,7 +8,7 @@ fSpectralFEVD(D, irf_s, band, J, fourier = TRUE)
 }
 \arguments{
 \item{D}{Cholesky IRF cube of dimension \eqn{N \times N \times H}
-(output of \code{fcholeskyIRF}).}
+(output of \code{fCholeskyIRF}).}
 
 \item{irf_s}{Matrix of dimension \eqn{N \times H}: IRF of each variable to
 the structural shock of interest (unit-variance normalisation).}
@@ -33,5 +33,5 @@ Computes the fraction of spectral variance attributable to a single
 structural shock within a given frequency band.
 }
 \seealso{
-\code{\link{fcholeskyIRF}}, \code{\link{fPolyConvolve}}
+\code{\link{fCholeskyIRF}}, \code{\link{fPolyConvolve}}
 }

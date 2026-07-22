@@ -8,7 +8,7 @@ fPolyConvolve(A, B, nlags)
 }
 \arguments{
 \item{A}{3-D array of dimension \eqn{d_1 \times d_2 \times A_3}
-(e.g. Wold IRF coefficients from \code{fwoldIRF}).}
+(e.g. Wold IRF coefficients from \code{fWoldIRF}).}
 
 \item{B}{3-D array of dimension \eqn{d_2 \times K \times B_3}
 (e.g. \eqn{\Psi(L)} coefficients).}
@@ -25,5 +25,5 @@ Both polynomials are stored as 3-D arrays where the third dimension indexes
 lag order (slice 1 = lag 0, slice 2 = lag 1, etc.).
 }
 \seealso{
-\code{\link{fwoldIRF}}, \code{\link{fcholeskyIRF}}
+\code{\link{fWoldIRF}}, \code{\link{fCholeskyIRF}}
 }

@@ -80,11 +80,12 @@ A tibble of class \code{"fLPDID"} with columns
 }
 \description{
 Estimates event-study treatment effects with the LP-DiD estimator of
-Dube, Girardi, Jordà and Taylor (NBER WP 31184): long-difference local
+Dube, Girardi, Jordà and Taylor (2025, \emph{Journal of Applied
+Econometrics}, \doi{10.1002/jae.70000}): long-difference local
 projections on clean-control samples with absorbed time fixed effects
 and cluster-robust (CR1, Stata `reghdfe` convention) standard errors.
 The horizon loop runs in parallel C++ (OpenMP). Formula syntax mirrors
-\code{\link{fLPpanel}}: supports \code{..macro} expansion and the
+\code{\link{fLPPanel}}: supports \code{..macro} expansion and the
 panel-aware operators \code{l()}, \code{f()} and \code{d()}.
 }
 \examples{

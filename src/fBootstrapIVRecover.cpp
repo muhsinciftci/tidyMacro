@@ -2,9 +2,9 @@
 #include "fGetBands.h"
 #include "fOLS.h"
 #include "fVAR.h"
-#include "fgenerateVARdata.h"
-#include "flagmakerMatrix.h"
-#include "fwoldIRF.h"
+#include "fGenerateVARData.h"
+#include "fLagMakerMatrix.h"
+#include "fWoldIRF.h"
 #include "fPolyConvolve.h"
 #include <RcppArmadillo.h>
 #include <cmath>
@@ -21,8 +21,8 @@ static arma::vec clean_instr_rec(const arma::vec& instr_raw, int p,
     arma::vec z0 = instr_raw.rows(p, T - 1);
     arma::mat z0_mat(z0.n_elem, 1);
     z0_mat.col(0) = z0;
-    arma::mat lag_i   = flagmakerMatrix(instr_mat, p);
-    arma::mat lag_X   = flagmakerMatrix(y, p);
+    arma::mat lag_i   = fLagMakerMatrix(instr_mat, p);
+    arma::mat lag_X   = fLagMakerMatrix(y, p);
     arma::mat X_clean = arma::join_horiz(lag_i, lag_X);
     return fOLS_cpp(z0_mat, X_clean, 1, 0, 0, 1).err.col(0);
 }
@@ -71,7 +71,7 @@ arma::cube fBootstrapIVRecover_cpp(
         arma::mat eps_new = arma::join_vert(eps_boot, eps.rows(m - r, m - 1));
 
         // 2. Generate new y
-        arma::mat y_new = fgenerateVARdata(y, p, c, beta, eps_new);
+        arma::mat y_new = fGenerateVARData(y, p, c, beta, eps_new);
 
         // 3. Regenerate instrument from DGP: z(t) = delta(F)*e(t) + v(t)
         arma::mat eps_f(t_shock, N * (r + 1), arma::fill::none);
@@ -89,14 +89,14 @@ arma::cube fBootstrapIVRecover_cpp(
 
         // 5. Estimate VAR and Wold IRF
         VARResult     vr_b = fVAR_cpp(y_new, p, c, R_NilValue);
-        WoldIRFResult wr_b = fwoldIRF_cpp(vr_b, hor);
+        WoldIRFResult wr_b = fWoldIRF_cpp(vr_b, hor);
         const arma::mat& eps_b    = vr_b.residuals;
         const arma::mat  Sigma_inv = arma::inv_sympd(vr_b.sigma);
 
         // 6. Re-estimate psi(L): regress eps on [1, z_b, lags(z_b)]
         arma::mat z_b_mat(z_b.n_elem, 1);
         z_b_mat.col(0) = z_b;
-        arma::mat lag_zb = flagmakerMatrix(z_b_mat, r);
+        arma::mat lag_zb = fLagMakerMatrix(z_b_mat, r);
         arma::mat Z_b = arma::join_horiz(
             arma::join_horiz(arma::ones(m_b - r, 1), z_b.rows(r, m_b - 1)),
             lag_zb);

@@ -7,10 +7,10 @@ page-layout: full
 book:
   title: "tidyMacro"
   subtitle: "High-Performance Vector Autoregressions and Local Projections in R"
-  #description: "Replication gallery and documentation for the tidyMacro R package"
+  description: "Replication gallery and documentation for the tidyMacro R package"
   author:
     - name: Muhsin Ciftci
-      url: https://mciftci.netlify.app
+      #url: https://mciftci.netlify.app
       affiliation: Goethe University Frankfurt
   date: today
   favicon: logo.png
@@ -21,28 +21,31 @@ book:
     foreground: "#FFF1E5"
     logo: logo.png
     logo-alt: "tidyMacro"
-    title: true
+    title: "tidyMacro"
     pinned: true
+    right:
+      - text: "PDF"
+        icon: file-pdf
+        href: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339
+        aria-label: "Download PDF"
 
   sidebar:
     style: docked
     background: "#FAF4ED"
-    #collapse-level: 1
+    collapse-level: 1
 
   chapters:
     - index.qmd
-    - part: "Chapters"
-      chapters:
-        - 01_Bloom2009.qmd
-        - 02_1_Gali1999.qmd
-        - 02_2_BeaudryPortier2014.qmd
-        - 03_1_Kaenzig2021_ExternalIV.qmd
-        - 03_2_Kaenzig2021_Hetero.qmd
-        - 03_3_Kaenzig2021_InternalIV.qmd
-        - 04_ForniGambettiRicco.qmd
-        - 05_JordaTaylor2025.qmd
-        - 06_AlmuzaraSancibrian2024.qmd
-        - 07_Dube2025.qmd
+    - 01_Bloom2009.qmd
+    - 02_1_Gali1999.qmd
+    - 02_2_BeaudryPortier2014.qmd
+    - 03_1_Kaenzig2021_ExternalIV.qmd
+    - 03_3_Kaenzig2021_InternalIV.qmd
+    - 03_2_Kaenzig2021_Hetero.qmd
+    - 04_ForniGambettiRicco.qmd
+    - 05_JordaTaylor2025.qmd
+    - 06_AlmuzaraSancibrian2024.qmd
+    - 07_Dube2025.qmd
   page-footer:
     left: "Built with [Quarto](https://quarto.org)"
     center: "© 2025 Muhsin Ciftci · Goethe University Frankfurt"

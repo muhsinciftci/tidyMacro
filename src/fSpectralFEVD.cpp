@@ -83,7 +83,7 @@ arma::vec fSpectralFEVD_cpp(const arma::cube& D, const arma::mat& irf_s,
 //' structural shock within a given frequency band.
 //'
 //' @param D Cholesky IRF cube of dimension \eqn{N \times N \times H}
-//'   (output of \code{fcholeskyIRF}).
+//'   (output of \code{fCholeskyIRF}).
 //' @param irf_s Matrix of dimension \eqn{N \times H}: IRF of each variable to
 //'   the structural shock of interest (unit-variance normalisation).
 //' @param band Numeric vector of length 2: \code{c(low_period, high_period)}
@@ -98,7 +98,7 @@ arma::vec fSpectralFEVD_cpp(const arma::cube& D, const arma::mat& irf_s,
 //' @return Numeric vector of length \eqn{N}: share of spectral variance
 //'   explained by the shock in the specified band.
 //'
-//' @seealso \code{\link{fcholeskyIRF}}, \code{\link{fPolyConvolve}}
+//' @seealso \code{\link{fCholeskyIRF}}, \code{\link{fPolyConvolve}}
 //'
 //' @export
 // [[Rcpp::export]]

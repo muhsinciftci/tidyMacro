@@ -54,6 +54,6 @@ result <- fVAR(y, p = 2, c = 1, exog = exog)
 
 }
 \seealso{
-\code{\link{fwoldIRF}}, \code{\link{fbootstrapChol}},
+\code{\link{fWoldIRF}}, \code{\link{fBootstrapChol}},
   \code{\link{fAICBIC}}
 }

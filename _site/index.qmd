@@ -66,7 +66,7 @@ tidyMacro is an R package for fast estimation and identification of Structural V
     - Weak IV Robust IRF ✅
       - **Delta method**
       - **Anderson-Rubin**
-    - Replication: @kaenzig2021 — see [Proxy SVAR chapter](03_1_Kaenzig2021_ExternalIV.qmd)
+    - Replication: @kaenzig2021
     - **External instrument SVAR analysis for noninvertible shocks** following @forni2022 ✅
       - Invertibility test ✅
       - Recoverability test ✅
@@ -77,12 +77,12 @@ tidyMacro is an R package for fast estimation and identification of Structural V
 
     - Adding instrument to VAR as the first variable, then IRF identified recursively
     - Other options in short run / recursive identification apply here
-    - Replication: @kaenzig2021 — see [Internal Instruments chapter](03_3_Kaenzig2021_InternalIV.qmd)
+    - Replication: @kaenzig2021
 
 5.  **Identification via Heteroskedasticity** following @rigobon2003 ✅
 
     - Impulse Response functions ✅
-    - Replication: @kaenzig2021 — see [Heteroskedasticity chapter](03_2_Kaenzig2021_Hetero.qmd)
+    - Replication: @kaenzig2021
 
 6.  **Identification via Sign, Narrative and Zero Restrictions** ⛔
 
@@ -108,6 +108,8 @@ tidyMacro is an R package for fast estimation and identification of Structural V
 ::: {.callout-warning appearance="default" icon="true" title="Please cite this work as:"}
 Ciftci, Muhsin (2026). *tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconometrics.* Available at SSRN: <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339>
 
+or in LaTeX:
+
 ``` bibtex
 @article{ciftci2026tidymacro,
   title   = {tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconometrics},
@@ -119,6 +121,12 @@ Ciftci, Muhsin (2026). *tidyMacro: A Fast, Tidy Toolkit for Applied Macroeconome
 ```
 :::
 
- 
+
+## Installation
+
+```         
+# install.packages("devtools")
+devtools::install_github("muhsinciftci/tidyMacro")
+```
 
 ## References {.unnumbered}

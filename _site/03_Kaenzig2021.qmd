@@ -41,7 +41,7 @@ library(tidyverse)
 library(tidyMacro)
 library(tictoc)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ------------------------------------------------------------------------
@@ -96,7 +96,7 @@ sigma_full <- var_result$sigma   # Full sample vcov, DOF-corrected: denom = T - 
 
 # Wold IRFs
 hor  <- 48
-wold <- fwoldIRF(var_result, horizon = hor)
+wold <- fWoldIRF(var_result, horizon = hor)
 ```
 
 ## Proxy SVAR: MBB Bootstrap
@@ -108,7 +108,7 @@ adjustZ <- c(1, nrow(iv_oil))
 adjustu <- c(nrow(residuals) - nrow(iv_oil) + 1, nrow(residuals))
 
 tic()
-result_mbb <- fbootstrapIV_mbb(
+result_mbb <- fBootstrapIVMBB(
     y          = finaldata,
     var_result = var_result,
     Z          = iv_oil,
@@ -129,7 +129,7 @@ toc()
 #| label: fig-irf
 #| fig-cap: "IRFs to oil supply news shock — MBB bootstrap (68% and 90% confidence bands)"
 
-fplotirf_iv(
+fPlotIRFIV(
     result_mbb = result_mbb,
     varnames   = varnames,
     shockname  = shockname,
@@ -213,7 +213,7 @@ oil_shock <- fGetShock(
 ```{r}
 #| label: hist-dec
 
-hd_result <- fhdIV(
+hd_result <- fHDIV(
     residuals = residuals,
     sigma     = sigma_full,
     s         = s,
@@ -232,7 +232,7 @@ T_eff   <- nrow(HDshock)
 #| cache: true
 
 tic()
-boot_hd <- fbootstrapHDIV(
+boot_hd <- fBootstrapHDIV(
     y          = finaldata,
     var_result = var_result,
     Z          = iv_oil,
@@ -314,7 +314,7 @@ tibble(
   scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
   ylim(-150, 150) +
   labs(x = NULL, y = "%") +
-  ftheme_tidyMacro()
+  fThemeTidyMacro()
 ```
 
 ## Forecast Error Variance Decomposition
@@ -323,10 +323,10 @@ tibble(
 #| label: fig-fevd
 #| fig-cap: "Forecast error variance decomposition: share explained by oil supply news shock"
 
-fevd_result <- fevd_iv(s, S, wold, N, hor, sigma, u, T1 = T1, p = p)
+fevd_result <- fFEVDIV(s, S, wold, N, hor, sigma, u, T1 = T1, p = p)
 
-fplot_vardec(
-    fevd       = fevd_result$fevd_iv,
+fPlotVarDec(
+    fevd       = fevd_result$fFEVDIV,
     varnames   = varnames,
     shocknames = shockname
 ) +
@@ -347,7 +347,7 @@ which identifies $s$ up to sign and scale without exclusion restrictions.
 indsR1 <- as.integer(iv_oil[, 1] != 0)
 cat("OPEC announcement months:", sum(indsR1), "of", length(indsR1), "\n")
 
-hetero_pt <- fheteroIRF(
+hetero_pt <- fHeteroIRF(
     var_result = var_result,
     Z          = iv_oil,
     adjustu    = adjustu,
@@ -368,7 +368,7 @@ cat(sprintf("%-20s  %8.3f  %8.3f\n", varnames, hetero_pt$b1, s))
 #| cache: false
 
 tic()
-boot_hetero <- fbootstrapHetero(
+boot_hetero <- fBootstrapHetero(
     y          = finaldata,
     var_result = var_result,
     Z          = iv_oil,
@@ -389,7 +389,7 @@ toc()
 #| label: fig-irf-hetero
 #| fig-cap: "IRFs — proxy IV restricted to OPEC announcement months (MBB, 68% and 90% confidence bands)"
 
-fplotirfHetero(
+fPlotIRFHetero(
     result    = boot_hetero,
     varnames  = varnames,
     shockname = "Oil Shock (Hetero)",
@@ -405,7 +405,7 @@ fplotirfHetero(
 #| label: fig-irf-compare
 #| fig-cap: "IRF comparison — proxy SVAR vs Heteroskedasticity"
 
-d_iv <- fplotirf_iv(
+d_iv <- fPlotIRFIV(
     result_mbb  = result_mbb,
     varnames    = varnames,
     shockname   = shockname,
@@ -414,7 +414,7 @@ d_iv <- fplotirf_iv(
 ) |> 
   mutate(method = "Proxy SVAR")
 
-d_hetero <- fplotirfHetero(
+d_hetero <- fPlotIRFHetero(
     result      = boot_hetero,
     varnames    = varnames,
     shockname   = "Oil Shock (Hetero)",
@@ -433,7 +433,7 @@ bind_rows(d_iv, d_hetero) |>
   scale_colour_manual(values = tidyMacro_colors[c(3, 4)]) +
   scale_fill_manual(values = tidyMacro_colors[c(3, 4)]) +
   labs(x = NULL, y = NULL, colour = NULL, fill = NULL) +
-  ftheme_tidyMacro()
+  fThemeTidyMacro()
 ```
 
 ## Internal Instruments: Cholesky on Augmented VAR
@@ -449,9 +449,9 @@ varnames_aug <- c("Oil Instrument", varnames)
 
 var_aug  <- fVAR(y_aug, p, c)
 S_aug    <- t(chol(var_aug$sigma))
-wold_aug <- fwoldIRF(var_aug, horizon = hor)
+wold_aug <- fWoldIRF(var_aug, horizon = hor)
 
-point_irf_aug <- fcholeskyIRF(wold_aug, S_aug)
+point_irf_aug <- fCholeskyIRF(wold_aug, S_aug)
 ```
 
 ```{r}
@@ -459,7 +459,7 @@ point_irf_aug <- fcholeskyIRF(wold_aug, S_aug)
 #| cache: true
 
 tic()
-boot_aug <- fbootstrapChol(
+boot_aug <- fBootstrapChol(
     y          = y_aug,
     var_result = var_aug,
     nboot      = 1000,
@@ -479,7 +479,7 @@ toc()
 # point_irf_aug[2, 1, 1]: oil price (row 2), shock 1, h = 0.
 scale_int <- 10 / point_irf_aug[2, 1, 1]
 
-fplotirf_chol(
+fPlotIRFChol(
     point       = point_irf_aug,
     boot_result = boot_aug,
     shock       = 1,
@@ -535,7 +535,7 @@ cat("Wald statistic (HAC-robust F):", round(msw$Waldstat, 2), "\n")
 #| label: fig-irf-msw
 #| fig-cap: "Weak-IV robust IRFs — Anderson-Rubin (outer) and delta-method (inner) 90% bands"
 
-fplotirfMSW(
+fPlotIRFMSW(
     msw_result = msw,
     varnames   = varnames,
     shockname  = shockname,

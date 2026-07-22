@@ -35,7 +35,7 @@ library(tidyverse)
 library(tidyMacro)
 library(tictoc)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ------------------------------------------------------------------------
@@ -83,7 +83,7 @@ The regime indicator is 1 in OPEC-announcement months and 0 otherwise.
 indsR1 <- as.integer(iv_oil[, 1] != 0)
 cat("OPEC announcement months:", sum(indsR1), "of", length(indsR1), "\n")
 
-hetero_pt <- fheteroIRF(
+hetero_pt <- fHeteroIRF(
     var_result = var_result,
     Z          = iv_oil,
     adjustu    = adjustu,
@@ -101,7 +101,7 @@ hetero_pt <- fheteroIRF(
 #| cache: false
 
 tic()
-boot_hetero <- fbootstrapHetero(
+boot_hetero <- fBootstrapHetero(
     y          = finaldata,
     var_result = var_result,
     Z          = iv_oil,
@@ -123,7 +123,7 @@ toc()
 #| label: fig-irf-hetero
 #| fig-cap: "IRFs identified via heteroskedasticity — OPEC-announcement months as the high-variance regime (68% and 90% confidence bands)"
 
-fplotirfHetero(
+fPlotIRFHetero(
     result     = boot_hetero,
     varnames   = varnames,
     shockname  = "Oil Shock (Hetero)",

@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h>
-#include "flagmakerMatrix.h"
+#include "fLagMakerMatrix.h"
 #include "fVARX.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -14,16 +14,16 @@ VARXResult fVARX_cpp(const arma::mat& y, const arma::mat& ex, int p, int c) {
     arma::mat X;
     if (c == 1) {
         X = arma::ones<arma::mat>(T - p, 1);
-        X = arma::join_rows(X, flagmakerMatrix(y, p));
+        X = arma::join_rows(X, fLagMakerMatrix(y, p));
         X = arma::join_rows(X, ex.rows(p, T - 1));
         if (p > 0) {
-            X = arma::join_rows(X, flagmakerMatrix(ex, p));
+            X = arma::join_rows(X, fLagMakerMatrix(ex, p));
         }
     } else {
-        X = flagmakerMatrix(y, p);
+        X = fLagMakerMatrix(y, p);
         X = arma::join_rows(X, ex.rows(p, T - 1));
         if (p > 0) {
-            X = arma::join_rows(X, flagmakerMatrix(ex, p));
+            X = arma::join_rows(X, fLagMakerMatrix(ex, p));
         }
     }
 

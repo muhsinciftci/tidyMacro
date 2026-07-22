@@ -45,6 +45,181 @@ fAICBIC <- function(y, pmax, c, exog = NULL) {
     .Call(`_tidyMacro_fAICBIC`, y, pmax, c, exog)
 }
 
+#' Compute Blanchard-Quah (BQ) Impulse Response Functions
+#'
+#' @param wold Wold representation cube (N x N x horizon+1), where
+#'   \code{wold[,,h]} contains the Wold IRF at horizon h
+#' @param K N x N lower triangular Cholesky factor of the long-run
+#'   covariance matrix used for BQ identification
+#' @param scaling Optional numeric vector of length 2. The first element
+#'   specifies the variable index (1-based) used for normalisation, and the
+#'   second element specifies the shock size. When omitted no normalisation
+#'   is applied.
+#'
+#' @return A cube (N x N x horizon+1) of long-run identified impulse response
+#'   functions.
+#'
+#' @details
+#' Computes structural impulse response functions under the Blanchard-Quah
+#' (1989) long-run identification scheme. For each horizon h the structural
+#' IRF is computed as:
+#' \deqn{IRF_h = \Psi_h \cdot K}
+#' where \eqn{\Psi_h} is the Wold representation at horizon h and K is the
+#' lower triangular Cholesky factor of the long-run covariance matrix.
+#'
+#' When \code{scaling} is supplied the entire cube is divided by
+#' \eqn{IRF_0(\text{scaling}[1],\, \text{scaling}[1]) \;/\; \text{scaling}[2]},
+#' normalising the impact response of the selected variable to
+#' \code{scaling[2]}.
+#'
+#' @references
+#' Blanchard, O. J., & Quah, D. (1989). The dynamic effects of aggregate
+#' demand and supply disturbances. \emph{American Economic Review}, 79(4),
+#' 655--673.
+#'
+#' @examples
+#' \dontrun{
+#' # Estimate a VAR and compute Wold IRFs
+#' VAR  <- fVAR(y, p = 2, c = 1)
+#' wold <- fWoldIRF(VAR, horizon = 20)
+#'
+#' # Obtain BQ long-run Cholesky factor K (from e.g. fBQ())
+#' bqirf <- fBQIRF(wold, K)
+#'
+#' # With normalisation: unit shock to variable 1
+#' bqirf_norm <- fBQIRF(wold, K, scaling = c(1, 1))
+#' }
+#'
+NULL
+
+#' @export
+fBQIRF <- function(wold, K, scaling = NULL) {
+    .Call(`_tidyMacro_fBQIRF`, wold, K, scaling)
+}
+
+#' Bootstrap Blanchard-Quah Long-Run Identified Impulse Response Functions
+#'
+#' @param y T x N matrix of original endogenous variables.
+#' @param var_result List from \code{fVAR()}.
+#' @param nboot Number of bootstrap replications.
+#' @param horizon Maximum IRF horizon.
+#' @param prc Confidence level in percent (e.g. 68).
+#' @param bootscheme \code{"residual"} or \code{"wild"}.
+#' @param cumulate Integer vector (1-based) of variable indices whose IRFs
+#'   should be cumulated along the horizon. Typically used when the VAR is
+#'   estimated in first differences and level responses are required.
+#' @param scaling Optional numeric vector of length 2. First element is the
+#'   variable index (1-based) for normalisation; second is the shock size.
+#'   Default NULL (no normalisation).
+#' @param n_threads Number of OpenMP threads. 0 = all cores minus one.
+#'   Default 0.
+#'
+#' @return List with elements:
+#'   \describe{
+#'     \item{bootbq}{N x N x (horizon+1) x nboot array of bootstrapped BQ IRFs}
+#'     \item{upper}{N x N x (horizon+1) upper confidence bands}
+#'     \item{lower}{N x N x (horizon+1) lower confidence bands}
+#'     \item{boot_beta}{N x (Np+c) x nboot array of bootstrapped coefficients}
+#'   }
+#'
+#' @details
+#' Implements the residual or wild bootstrap for BQ long-run identified VARs.
+#' In each replication the full BQ identification is re-computed:
+#' \eqn{C_1 = \sum_h \Psi_h}, \eqn{D_1 = \text{chol}(C_1 \Sigma C_1')^\top},
+#' \eqn{K = C_1^{-1} D_1}. Selected variables are then cumulated if the VAR
+#' is estimated in differences.
+#'
+#' @references
+#' Blanchard, O. J., & Quah, D. (1989). The dynamic effects of aggregate
+#' demand and supply disturbances. \emph{American Economic Review}, 79(4),
+#' 655--673.
+#'
+#' Gali, J. (1999). Technology, employment, and the business cycle: Do
+#' technology shocks explain aggregate fluctuations?
+#' \emph{American Economic Review}, 89(1), 249--271.
+#'
+#' @examples
+#' \dontrun{
+#' var_result <- fVAR(y, p = 2, c = 1)
+#' wold       <- fWoldIRF(var_result, horizon = 40)
+#' Sigma      <- var_result$sigma
+#' C1         <- apply(wold, c(1, 2), sum)
+#' D1         <- t(chol(C1 %*% Sigma %*% t(C1)))
+#' K          <- solve(C1, D1)
+#' point_irf  <- fBQIRF(wold, K)
+#'
+#' # Bootstrap with cumulation of both variables (VAR in first differences)
+#' boot <- fBootstrapBQ(y, var_result, nboot = 1000, horizon = 40,
+#'                      prc = 68, bootscheme = "residual",
+#'                      cumulate = c(1L, 2L))
+#' }
+#'
+#' @export
+fBootstrapBQ <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", cumulate = integerVector(), scaling = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapBQ`, y, var_result, nboot, horizon, prc, prc2, bootscheme, cumulate, scaling, n_threads)
+}
+
+#' Bootstrap Cholesky Identified Impulse Response Functions
+#'
+#' @param y T x N matrix of original endogenous variables.
+#' @param var_result List from \code{fVAR()}.
+#' @param nboot Number of bootstrap replications.
+#' @param horizon Maximum IRF horizon.
+#' @param prc Outer confidence level in percent (e.g. 90).
+#' @param prc2 Inner confidence level in percent (e.g. 68).
+#' @param bootscheme \code{"residual"} or \code{"wild"}.
+#' @param exog Optional T x M matrix of exogenous variables. Must be provided
+#'   if the original VAR was estimated with exogenous variables; must be
+#'   omitted otherwise.
+#' @param n_threads Number of OpenMP threads. 0 = all cores minus one.
+#'   Default 0.
+#'
+#' @return List with elements:
+#'   \describe{
+#'     \item{bootchol}{N x N x (horizon+1) x nboot array of bootstrapped Cholesky IRFs}
+#'     \item{upper}{N x N x (horizon+1) outer upper confidence bands}
+#'     \item{lower}{N x N x (horizon+1) outer lower confidence bands}
+#'     \item{upper2}{N x N x (horizon+1) inner upper confidence bands}
+#'     \item{lower2}{N x N x (horizon+1) inner lower confidence bands}
+#'     \item{boot_beta}{N x (Np+c) x nboot array of bootstrapped coefficients}
+#'   }
+#'
+#' @export
+fBootstrapChol <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapChol`, y, var_result, nboot, horizon, prc, prc2, bootscheme, exog, n_threads)
+}
+
+#' Bootstrap Bias-Corrected Cholesky Identified Impulse Response Functions
+#'
+#' @param y T x N matrix of original endogenous variables.
+#' @param var_result List from \code{fVAR()}.
+#' @param nboot1 Number of first-pass replications for bias estimation.
+#' @param nboot2 Number of second-pass replications for confidence bands.
+#' @param horizon Maximum IRF horizon.
+#' @param prc Outer confidence level in percent (e.g. 90).
+#' @param prc2 Inner confidence level in percent (e.g. 68).
+#' @param bootscheme \code{"residual"} or \code{"wild"}.
+#' @param exog Optional T x M matrix of exogenous variables. Must be provided
+#'   if the original VAR was estimated with exogenous variables; must be
+#'   omitted otherwise.
+#' @param n_threads Number of OpenMP threads. 0 = all cores minus one.
+#'   Default 0.
+#'
+#' @return List with elements:
+#'   \describe{
+#'     \item{bootchol}{N x N x (horizon+1) x nboot2 array of bootstrapped Cholesky IRFs}
+#'     \item{upper}{N x N x (horizon+1) outer upper confidence bands}
+#'     \item{lower}{N x N x (horizon+1) outer lower confidence bands}
+#'     \item{upper2}{N x N x (horizon+1) inner upper confidence bands}
+#'     \item{lower2}{N x N x (horizon+1) inner lower confidence bands}
+#'     \item{boot_beta}{N x (Np+c) x nboot2 array of bootstrapped coefficients}
+#'   }
+#'
+#' @export
+fBootstrapCholCorrected <- function(y, var_result, nboot1, nboot2, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapCholCorrected`, y, var_result, nboot1, nboot2, horizon, prc, prc2, bootscheme, exog, n_threads)
+}
+
 #' Bootstrap IRFs for the Invertible Case (Wild Bootstrap)
 #'
 #' Implements the wild bootstrap with Rademacher signs for standard SVAR-IV.
@@ -71,6 +246,65 @@ fAICBIC <- function(y, pmax, c, exog = NULL) {
 #' @export
 fBootstrapIVInvertible <- function(y, instr, var_result, nboot, p, c, hor, cumu, prc = 90.0, prc2 = 68.0) {
     .Call(`_tidyMacro_fBootstrapIVInvertible`, y, instr, var_result, nboot, p, c, hor, cumu, prc, prc2)
+}
+
+#' Bootstrap IV Impulse Response Functions using Moving Block Bootstrap
+#'
+#' Computes bootstrap confidence bands for instrumental variable identified
+#' impulse response functions using the moving block bootstrap to preserve
+#' temporal dependence in residuals and instruments.
+#'
+#' @param y T x N matrix of endogenous variables
+#' @param var_result List output from fVAR containing beta, residuals, p, c
+#' @param Z (T-p) x K matrix of instrumental variables
+#' @param nboot Integer number of bootstrap replications
+#' @param blocksize Integer block size for moving block bootstrap
+#' @param adjustZ Integer vector of length 2: [start, end] indices for Z
+NULL
+
+#' @param n_threads Integer number of threads for parallel computation.
+#'   Default is 0 (uses all available cores). Set to 1 for single-threaded
+NULL
+
+#'
+#' @return A list containing:
+#'   \itemize{
+#'     \item upper: N x (horizon+1) matrix of upper confidence bands
+#'     \item lower: N x (horizon+1) matrix of lower confidence bands
+#'     \item meanirf: N x (horizon+1) matrix of mean impulse responses
+#'     \item medianirf: N x (horizon+1) matrix of median impulse responses
+#'   }
+#'
+#' @details
+#' This function implements the moving block bootstrap for IV-identified SVARs.
+#' The first stage regresses the policy variable residual on the instrument(s),
+#' and the second stage recovers the structural impact matrix. The
+NULL
+
+#'
+#' The function uses OpenMP for parallel computation when available,
+NULL
+
+#'
+#' @examples
+#' \dontrun{
+#' var_result <- fVAR(y, p = 2, c = 1)
+#' result <- fBootstrapIVMBB(y, var_result, Z,
+#'                             nboot = 1000, blocksize = 10,
+#'                             adjustZ = c(1, 100), adjustu = c(1, 100),
+#'                             policyvar = 1, horizon = 20, prc = 68)
+#'
+#' # Use 4 threads for parallel computation
+#' result <- fBootstrapIVMBB(y, var_result, Z,
+#'                             nboot = 1000, blocksize = 10,
+#'                             adjustZ = c(1, 100), adjustu = c(1, 100),
+#'                             policyvar = 1, horizon = 20, prc = 68,
+#'                             n_threads = 4)
+#' }
+#'
+#' @export
+fBootstrapIVMBB <- function(y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, prc = 90.0, prc2 = 68.0, exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapIVMBB`, y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, prc, prc2, exog, n_threads)
 }
 
 #' Bootstrap IRFs for the Recoverable Non-Invertible Case
@@ -105,6 +339,53 @@ fBootstrapIVInvertible <- function(y, instr, var_result, nboot, p, c, hor, cumu,
 #' @export
 fBootstrapIVRecover <- function(y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, prc = 90.0, prc2 = 68.0) {
     .Call(`_tidyMacro_fBootstrapIVRecover`, y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, prc, prc2)
+}
+
+#' @export
+fBootstrapMax <- function(y, var_result, nboot, horizon, var_idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapMax`, y, var_result, nboot, horizon, var_idx, prc, prc2, cumulate, scaling, exog, n_threads)
+}
+
+#' @export
+fBootstrapMaxCorrected <- function(y, var_result, nboot1, nboot2, horizon, var_idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapMaxCorrected`, y, var_result, nboot1, nboot2, horizon, var_idx, prc, prc2, cumulate, scaling, exog, n_threads)
+}
+
+#' @export
+fBootstrapUhlig <- function(y, var_result, nboot, horizon, idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapUhlig`, y, var_result, nboot, horizon, idx, prc, prc2, cumulate, exog, n_threads)
+}
+
+#' @export
+fBootstrapUhligCorrected <- function(y, var_result, nboot1, nboot2, horizon, idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapUhligCorrected`, y, var_result, nboot1, nboot2, horizon, idx, prc, prc2, cumulate, exog, n_threads)
+}
+
+#' Bootstrap VAR Model
+#'
+#' Generates a bootstrap pseudo-sample from a fitted VAR model using either
+#' residual (iid) resampling or a wild (Rademacher) bootstrap scheme.
+#'
+#' @param y T x N matrix of original endogenous variables.
+#' @param fVAR_result List from \code{fVAR} containing beta, residuals, p,
+#'   and c.
+#' @param bootscheme String indicating the bootstrap method: "residual" for
+#'   iid resampling of residuals, or "wild" for a Rademacher wild bootstrap.
+#'
+#' @return A list with two elements: ynext — T x N bootstrapped data matrix
+#'   (first p rows copied from \code{y}); rademacher — T_eff-length vector of
+#'   Rademacher signs used in the wild scheme (all zeros for residual scheme).
+#'
+#' @details
+#' The recursion is \deqn{y_t = c + A_1 y_{t-1} + \cdots + A_p y_{t-p} + e_t^*}
+#' where \eqn{e_t^*} is either a randomly resampled residual (residual scheme)
+#' or the t-th residual multiplied by a Rademacher sign (wild scheme).
+#'
+#' @seealso \code{\link{fBootstrapChol}}, \code{\link{fVAR}}
+#'
+#' @export
+fBootstrapVAR <- function(y, fVAR_result, bootscheme = "residual") {
+    .Call(`_tidyMacro_fBootstrapVAR`, y, fVAR_result, bootscheme)
 }
 
 #' Check Sign Restrictions for One Shock
@@ -153,6 +434,219 @@ fCheckRestrictions <- function(irf, shock, restr, hor_vec) {
     .Call(`_tidyMacro_fCheckRestrictions`, irf, shock, restr, hor_vec)
 }
 
+#' Compute Cholesky Impulse Response Functions
+#'
+#' @param wold Wold representation cube (N x N x horizon)
+#' @param S Cholesky factor matrix (N x N), lower triangular
+#'
+#' @return A cube containing:
+#'   Cholesky structural impulse response functions (N x N x horizon)
+#'
+#' @details
+#' This function computes structural impulse response functions using the
+#' Cholesky decomposition identification scheme. For each horizon h, the
+#' structural IRF is computed as:
+#' \deqn{IRF_h = \Psi_h \cdot S}
+#' where \eqn{\Psi_h} is the Wold representation at horizon h and S is the
+#' Cholesky factor (lower triangular) of the covariance matrix of reduced-form
+#' residuals.
+#'
+#' The Cholesky identification imposes a recursive structure on the
+#' contemporaneous relationships between variables, with the ordering
+#' of variables determining the causal structure.
+#'
+#' @examples
+#' \dontrun{
+#' # Generate sample Wold representation
+#' N <- 3
+#' horizon <- 20
+#' wold <- array(rnorm(N * N * horizon), dim = c(N, N, horizon))
+#'
+#' # Compute Cholesky factor
+#' Sigma <- matrix(c(1, 0.5, 0.3,
+#'                   0.5, 1, 0.4,
+#'                   0.3, 0.4, 1), 3, 3)
+#' S <- t(chol(Sigma))  # Lower triangular
+#'
+#' # Compute Cholesky IRF
+#' chol_irf <- fCholeskyIRF(wold, S)
+#' }
+#'
+#' @export
+fCholeskyIRF <- function(wold, S) {
+    .Call(`_tidyMacro_fCholeskyIRF`, wold, S)
+}
+
+#' Compute VAR Companion Matrix
+#'
+#' @param beta Coefficient matrix. Dimensions: (Np+c+M) x N,
+#'   where N is the number of variables, p is the lag order,
+#'   c is 1 if intercept included (0 otherwise), and M is the number of
+#'   exogenous variables
+#' @param c Integer indicator for intercept (1 if intercept included, 0 otherwise)
+#' @param p Integer lag order of the VAR model
+#'
+#' @return A list containing:
+#'   \itemize{
+#'     \item comp: Companion matrix (Np x Np)
+#'     \item N: Number of variables in the VAR system
+#'   }
+#'
+#' @details
+#' This function constructs the companion form matrix of a VAR(p) model.
+#' The companion matrix representation allows the VAR(p) to be written as a
+#' VAR(1) system, which is useful for various computations including impulse
+#' response functions and forecasting.
+#'
+#' When exogenous variables are present, they are excluded from the companion
+#' matrix as they do not have a dynamic feedback structure in the VAR system.
+#'
+#' The companion matrix has the structure:
+#' \deqn{
+#'   \begin{bmatrix}
+#'   A_1 & A_2 & \cdots & A_{p-1} & A_p \\
+#'   I_N & 0 & \cdots & 0 & 0 \\
+#'   0 & I_N & \cdots & 0 & 0 \\
+#'   \vdots & \vdots & \ddots & \vdots & \vdots \\
+#'   0 & 0 & \cdots & I_N & 0
+#'   \end{bmatrix}
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # VAR(2) model with 3 variables, no intercept
+#' beta <- matrix(rnorm(18), 6, 3)  # 6 rows (2*3), 3 columns
+#' result <- fCompanionMatrix(beta, c = 0, p = 2)
+#'
+#' # VAR(2) model with 3 variables, with intercept and 2 exogenous variables
+#' beta_int <- matrix(rnorm(27), 9, 3)  # 9 rows (2*3+1+2), 3 columns
+#' result <- fCompanionMatrix(beta_int, c = 1, p = 2)
+#' }
+#'
+#' @export
+fCompanionMatrix <- function(beta, c, p) {
+    .Call(`_tidyMacro_fCompanionMatrix`, beta, c, p)
+}
+
+#' Forecast Error Variance Decomposition for Cholesky-Identified VARs
+#'
+#' Computes the forecast error variance decomposition (FEVD) showing the
+#' proportion of forecast error variance of each variable attributable to
+#' each structural shock identified via Cholesky decomposition.
+#'
+#' @param chol_irf N x N x (horizon+1) cube of Cholesky impulse response functions
+#'   from \code{fCholeskyIRF}. Each slice chol_irf[,,h] contains the responses at
+#'   horizon h. The horizon is automatically inferred from the cube dimensions.
+#' @param shock Integer (1-indexed). If provided, returns only the N x horizon
+#'   matrix for that specific shock (matching MATLAB \code{variance_decomp(irf, shock)}).
+#'   If 0 (default), returns the full N x N x horizon cube for all shocks.
+#'
+#' @return A list containing:
+#'   \item{fevd}{If \code{shock = 0}: N x N x horizon cube where \code{fevd[i,j,h]}
+#'     is the share of forecast error variance of variable i at horizon h explained
+#'     by shock j. If \code{shock > 0}: N x horizon matrix for the specified shock.}
+#'
+#' @details
+#' The forecast error variance decomposition measures the proportion of the
+#' h-step ahead forecast error variance of variable i that is attributable to
+#' each structural shock j. For Cholesky-identified VARs:
+#'
+#' \deqn{FEVD(i,j,h) = \frac{\sum_{s=0}^{h} [\Psi_s P]_{ij}^2}{\sum_{k=1}^{N} \sum_{s=0}^{h} [\Psi_s P]_{ik}^2}}
+#'
+#' @examples
+#' \dontrun{
+#' # Estimate VAR
+#' var_result <- fVAR(y, p = 2, c = 1)
+#' wold <- fWoldIRF(var_result, horizon = 20)
+#' S <- t(chol(var_result$sigma))
+#' chol_irf <- fCholeskyIRF(wold, S)
+#'
+#' # Full decomposition (all shocks) — returns 3D cube
+#' vardec <- fFEVDChol(chol_irf)
+#'
+#' # Single shock decomposition — returns N x horizon matrix
+#' shock <- match("UNCERT", colnames(y))
+#' vardec <- fFEVDChol(chol_irf, shock = shock)
+#' }
+#'
+#' @seealso \code{\link{fCholeskyIRF}}, \code{\link{fWoldIRF}},
+#'   \code{\link{fPlotVarDec}}, \code{\link{fFEVDIV}}
+#'
+#' @export
+fFEVDChol <- function(chol_irf, shock = 0L) {
+    .Call(`_tidyMacro_fFEVDChol`, chol_irf, shock)
+}
+
+#' Forecast Error Variance Decomposition for IV-Identified Shocks
+#'
+#' Computes the forecast error variance decomposition (FEVD) for instrumental
+#' variable identified structural shocks. The function scales shocks to unit
+#' variance and calculates the contribution of a specific shock to the forecast
+#' error variance of each variable over time.
+#'
+#' @param s N x 1 vector of structural impact coefficients
+#' @param S N x N lower triangular Cholesky factor of the residual covariance matrix
+#' @param wold N x N x (hor+1) cube of Wold impulse response functions
+#' @param N Integer number of variables in the VAR system
+#' @param hor Integer maximum forecast horizon
+#' @param sigma N x N residual covariance matrix
+#' @param u (T-p) x N matrix of VAR residuals
+#' @param T1 Integer effective sample size (T-p)
+#' @param p Integer lag order of the VAR model
+#'
+#' @return A list containing:
+#'   - scaler: N x 1 vector of scaling factors for unit variance normalization
+#'   - ivirf_scaled: N x (hor+1) matrix of unit variance impulse responses
+#'   - oil_news_unit_var: 1 x T1 vector of unit variance shock series
+#'   - check_uv: Scalar variance check (should be close to 1)
+#'   - denom: N x (hor+1) matrix of total forecast error variances
+#'   - fFEVDIV: N x (hor+1) matrix of FEVD shares (between 0 and 1)
+#'
+#' @details
+#' The FEVD measures the proportion of the h-step ahead forecast error variance
+#' of each variable that is attributable to the identified structural shock.
+#'
+#' The function performs the following steps:
+#' 1. Normalizes the structural shock to have unit variance
+#' 2. Computes unit variance impulse responses
+#' 3. Recovers the unit variance shock series
+#' 4. Computes total forecast error variance at each horizon
+#' 5. Computes variance due to identified shock
+#' 6. Calculates FEVD as the ratio
+#'
+#' The FEVD values are proportions between 0 and 1, where higher values indicate
+#' that the identified shock explains a larger share of the forecast error variance.
+#'
+#' @examples
+#' \dontrun{
+#' # Estimate VAR and compute Wold IRF
+#' var_result <- fVAR(y, p = 2, c = 1)
+#' wold <- fWoldIRF(var_result, horizon = 20)
+#' 
+#' # IV identification
+#' s <- c(1, 0.5, 0.3)
+#' sigma <- var_result$sigma
+#' S <- t(chol(sigma))
+#' 
+#' # Compute FEVD
+#' result <- fFEVDIV(s, S, wold, N = 3, hor = 20,
+#'                   sigma = sigma, u = var_result$residuals,
+#'                   T1 = nrow(var_result$residuals), p = 2)
+#' 
+#' # Plot FEVD for first variable
+#' plot(result$fFEVDIV[1, ], type = "l", ylim = c(0, 1),
+#'      main = "FEVD: Share of Variance Explained by Shock",
+#'      xlab = "Horizon", ylab = "Share")
+#' }
+#'
+#' @seealso \code{\link{fWoldIRF}} for computing Wold impulse responses,
+#'   \code{\link{fVAR}} for VAR estimation
+#'
+#' @export
+fFEVDIV <- function(s, S, wold, N, hor, sigma, u, T1, p) {
+    .Call(`_tidyMacro_fFEVDIV`, s, S, wold, N, hor, sigma, u, T1, p)
+}
+
 #' Draw a Random Orthonormal Matrix (RZW 2010)
 #'
 #' Generates an N x N orthonormal matrix Q (QQ' = Q'Q = I) by applying QR
@@ -183,6 +677,37 @@ fCheckRestrictions <- function(irf, shock, restr, hor_vec) {
 #' @export
 fGenerateQ <- function(N) {
     .Call(`_tidyMacro_fGenerateQ`, N)
+}
+
+#' Generate VAR Data
+#'
+#' Recursively generates VAR data from initial values, coefficients, and
+#' residuals. Optimised for maximum performance and memory efficiency.
+#'
+#' @param y T x N matrix of initial/historical endogenous variables.
+#' @param p Integer lag order of the VAR model.
+#' @param c Integer indicator for intercept (1 if included, 0 otherwise).
+#' @param beta Coefficient matrix: (Np+c) x N if c = 1, or Np x N if c = 0.
+#' @param residuals (T-p) x N matrix of residuals/shocks to add.
+#'
+#' @return T x N matrix of generated VAR data. The first p rows are copied
+#'   from \code{y}; the remaining T-p rows are generated recursively.
+#'
+#' @details
+#' The recursion follows:
+#' \deqn{y_t = c + A_1 y_{t-1} + \cdots + A_p y_{t-p} + e_t}
+#'
+#' @examples
+#' \dontrun{
+#' y_init    <- matrix(rnorm(200), ncol = 2)
+#' beta      <- matrix(rnorm(10), 5, 2)
+#' residuals <- matrix(rnorm(190), 95, 2)
+#' y_new     <- fGenerateVARData(y_init, p = 2, c = 1, beta, residuals)
+#' }
+#'
+#' @export
+fGenerateVARData <- function(y, p, c, beta, residuals) {
+    .Call(`_tidyMacro_fGenerateVARData`, y, p, c, beta, residuals)
 }
 
 #' Compute Confidence Bands from Bootstrap IRF Cube
@@ -225,6 +750,170 @@ fGetBands <- function(bootirf, prc = 68.0) {
 #' @export
 fGetShock <- function(residuals, sigma_full, s, shockSize = 1.0, normalize = "unit") {
     .Call(`_tidyMacro_fGetShock`, residuals, sigma_full, s, shockSize, normalize)
+}
+
+#' Companion-Form Historical Decomposition for IV-Identified Shock
+#'
+#' Computes the companion-form historical decomposition attributing each
+#' observation of all VAR variables to the IV-identified structural shock,
+#' following Stock and Watson (2018).
+#'
+#' @param residuals (T-p) x N matrix of VAR residuals from \code{fVAR}.
+#' @param sigma N x N residual covariance matrix (e.g. \code{var_result$sigma}).
+#' @param s N x 1 unit-normalised structural impact vector (first element = 1).
+#' @param beta (Np+c) x N VAR coefficient matrix from \code{fVAR}.
+#' @param c Integer intercept indicator (1 = include, 0 = exclude).
+#' @param p Integer VAR lag order.
+#'
+#' @return A list with element:
+#'   \item{HDshock}{(T-p) x N matrix. Column \code{j} is the contribution
+#'     of the IV shock to variable \code{j} at each point in time.}
+#'
+#' @export
+fHDIV <- function(residuals, sigma, s, beta, c, p) {
+    .Call(`_tidyMacro_fHDIV`, residuals, sigma, s, beta, c, p)
+}
+
+#' Bootstrap Confidence Bands for the IV Historical Decomposition
+#'
+#' Computes MBB bootstrap uncertainty bands for the companion-form historical
+#' decomposition of an IV-identified structural shock. In each replication
+#' the VAR is re-estimated, the IV identification is re-run, and the
+#' companion-form HD recursion is applied to the bootstrap draw. Bands are
+#' recentered around the point estimate following Kaenzig (2021).
+#'
+#' @param y T x N matrix of original endogenous variables.
+#' @param var_result List from \code{fVAR}.
+#' @param Z Instrument matrix aligned to the proxy sample.
+#' @param s N x 1 unit-normalised point-estimate structural impact vector.
+#' @param nboot Number of bootstrap replications.
+#' @param blocksize MBB block size.
+#' @param adjustZ Integer vector \code{c(start, end)} selecting the proxy-sample
+#'   rows of \code{Z} (1-based).
+#' @param adjustu Integer vector \code{c(start, end)} selecting the proxy-sample
+#'   rows of the residuals (1-based).
+#' @param policyvar Integer (1-based) index of the IV policy variable. Default 1.
+#' @param prc Confidence level in percent (e.g. 90 for 90\% CI). Default 90.
+#' @param n_threads OpenMP threads. 0 = all cores minus one. Default 0.
+#'
+#' @return A list with elements:
+#'   \item{HDshock}{(T-p) x N point-estimate HD matrix.}
+#'   \item{upper}{(T-p) x N upper confidence bands.}
+#'   \item{lower}{(T-p) x N lower confidence bands.}
+#'
+#' @export
+fBootstrapHDIV <- function(y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar = 1L, prc = 90.0, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapHDIV`, y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar, prc, n_threads)
+}
+
+#' Heteroskedasticity-Based VAR Identification (Proxy IV, Treatment Months)
+#'
+#' Identifies a structural shock using the external instrument restricted to
+#' high-variance (treatment) months, following the proxy-SVAR approach of
+#' Kaenzig (2021). The structural impact vector is estimated via OLS of the
+#' centred residuals on the centred proxy, restricted to OPEC announcement
+#' months (\code{indsR1 == 1}).
+#'
+#' @param var_result List returned by \code{fVAR()}.
+#' @param Z          Proxy matrix (T1 x 1), aligned to the identification window
+#'   defined by \code{adjustu}.
+#' @param adjustu    Integer vector \code{c(start, end)} (1-based) giving the
+#'   rows of \code{var_result$residuals} corresponding to the proxy window.
+#' @param indsR1     Integer 0/1 vector of length \code{adjustu[2]-adjustu[1]+1};
+#'   1 = treatment month (e.g. OPEC announcement), 0 otherwise.
+#' @param hor        IRF horizon.
+#' @param nvar       1-based normalization variable index.
+#' @param scale      Shock size for normalization (default 10).
+#'
+#' @return A list with \code{IRF} (N x hor+1) and \code{b1} (N-vector).
+#' @export
+fHeteroIRF <- function(var_result, Z, adjustu, indsR1, hor, nvar, scale = 10.0) {
+    .Call(`_tidyMacro_fHeteroIRF`, var_result, Z, adjustu, indsR1, hor, nvar, scale)
+}
+
+#' MBB Bootstrap for Heteroskedasticity-Based VAR Identification
+#'
+#' Moving-block bootstrap confidence bands for structural IRFs identified via
+#' proxy IV restricted to OPEC announcement months (Kaenzig 2021, treatment
+#' group only). Residuals and proxy are resampled jointly.
+#'
+#' @param y          T x N data matrix.
+#' @param var_result List returned by \code{fVAR()}.
+#' @param Z          Proxy matrix (T1 x 1), aligned to \code{adjustu}.
+#' @param indsR1     Integer 0/1 vector of length T1 (1 = treatment month).
+#' @param adjustu    Integer vector \code{c(start, end)} (1-based).
+#' @param nboot      Bootstrap replications.
+#' @param blocksize  MBB block size (0 = automatic \code{5.03*T^0.25}).
+#' @param hor        IRF horizon.
+#' @param nvar       1-based normalization variable.
+#' @param scale      Shock size.
+#' @param prc        Primary confidence level (e.g. 90).
+#' @param prc2       Secondary confidence level (e.g. 68).
+#' @param n_threads  OpenMP threads (0 = all available - 1).
+#'
+#' @return A list with \code{upper}, \code{lower}, \code{upper2},
+#'   \code{lower2}, \code{meanirf}, \code{medianirf} (each N x hor+1).
+#' @export
+fBootstrapHetero <- function(y, var_result, Z, indsR1, adjustu, nboot = 1000L, blocksize = 0L, hor = 48L, nvar = 1L, scale = 10.0, prc = 90.0, prc2 = 68.0, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapHetero`, y, var_result, Z, indsR1, adjustu, nboot, blocksize, hor, nvar, scale, prc, prc2, n_threads)
+}
+
+#' Historical Decomposition of a VAR Variable
+#'
+#' Decomposes a chosen variable's realisation into contributions from each
+#' structural shock, identified via an impact matrix K. Supports both
+#' Cholesky (lower-triangular K) and Blanchard-Quah (general K)
+#' identification. Mirrors the MATLAB
+#' \code{hist_decmp(y, beta, residuals, c, p, K, series)}.
+#'
+#' @param y TxN numeric matrix of original (undemeaned) data.
+#' @param fVAR List returned by \code{fVAR()}, containing at minimum
+#'   \code{beta}, \code{residuals}, \code{sigma}, \code{p}, \code{c},
+#'   and \code{n_exog}.
+#' @param K NxN structural impact matrix. For Cholesky identification pass
+#'   \code{t(chol(sigma))}; for BQ identification pass the matrix
+#'   returned by \code{solve(C1, D1)}.
+#' @param series Integer (1-indexed) selecting which variable to decompose.
+#'
+#' @return A list with two elements:
+#'   \item{histdec}{(T-p) x N numeric matrix. Column \code{j} is the
+#'     cumulative contribution of structural shock \code{j} to the chosen
+#'     variable at each point in time.}
+#'   \item{ystar}{(T-p) numeric vector of the demeaned realisation of the
+#'     chosen variable (benchmark series for the plot).}
+#'
+#' @details
+#' The structural shocks are recovered as
+#' \deqn{\varepsilon_t = K^{-1} u_t}
+#' where \eqn{u_t} are the reduced-form residuals. The structural MA
+#' representation is built by multiplying each Wold matrix by K:
+#' \deqn{\Theta_h = \Psi_h K}
+#' The contribution of shock \eqn{j} to variable \eqn{i} at time \eqn{t} is
+#' then the inner product of \eqn{\Theta_{0:t}[i,j]} with the time-reversed
+#' structural shocks \eqn{\varepsilon_{t:-1:0,j}}:
+#' \deqn{HD(t,j) = \sum_{h=0}^{t} \Theta_h[i,j]\, \varepsilon_{t-h,j}}
+#'
+#' @examples
+#' \dontrun{
+#' # Cholesky identification
+#' var_result <- fVAR(y, p = 12, c = 1)
+#' K_chol <- t(chol(var_result$sigma))
+#' hd <- fHistDec(y, var_result, K_chol, series = 1)
+#'
+#' # BQ identification
+#' wold  <- fWoldIRF(var_result, horizon = 40)
+#' C1    <- apply(wold, c(1, 2), sum)
+#' D1    <- t(chol(C1 %*% var_result$sigma %*% t(C1)))
+#' K_bq  <- solve(C1, D1)
+#' hd_bq <- fHistDec(y, var_result, K_bq, series = 1)
+#' }
+#'
+#' @seealso \code{\link{fVAR}}, \code{\link{fCholeskyIRF}},
+#'   \code{\link{fWoldIRF}}, \code{\link{fPlotHistDec}}
+#'
+#' @export
+fHistDec <- function(y, fVAR, K, series) {
+    .Call(`_tidyMacro_fHistDec`, y, fVAR, K, series)
 }
 
 #' Classical Local Projections — C++ Engine
@@ -303,12 +992,95 @@ fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE,
 #' Panel Local Projections — Internal C++ engine
 #'
 #' Internal engine implementing the estimator of Almuzara & Sancibrián
-#' (NY Fed SR 1090, 2024). Users should call \code{fLPpanel()} instead.
+#' (NY Fed SR 1090, 2024). Users should call \code{fLPPanel()} instead.
 #'
 #' @keywords internal
 #' @noRd
-fLPpanel_cpp <- function(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample = FALSE, cumulative = FALSE, n_threads = 0L) {
-    .Call(`_tidyMacro_fLPpanel_cpp`, y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads)
+fLPPanel_cpp <- function(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample = FALSE, cumulative = FALSE, n_threads = 0L) {
+    .Call(`_tidyMacro_fLPPanel_cpp`, y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads)
+}
+
+#' Create Lagged Matrix
+#'
+#' Creates a matrix of lagged values from a time series matrix. For each
+#' variable and each lag from 1 to p, this function creates a column containing
+#' the lagged values, removing the first p rows to align the lags properly.
+#'
+#' @param y A numeric matrix, data frame, or tibble of time series data with T
+#'   rows (time periods) and N columns (variables)
+#' @param p An integer specifying the number of lags to create
+#'
+#' @return A numeric matrix with (T-p) rows and (N*p) columns. The columns are
+#'   organized as: all N variables at lag 1, then all N variables at lag 2, etc.
+#'   Column names are generated as "var_name_lag_k" where applicable.
+#'
+#' @details The function creates a lagged matrix where each column represents a
+#'   lagged version of the original variables. The lags are organized by lag
+#'   order first, then by variable. For example, with 2 variables and 2 lags,
+#'   the column order would be: var1_lag1, var2_lag1, var1_lag2, var2_lag2.
+#'
+#' @examples
+#' \dontrun{
+#' # Create sample data as data frame
+#' y <- data.frame(var1 = 1:10, var2 = 11:20)
+#'
+#' # Create 2 lags
+#' x <- lagmakerMatrix(y, 2)
+#'
+#' # Works with tibbles too
+#' library(tibble)
+#' y_tbl <- tibble(var1 = 1:10, var2 = 11:20)
+#' x <- lagmakerMatrix(y_tbl, 2)
+#' }
+#'
+#' @export
+fLagMakerMatrix <- function(y, p) {
+    .Call(`_tidyMacro_fLagMakerMatrix`, y, p)
+}
+
+#' Moving Block Bootstrap for VAR Residuals and Instruments
+#' 
+#' Computes a moving-block bootstrap sample for the reduced form errors
+#' of a VAR(p) model. Optionally bootstraps a matrix of instruments M.
+#' 
+#' @param eps (T-p) x N matrix of VAR residuals
+#' @param lags Integer lag order p of the VAR model
+#' @param BlockSize Integer block size for moving block bootstrap. 
+#'   If 0 or negative, automatically computed as round(5.03 * T^0.25)
+#' @param M Optional (T-p) x K matrix of instruments to bootstrap (default = NULL)
+#' 
+#' @return A list containing:
+#'   \itemize{
+#'     \item eps_boot: (T-p) x N matrix of bootstrapped residuals (centered)
+#'     \item M_boot: (T-p) x K matrix of bootstrapped instruments (centered), 
+#'                   or empty matrix if M not provided
+#'   }
+#' 
+#' @details
+#' The moving block bootstrap preserves the temporal dependence structure
+#' in the residuals. The default block size follows the recommendation from
+#' "Proxy SVARs: Asymptotic Theory, Bootstrap Inference, and the Effects 
+#' of Income Tax Changes in the United States".
+#' 
+#' Both residuals and instruments are centered to preserve their sample properties.
+#' For instruments, only non-zero values are centered (to handle sparse instruments).
+#' 
+#' @examples
+#' \dontrun{
+#' # Bootstrap residuals only
+#' eps <- matrix(rnorm(200), 100, 2)
+#' result <- fMBBVAR(eps, lags = 2, BlockSize = 0)
+#' eps_boot <- result$eps_boot
+#' 
+#' # Bootstrap residuals and instruments
+#' M <- matrix(rnorm(100), 100, 1)
+#' result <- fMBBVAR(eps, lags = 2, BlockSize = 0, M)
+#' M_boot <- result$M_boot
+#' }
+#' 
+#' @export
+fMBBVAR <- function(eps, lags, BlockSize, M = NULL) {
+    .Call(`_tidyMacro_fMBBVAR`, eps, lags, BlockSize, M)
 }
 
 #' Weak-IV Robust Impulse Response Inference (Montiel-Olea, Stock, Watson 2021)
@@ -345,6 +1117,11 @@ fMSW <- function(var_result, Z, finaldata, adjustu, hor = 48L, nvar = 1L, scale 
     .Call(`_tidyMacro_fMSW`, var_result, Z, finaldata, adjustu, hor, nvar, scale, confidence, NWlags)
 }
 
+#' @export
+fMaxIRF <- function(wold, S, var_idx) {
+    .Call(`_tidyMacro_fMaxIRF`, wold, S, var_idx)
+}
+
 #' Ordinary Least Squares Regression
 #'
 #' @param y Dependent variable matrix (T x 1)
@@ -378,7 +1155,7 @@ fOLS <- function(y, X, c = 1L, lag = 0L) {
 #' lag order (slice 1 = lag 0, slice 2 = lag 1, etc.).
 #'
 #' @param A 3-D array of dimension \eqn{d_1 \times d_2 \times A_3}
-#'   (e.g. Wold IRF coefficients from \code{fwoldIRF}).
+#'   (e.g. Wold IRF coefficients from \code{fWoldIRF}).
 #' @param B 3-D array of dimension \eqn{d_2 \times K \times B_3}
 #'   (e.g. \eqn{\Psi(L)} coefficients).
 #' @param nlags Integer. Number of output slices to return
@@ -386,11 +1163,52 @@ fOLS <- function(y, X, c = 1L, lag = 0L) {
 #'
 #' @return A 3-D array of dimension \eqn{d_1 \times K \times} \code{nlags}.
 #'
-#' @seealso \code{\link{fwoldIRF}}, \code{\link{fcholeskyIRF}}
+#' @seealso \code{\link{fWoldIRF}}, \code{\link{fCholeskyIRF}}
 #'
 #' @export
 fPolyConvolve <- function(A, B, nlags) {
     .Call(`_tidyMacro_fPolyConvolve`, A, B, nlags)
+}
+
+#' Remove Small-Sample Bias from VAR Coefficient Estimates
+#'
+#' Computes the bootstrap mean of the VAR coefficients, subtracts the bias
+#' from the point estimates, and iteratively shrinks the correction towards
+#' zero if the bias-corrected system is explosive (all eigenvalues of the
+#' companion matrix must be strictly less than one).
+#'
+#' @param beta (Np+c+M) x N matrix of OLS VAR coefficient estimates
+#' @param c Integer intercept indicator (1 if intercept included, 0 otherwise)
+#' @param p Integer VAR lag order
+#' @param boot_beta (Np+c+M) x N x nboot cube of bootstrapped VAR coefficient
+#'   estimates collected from a first-pass bootstrap
+#'
+#' @return A list with elements:
+#'   Beta: N x (Np+c+M) bias-corrected coefficient matrix (transposed
+#'         relative to the input so it matches the convention used by
+#'         \code{fBootstrapCholCorrected})
+#'   corrections: integer count of iterative shrinkage steps applied
+#'                (1 means the first attempt was already stable)
+#'
+#' @details
+#' The bias is estimated as
+#'
+#'   bias = mean(boot_beta, dim=3) - beta'
+#'
+#' If the original estimates are already explosive the function returns the
+#' uncorrected estimates.  Otherwise the function applies the full bias
+#' correction and checks stability.  If the corrected system is still
+#' explosive (rare in practice) it reduces the correction factor by one
+#' percent per iteration until stability is achieved or 200 attempts are
+#' exhausted, at which point the uncorrected estimates are returned.
+#'
+#' This mirrors \code{remove_bias.m} from the MATLAB reference implementation.
+#'
+#' @seealso \code{\link{fBootstrapCholCorrected}}, \code{\link{fCompanionMatrix}}
+#'
+#' @export
+fRemoveBias <- function(beta, c, p, boot_beta) {
+    .Call(`_tidyMacro_fRemoveBias`, beta, c, p, boot_beta)
 }
 
 #' Print SVAR Identification Steps
@@ -423,11 +1241,11 @@ fPolyConvolve <- function(A, B, nlags) {
 #' is not feasible.
 #'
 #' @examples
-#' fSVAR_steps()
+#' fSVARSteps()
 #'
 #' @export
-fSVAR_steps <- function() {
-    invisible(.Call(`_tidyMacro_fSVAR_steps`))
+fSVARSteps <- function() {
+    invisible(.Call(`_tidyMacro_fSVARSteps`))
 }
 
 #' Spectral Forecast Error Variance Decomposition
@@ -436,7 +1254,7 @@ fSVAR_steps <- function() {
 #' structural shock within a given frequency band.
 #'
 #' @param D Cholesky IRF cube of dimension \eqn{N \times N \times H}
-#'   (output of \code{fcholeskyIRF}).
+#'   (output of \code{fCholeskyIRF}).
 #' @param irf_s Matrix of dimension \eqn{N \times H}: IRF of each variable to
 #'   the structural shock of interest (unit-variance normalisation).
 #' @param band Numeric vector of length 2: \code{c(low_period, high_period)}
@@ -451,11 +1269,21 @@ fSVAR_steps <- function() {
 #' @return Numeric vector of length \eqn{N}: share of spectral variance
 #'   explained by the shock in the specified band.
 #'
-#' @seealso \code{\link{fcholeskyIRF}}, \code{\link{fPolyConvolve}}
+#' @seealso \code{\link{fCholeskyIRF}}, \code{\link{fPolyConvolve}}
 #'
 #' @export
 fSpectralFEVD <- function(D, irf_s, band, J, fourier = TRUE) {
     .Call(`_tidyMacro_fSpectralFEVD`, D, irf_s, band, J, fourier)
+}
+
+#' @export
+fUhligIRF <- function(wold, S, idx) {
+    .Call(`_tidyMacro_fUhligIRF`, wold, S, idx)
+}
+
+#' @export
+fUhligMaxShare <- function(wold, S, idx) {
+    .Call(`_tidyMacro_fUhligMaxShare`, wold, S, idx)
 }
 
 #' Vector Autoregression (VAR) Model Estimation
@@ -500,7 +1328,7 @@ fSpectralFEVD <- function(D, irf_s, band, J, fourier = TRUE) {
 #' result <- fVAR(y, p = 2, c = 1, exog = exog)
 #' }
 #'
-#' @seealso \code{\link{fwoldIRF}}, \code{\link{fbootstrapChol}},
+#' @seealso \code{\link{fWoldIRF}}, \code{\link{fBootstrapChol}},
 #'   \code{\link{fAICBIC}}
 #'
 #' @export
@@ -547,834 +1375,6 @@ fVARX <- function(y, ex, p, c) {
     .Call(`_tidyMacro_fVARX`, y, ex, p, c)
 }
 
-#' Bootstrap Blanchard-Quah Long-Run Identified Impulse Response Functions
-#'
-#' @param y T x N matrix of original endogenous variables.
-#' @param var_result List from \code{fVAR()}.
-#' @param nboot Number of bootstrap replications.
-#' @param horizon Maximum IRF horizon.
-#' @param prc Confidence level in percent (e.g. 68).
-#' @param bootscheme \code{"residual"} or \code{"wild"}.
-#' @param cumulate Integer vector (1-based) of variable indices whose IRFs
-#'   should be cumulated along the horizon. Typically used when the VAR is
-#'   estimated in first differences and level responses are required.
-#' @param scaling Optional numeric vector of length 2. First element is the
-#'   variable index (1-based) for normalisation; second is the shock size.
-#'   Default NULL (no normalisation).
-#' @param n_threads Number of OpenMP threads. 0 = all cores minus one.
-#'   Default 0.
-#'
-#' @return List with elements:
-#'   \describe{
-#'     \item{bootbq}{N x N x (horizon+1) x nboot array of bootstrapped BQ IRFs}
-#'     \item{upper}{N x N x (horizon+1) upper confidence bands}
-#'     \item{lower}{N x N x (horizon+1) lower confidence bands}
-#'     \item{boot_beta}{N x (Np+c) x nboot array of bootstrapped coefficients}
-#'   }
-#'
-#' @details
-#' Implements the residual or wild bootstrap for BQ long-run identified VARs.
-#' In each replication the full BQ identification is re-computed:
-#' \eqn{C_1 = \sum_h \Psi_h}, \eqn{D_1 = \text{chol}(C_1 \Sigma C_1')^\top},
-#' \eqn{K = C_1^{-1} D_1}. Selected variables are then cumulated if the VAR
-#' is estimated in differences.
-#'
-#' @references
-#' Blanchard, O. J., & Quah, D. (1989). The dynamic effects of aggregate
-#' demand and supply disturbances. \emph{American Economic Review}, 79(4),
-#' 655--673.
-#'
-#' Gali, J. (1999). Technology, employment, and the business cycle: Do
-#' technology shocks explain aggregate fluctuations?
-#' \emph{American Economic Review}, 89(1), 249--271.
-#'
-#' @examples
-#' \dontrun{
-#' var_result <- fVAR(y, p = 2, c = 1)
-#' wold       <- fwoldIRF(var_result, horizon = 40)
-#' Sigma      <- var_result$sigma
-#' C1         <- apply(wold, c(1, 2), sum)
-#' D1         <- t(chol(C1 %*% Sigma %*% t(C1)))
-#' K          <- solve(C1, D1)
-#' point_irf  <- fbqIRF(wold, K)
-#'
-#' # Bootstrap with cumulation of both variables (VAR in first differences)
-#' boot <- fbootstrapBQ(y, var_result, nboot = 1000, horizon = 40,
-#'                      prc = 68, bootscheme = "residual",
-#'                      cumulate = c(1L, 2L))
-#' }
-#'
-#' @export
-fbootstrapBQ <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", cumulate = integerVector(), scaling = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapBQ`, y, var_result, nboot, horizon, prc, prc2, bootscheme, cumulate, scaling, n_threads)
-}
-
-#' Bootstrap Cholesky Identified Impulse Response Functions
-#'
-#' @param y T x N matrix of original endogenous variables.
-#' @param var_result List from \code{fVAR()}.
-#' @param nboot Number of bootstrap replications.
-#' @param horizon Maximum IRF horizon.
-#' @param prc Outer confidence level in percent (e.g. 90).
-#' @param prc2 Inner confidence level in percent (e.g. 68).
-#' @param bootscheme \code{"residual"} or \code{"wild"}.
-#' @param exog Optional T x M matrix of exogenous variables. Must be provided
-#'   if the original VAR was estimated with exogenous variables; must be
-#'   omitted otherwise.
-#' @param n_threads Number of OpenMP threads. 0 = all cores minus one.
-#'   Default 0.
-#'
-#' @return List with elements:
-#'   \describe{
-#'     \item{bootchol}{N x N x (horizon+1) x nboot array of bootstrapped Cholesky IRFs}
-#'     \item{upper}{N x N x (horizon+1) outer upper confidence bands}
-#'     \item{lower}{N x N x (horizon+1) outer lower confidence bands}
-#'     \item{upper2}{N x N x (horizon+1) inner upper confidence bands}
-#'     \item{lower2}{N x N x (horizon+1) inner lower confidence bands}
-#'     \item{boot_beta}{N x (Np+c) x nboot array of bootstrapped coefficients}
-#'   }
-#'
-#' @export
-fbootstrapChol <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapChol`, y, var_result, nboot, horizon, prc, prc2, bootscheme, exog, n_threads)
-}
-
-#' Bootstrap Bias-Corrected Cholesky Identified Impulse Response Functions
-#'
-#' @param y T x N matrix of original endogenous variables.
-#' @param var_result List from \code{fVAR()}.
-#' @param nboot1 Number of first-pass replications for bias estimation.
-#' @param nboot2 Number of second-pass replications for confidence bands.
-#' @param horizon Maximum IRF horizon.
-#' @param prc Outer confidence level in percent (e.g. 90).
-#' @param prc2 Inner confidence level in percent (e.g. 68).
-#' @param bootscheme \code{"residual"} or \code{"wild"}.
-#' @param exog Optional T x M matrix of exogenous variables. Must be provided
-#'   if the original VAR was estimated with exogenous variables; must be
-#'   omitted otherwise.
-#' @param n_threads Number of OpenMP threads. 0 = all cores minus one.
-#'   Default 0.
-#'
-#' @return List with elements:
-#'   \describe{
-#'     \item{bootchol}{N x N x (horizon+1) x nboot2 array of bootstrapped Cholesky IRFs}
-#'     \item{upper}{N x N x (horizon+1) outer upper confidence bands}
-#'     \item{lower}{N x N x (horizon+1) outer lower confidence bands}
-#'     \item{upper2}{N x N x (horizon+1) inner upper confidence bands}
-#'     \item{lower2}{N x N x (horizon+1) inner lower confidence bands}
-#'     \item{boot_beta}{N x (Np+c) x nboot2 array of bootstrapped coefficients}
-#'   }
-#'
-#' @export
-fbootstrapCholCorrected <- function(y, var_result, nboot1, nboot2, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapCholCorrected`, y, var_result, nboot1, nboot2, horizon, prc, prc2, bootscheme, exog, n_threads)
-}
-
-#' Bootstrap IV Impulse Response Functions using Moving Block Bootstrap
-#'
-#' Computes bootstrap confidence bands for instrumental variable identified
-#' impulse response functions using the moving block bootstrap to preserve
-#' temporal dependence in residuals and instruments.
-#'
-#' @param y T x N matrix of endogenous variables
-#' @param var_result List output from fVAR containing beta, residuals, p, c
-#' @param Z (T-p) x K matrix of instrumental variables
-#' @param nboot Integer number of bootstrap replications
-#' @param blocksize Integer block size for moving block bootstrap
-#' @param adjustZ Integer vector of length 2: [start, end] indices for Z
-NULL
-
-#' @param n_threads Integer number of threads for parallel computation.
-#'   Default is 0 (uses all available cores). Set to 1 for single-threaded
-NULL
-
-#'
-#' @return A list containing:
-#'   \itemize{
-#'     \item upper: N x (horizon+1) matrix of upper confidence bands
-#'     \item lower: N x (horizon+1) matrix of lower confidence bands
-#'     \item meanirf: N x (horizon+1) matrix of mean impulse responses
-#'     \item medianirf: N x (horizon+1) matrix of median impulse responses
-#'   }
-#'
-#' @details
-#' This function implements the moving block bootstrap for IV-identified SVARs.
-#' The first stage regresses the policy variable residual on the instrument(s),
-#' and the second stage recovers the structural impact matrix. The
-NULL
-
-#'
-#' The function uses OpenMP for parallel computation when available,
-NULL
-
-#'
-#' @examples
-#' \dontrun{
-#' var_result <- fVAR(y, p = 2, c = 1)
-#' result <- fbootstrapIV_mbb(y, var_result, Z,
-#'                             nboot = 1000, blocksize = 10,
-#'                             adjustZ = c(1, 100), adjustu = c(1, 100),
-#'                             policyvar = 1, horizon = 20, prc = 68)
-#'
-#' # Use 4 threads for parallel computation
-#' result <- fbootstrapIV_mbb(y, var_result, Z,
-#'                             nboot = 1000, blocksize = 10,
-#'                             adjustZ = c(1, 100), adjustu = c(1, 100),
-#'                             policyvar = 1, horizon = 20, prc = 68,
-#'                             n_threads = 4)
-#' }
-#'
-#' @export
-fbootstrapIV_mbb <- function(y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, prc = 90.0, prc2 = 68.0, exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapIV_mbb`, y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, prc, prc2, exog, n_threads)
-}
-
-#' @export
-fbootstrapMax <- function(y, var_result, nboot, horizon, var_idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapMax`, y, var_result, nboot, horizon, var_idx, prc, prc2, cumulate, scaling, exog, n_threads)
-}
-
-#' @export
-fbootstrapMaxCorrected <- function(y, var_result, nboot1, nboot2, horizon, var_idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapMaxCorrected`, y, var_result, nboot1, nboot2, horizon, var_idx, prc, prc2, cumulate, scaling, exog, n_threads)
-}
-
-#' @export
-fbootstrapUhlig <- function(y, var_result, nboot, horizon, idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapUhlig`, y, var_result, nboot, horizon, idx, prc, prc2, cumulate, exog, n_threads)
-}
-
-#' @export
-fbootstrapUhligCorrected <- function(y, var_result, nboot1, nboot2, horizon, idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapUhligCorrected`, y, var_result, nboot1, nboot2, horizon, idx, prc, prc2, cumulate, exog, n_threads)
-}
-
-#' Bootstrap VAR Model
-#'
-#' Generates a bootstrap pseudo-sample from a fitted VAR model using either
-#' residual (iid) resampling or a wild (Rademacher) bootstrap scheme.
-#'
-#' @param y T x N matrix of original endogenous variables.
-#' @param fVAR_result List from \code{fVAR} containing beta, residuals, p,
-#'   and c.
-#' @param bootscheme String indicating the bootstrap method: "residual" for
-#'   iid resampling of residuals, or "wild" for a Rademacher wild bootstrap.
-#'
-#' @return A list with two elements: ynext — T x N bootstrapped data matrix
-#'   (first p rows copied from \code{y}); rademacher — T_eff-length vector of
-#'   Rademacher signs used in the wild scheme (all zeros for residual scheme).
-#'
-#' @details
-#' The recursion is \deqn{y_t = c + A_1 y_{t-1} + \cdots + A_p y_{t-p} + e_t^*}
-#' where \eqn{e_t^*} is either a randomly resampled residual (residual scheme)
-#' or the t-th residual multiplied by a Rademacher sign (wild scheme).
-#'
-#' @seealso \code{\link{fbootstrapChol}}, \code{\link{fVAR}}
-#'
-#' @export
-fbootstrapVAR <- function(y, fVAR_result, bootscheme = "residual") {
-    .Call(`_tidyMacro_fbootstrapVAR`, y, fVAR_result, bootscheme)
-}
-
-#' Compute Blanchard-Quah (BQ) Impulse Response Functions
-#'
-#' @param wold Wold representation cube (N x N x horizon+1), where
-#'   \code{wold[,,h]} contains the Wold IRF at horizon h
-#' @param K N x N lower triangular Cholesky factor of the long-run
-#'   covariance matrix used for BQ identification
-#' @param scaling Optional numeric vector of length 2. The first element
-#'   specifies the variable index (1-based) used for normalisation, and the
-#'   second element specifies the shock size. When omitted no normalisation
-#'   is applied.
-#'
-#' @return A cube (N x N x horizon+1) of long-run identified impulse response
-#'   functions.
-#'
-#' @details
-#' Computes structural impulse response functions under the Blanchard-Quah
-#' (1989) long-run identification scheme. For each horizon h the structural
-#' IRF is computed as:
-#' \deqn{IRF_h = \Psi_h \cdot K}
-#' where \eqn{\Psi_h} is the Wold representation at horizon h and K is the
-#' lower triangular Cholesky factor of the long-run covariance matrix.
-#'
-#' When \code{scaling} is supplied the entire cube is divided by
-#' \eqn{IRF_0(\text{scaling}[1],\, \text{scaling}[1]) \;/\; \text{scaling}[2]},
-#' normalising the impact response of the selected variable to
-#' \code{scaling[2]}.
-#'
-#' @references
-#' Blanchard, O. J., & Quah, D. (1989). The dynamic effects of aggregate
-#' demand and supply disturbances. \emph{American Economic Review}, 79(4),
-#' 655--673.
-#'
-#' @examples
-#' \dontrun{
-#' # Estimate a VAR and compute Wold IRFs
-#' VAR  <- fVAR(y, p = 2, c = 1)
-#' wold <- fwoldIRF(VAR, horizon = 20)
-#'
-#' # Obtain BQ long-run Cholesky factor K (from e.g. fBQ())
-#' bqirf <- fbqIRF(wold, K)
-#'
-#' # With normalisation: unit shock to variable 1
-#' bqirf_norm <- fbqIRF(wold, K, scaling = c(1, 1))
-#' }
-#'
-NULL
-
-#' @export
-fbqIRF <- function(wold, K, scaling = NULL) {
-    .Call(`_tidyMacro_fbqIRF`, wold, K, scaling)
-}
-
-#' Compute Cholesky Impulse Response Functions
-#'
-#' @param wold Wold representation cube (N x N x horizon)
-#' @param S Cholesky factor matrix (N x N), lower triangular
-#'
-#' @return A cube containing:
-#'   Cholesky structural impulse response functions (N x N x horizon)
-#'
-#' @details
-#' This function computes structural impulse response functions using the
-#' Cholesky decomposition identification scheme. For each horizon h, the
-#' structural IRF is computed as:
-#' \deqn{IRF_h = \Psi_h \cdot S}
-#' where \eqn{\Psi_h} is the Wold representation at horizon h and S is the
-#' Cholesky factor (lower triangular) of the covariance matrix of reduced-form
-#' residuals.
-#'
-#' The Cholesky identification imposes a recursive structure on the
-#' contemporaneous relationships between variables, with the ordering
-#' of variables determining the causal structure.
-#'
-#' @examples
-#' \dontrun{
-#' # Generate sample Wold representation
-#' N <- 3
-#' horizon <- 20
-#' wold <- array(rnorm(N * N * horizon), dim = c(N, N, horizon))
-#'
-#' # Compute Cholesky factor
-#' Sigma <- matrix(c(1, 0.5, 0.3,
-#'                   0.5, 1, 0.4,
-#'                   0.3, 0.4, 1), 3, 3)
-#' S <- t(chol(Sigma))  # Lower triangular
-#'
-#' # Compute Cholesky IRF
-#' chol_irf <- fcholeskyIRF(wold, S)
-#' }
-#'
-#' @export
-fcholeskyIRF <- function(wold, S) {
-    .Call(`_tidyMacro_fcholeskyIRF`, wold, S)
-}
-
-#' Compute VAR Companion Matrix
-#'
-#' @param beta Coefficient matrix. Dimensions: (Np+c+M) x N,
-#'   where N is the number of variables, p is the lag order,
-#'   c is 1 if intercept included (0 otherwise), and M is the number of
-#'   exogenous variables
-#' @param c Integer indicator for intercept (1 if intercept included, 0 otherwise)
-#' @param p Integer lag order of the VAR model
-#'
-#' @return A list containing:
-#'   \itemize{
-#'     \item comp: Companion matrix (Np x Np)
-#'     \item N: Number of variables in the VAR system
-#'   }
-#'
-#' @details
-#' This function constructs the companion form matrix of a VAR(p) model.
-#' The companion matrix representation allows the VAR(p) to be written as a
-#' VAR(1) system, which is useful for various computations including impulse
-#' response functions and forecasting.
-#'
-#' When exogenous variables are present, they are excluded from the companion
-#' matrix as they do not have a dynamic feedback structure in the VAR system.
-#'
-#' The companion matrix has the structure:
-#' \deqn{
-#'   \begin{bmatrix}
-#'   A_1 & A_2 & \cdots & A_{p-1} & A_p \\
-#'   I_N & 0 & \cdots & 0 & 0 \\
-#'   0 & I_N & \cdots & 0 & 0 \\
-#'   \vdots & \vdots & \ddots & \vdots & \vdots \\
-#'   0 & 0 & \cdots & I_N & 0
-#'   \end{bmatrix}
-#' }
-#'
-#' @examples
-#' \dontrun{
-#' # VAR(2) model with 3 variables, no intercept
-#' beta <- matrix(rnorm(18), 6, 3)  # 6 rows (2*3), 3 columns
-#' result <- fcompanionMatrix(beta, c = 0, p = 2)
-#'
-#' # VAR(2) model with 3 variables, with intercept and 2 exogenous variables
-#' beta_int <- matrix(rnorm(27), 9, 3)  # 9 rows (2*3+1+2), 3 columns
-#' result <- fcompanionMatrix(beta_int, c = 1, p = 2)
-#' }
-#'
-#' @export
-fcompanionMatrix <- function(beta, c, p) {
-    .Call(`_tidyMacro_fcompanionMatrix`, beta, c, p)
-}
-
-#' Forecast Error Variance Decomposition for Cholesky-Identified VARs
-#'
-#' Computes the forecast error variance decomposition (FEVD) showing the
-#' proportion of forecast error variance of each variable attributable to
-#' each structural shock identified via Cholesky decomposition.
-#'
-#' @param chol_irf N x N x (horizon+1) cube of Cholesky impulse response functions
-#'   from \code{fcholeskyIRF}. Each slice chol_irf[,,h] contains the responses at
-#'   horizon h. The horizon is automatically inferred from the cube dimensions.
-#' @param shock Integer (1-indexed). If provided, returns only the N x horizon
-#'   matrix for that specific shock (matching MATLAB \code{variance_decomp(irf, shock)}).
-#'   If 0 (default), returns the full N x N x horizon cube for all shocks.
-#'
-#' @return A list containing:
-#'   \item{fevd}{If \code{shock = 0}: N x N x horizon cube where \code{fevd[i,j,h]}
-#'     is the share of forecast error variance of variable i at horizon h explained
-#'     by shock j. If \code{shock > 0}: N x horizon matrix for the specified shock.}
-#'
-#' @details
-#' The forecast error variance decomposition measures the proportion of the
-#' h-step ahead forecast error variance of variable i that is attributable to
-#' each structural shock j. For Cholesky-identified VARs:
-#'
-#' \deqn{FEVD(i,j,h) = \frac{\sum_{s=0}^{h} [\Psi_s P]_{ij}^2}{\sum_{k=1}^{N} \sum_{s=0}^{h} [\Psi_s P]_{ik}^2}}
-#'
-#' @examples
-#' \dontrun{
-#' # Estimate VAR
-#' var_result <- fVAR(y, p = 2, c = 1)
-#' wold <- fwoldIRF(var_result, horizon = 20)
-#' S <- t(chol(var_result$sigma))
-#' chol_irf <- fcholeskyIRF(wold, S)
-#'
-#' # Full decomposition (all shocks) — returns 3D cube
-#' vardec <- fevd_chol(chol_irf)
-#'
-#' # Single shock decomposition — returns N x horizon matrix
-#' shock <- match("UNCERT", colnames(y))
-#' vardec <- fevd_chol(chol_irf, shock = shock)
-#' }
-#'
-#' @seealso \code{\link{fcholeskyIRF}}, \code{\link{fwoldIRF}},
-#'   \code{\link{fplot_vardec}}, \code{\link{fevd_iv}}
-#'
-#' @export
-fevd_chol <- function(chol_irf, shock = 0L) {
-    .Call(`_tidyMacro_fevd_chol`, chol_irf, shock)
-}
-
-#' Forecast Error Variance Decomposition for IV-Identified Shocks
-#'
-#' Computes the forecast error variance decomposition (FEVD) for instrumental
-#' variable identified structural shocks. The function scales shocks to unit
-#' variance and calculates the contribution of a specific shock to the forecast
-#' error variance of each variable over time.
-#'
-#' @param s N x 1 vector of structural impact coefficients
-#' @param S N x N lower triangular Cholesky factor of the residual covariance matrix
-#' @param wold N x N x (hor+1) cube of Wold impulse response functions
-#' @param N Integer number of variables in the VAR system
-#' @param hor Integer maximum forecast horizon
-#' @param sigma N x N residual covariance matrix
-#' @param u (T-p) x N matrix of VAR residuals
-#' @param T1 Integer effective sample size (T-p)
-#' @param p Integer lag order of the VAR model
-#'
-#' @return A list containing:
-#'   - scaler: N x 1 vector of scaling factors for unit variance normalization
-#'   - ivirf_scaled: N x (hor+1) matrix of unit variance impulse responses
-#'   - oil_news_unit_var: 1 x T1 vector of unit variance shock series
-#'   - check_uv: Scalar variance check (should be close to 1)
-#'   - denom: N x (hor+1) matrix of total forecast error variances
-#'   - fevd_iv: N x (hor+1) matrix of FEVD shares (between 0 and 1)
-#'
-#' @details
-#' The FEVD measures the proportion of the h-step ahead forecast error variance
-#' of each variable that is attributable to the identified structural shock.
-#'
-#' The function performs the following steps:
-#' 1. Normalizes the structural shock to have unit variance
-#' 2. Computes unit variance impulse responses
-#' 3. Recovers the unit variance shock series
-#' 4. Computes total forecast error variance at each horizon
-#' 5. Computes variance due to identified shock
-#' 6. Calculates FEVD as the ratio
-#'
-#' The FEVD values are proportions between 0 and 1, where higher values indicate
-#' that the identified shock explains a larger share of the forecast error variance.
-#'
-#' @examples
-#' \dontrun{
-#' # Estimate VAR and compute Wold IRF
-#' var_result <- fVAR(y, p = 2, c = 1)
-#' wold <- fwoldIRF(var_result, horizon = 20)
-#' 
-#' # IV identification
-#' s <- c(1, 0.5, 0.3)
-#' sigma <- var_result$sigma
-#' S <- t(chol(sigma))
-#' 
-#' # Compute FEVD
-#' result <- fevd_iv(s, S, wold, N = 3, hor = 20,
-#'                   sigma = sigma, u = var_result$residuals,
-#'                   T1 = nrow(var_result$residuals), p = 2)
-#' 
-#' # Plot FEVD for first variable
-#' plot(result$fevd_iv[1, ], type = "l", ylim = c(0, 1),
-#'      main = "FEVD: Share of Variance Explained by Shock",
-#'      xlab = "Horizon", ylab = "Share")
-#' }
-#'
-#' @seealso \code{\link{fwoldIRF}} for computing Wold impulse responses,
-#'   \code{\link{fVAR}} for VAR estimation
-#'
-#' @export
-fevd_iv <- function(s, S, wold, N, hor, sigma, u, T1, p) {
-    .Call(`_tidyMacro_fevd_iv`, s, S, wold, N, hor, sigma, u, T1, p)
-}
-
-#' Generate VAR Data
-#'
-#' Recursively generates VAR data from initial values, coefficients, and
-#' residuals. Optimised for maximum performance and memory efficiency.
-#'
-#' @param y T x N matrix of initial/historical endogenous variables.
-#' @param p Integer lag order of the VAR model.
-#' @param c Integer indicator for intercept (1 if included, 0 otherwise).
-#' @param beta Coefficient matrix: (Np+c) x N if c = 1, or Np x N if c = 0.
-#' @param residuals (T-p) x N matrix of residuals/shocks to add.
-#'
-#' @return T x N matrix of generated VAR data. The first p rows are copied
-#'   from \code{y}; the remaining T-p rows are generated recursively.
-#'
-#' @details
-#' The recursion follows:
-#' \deqn{y_t = c + A_1 y_{t-1} + \cdots + A_p y_{t-p} + e_t}
-#'
-#' @examples
-#' \dontrun{
-#' y_init    <- matrix(rnorm(200), ncol = 2)
-#' beta      <- matrix(rnorm(10), 5, 2)
-#' residuals <- matrix(rnorm(190), 95, 2)
-#' y_new     <- fgenerateVARdata(y_init, p = 2, c = 1, beta, residuals)
-#' }
-#'
-#' @export
-fgenerateVARdata <- function(y, p, c, beta, residuals) {
-    .Call(`_tidyMacro_fgenerateVARdata`, y, p, c, beta, residuals)
-}
-
-#' Companion-Form Historical Decomposition for IV-Identified Shock
-#'
-#' Computes the companion-form historical decomposition attributing each
-#' observation of all VAR variables to the IV-identified structural shock,
-#' following Stock and Watson (2018).
-#'
-#' @param residuals (T-p) x N matrix of VAR residuals from \code{fVAR}.
-#' @param sigma N x N residual covariance matrix (e.g. \code{var_result$sigma}).
-#' @param s N x 1 unit-normalised structural impact vector (first element = 1).
-#' @param beta (Np+c) x N VAR coefficient matrix from \code{fVAR}.
-#' @param c Integer intercept indicator (1 = include, 0 = exclude).
-#' @param p Integer VAR lag order.
-#'
-#' @return A list with element:
-#'   \item{HDshock}{(T-p) x N matrix. Column \code{j} is the contribution
-#'     of the IV shock to variable \code{j} at each point in time.}
-#'
-#' @export
-fhdIV <- function(residuals, sigma, s, beta, c, p) {
-    .Call(`_tidyMacro_fhdIV`, residuals, sigma, s, beta, c, p)
-}
-
-#' Bootstrap Confidence Bands for the IV Historical Decomposition
-#'
-#' Computes MBB bootstrap uncertainty bands for the companion-form historical
-#' decomposition of an IV-identified structural shock. In each replication
-#' the VAR is re-estimated, the IV identification is re-run, and the
-#' companion-form HD recursion is applied to the bootstrap draw. Bands are
-#' recentered around the point estimate following Kaenzig (2021).
-#'
-#' @param y T x N matrix of original endogenous variables.
-#' @param var_result List from \code{fVAR}.
-#' @param Z Instrument matrix aligned to the proxy sample.
-#' @param s N x 1 unit-normalised point-estimate structural impact vector.
-#' @param nboot Number of bootstrap replications.
-#' @param blocksize MBB block size.
-#' @param adjustZ Integer vector \code{c(start, end)} selecting the proxy-sample
-#'   rows of \code{Z} (1-based).
-#' @param adjustu Integer vector \code{c(start, end)} selecting the proxy-sample
-#'   rows of the residuals (1-based).
-#' @param policyvar Integer (1-based) index of the IV policy variable. Default 1.
-#' @param prc Confidence level in percent (e.g. 90 for 90\% CI). Default 90.
-#' @param n_threads OpenMP threads. 0 = all cores minus one. Default 0.
-#'
-#' @return A list with elements:
-#'   \item{HDshock}{(T-p) x N point-estimate HD matrix.}
-#'   \item{upper}{(T-p) x N upper confidence bands.}
-#'   \item{lower}{(T-p) x N lower confidence bands.}
-#'
-#' @export
-fbootstrapHDIV <- function(y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar = 1L, prc = 90.0, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapHDIV`, y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar, prc, n_threads)
-}
-
-#' Heteroskedasticity-Based VAR Identification (Proxy IV, Treatment Months)
-#'
-#' Identifies a structural shock using the external instrument restricted to
-#' high-variance (treatment) months, following the proxy-SVAR approach of
-#' Kaenzig (2021). The structural impact vector is estimated via OLS of the
-#' centred residuals on the centred proxy, restricted to OPEC announcement
-#' months (\code{indsR1 == 1}).
-#'
-#' @param var_result List returned by \code{fVAR()}.
-#' @param Z          Proxy matrix (T1 x 1), aligned to the identification window
-#'   defined by \code{adjustu}.
-#' @param adjustu    Integer vector \code{c(start, end)} (1-based) giving the
-#'   rows of \code{var_result$residuals} corresponding to the proxy window.
-#' @param indsR1     Integer 0/1 vector of length \code{adjustu[2]-adjustu[1]+1};
-#'   1 = treatment month (e.g. OPEC announcement), 0 otherwise.
-#' @param hor        IRF horizon.
-#' @param nvar       1-based normalization variable index.
-#' @param scale      Shock size for normalization (default 10).
-#'
-#' @return A list with \code{IRF} (N x hor+1) and \code{b1} (N-vector).
-#' @export
-fheteroIRF <- function(var_result, Z, adjustu, indsR1, hor, nvar, scale = 10.0) {
-    .Call(`_tidyMacro_fheteroIRF`, var_result, Z, adjustu, indsR1, hor, nvar, scale)
-}
-
-#' MBB Bootstrap for Heteroskedasticity-Based VAR Identification
-#'
-#' Moving-block bootstrap confidence bands for structural IRFs identified via
-#' proxy IV restricted to OPEC announcement months (Kaenzig 2021, treatment
-#' group only). Residuals and proxy are resampled jointly.
-#'
-#' @param y          T x N data matrix.
-#' @param var_result List returned by \code{fVAR()}.
-#' @param Z          Proxy matrix (T1 x 1), aligned to \code{adjustu}.
-#' @param indsR1     Integer 0/1 vector of length T1 (1 = treatment month).
-#' @param adjustu    Integer vector \code{c(start, end)} (1-based).
-#' @param nboot      Bootstrap replications.
-#' @param blocksize  MBB block size (0 = automatic \code{5.03*T^0.25}).
-#' @param hor        IRF horizon.
-#' @param nvar       1-based normalization variable.
-#' @param scale      Shock size.
-#' @param prc        Primary confidence level (e.g. 90).
-#' @param prc2       Secondary confidence level (e.g. 68).
-#' @param n_threads  OpenMP threads (0 = all available - 1).
-#'
-#' @return A list with \code{upper}, \code{lower}, \code{upper2},
-#'   \code{lower2}, \code{meanirf}, \code{medianirf} (each N x hor+1).
-#' @export
-fbootstrapHetero <- function(y, var_result, Z, indsR1, adjustu, nboot = 1000L, blocksize = 0L, hor = 48L, nvar = 1L, scale = 10.0, prc = 90.0, prc2 = 68.0, n_threads = 0L) {
-    .Call(`_tidyMacro_fbootstrapHetero`, y, var_result, Z, indsR1, adjustu, nboot, blocksize, hor, nvar, scale, prc, prc2, n_threads)
-}
-
-#' Historical Decomposition of a VAR Variable
-#'
-#' Decomposes a chosen variable's realisation into contributions from each
-#' structural shock, identified via an impact matrix K. Supports both
-#' Cholesky (lower-triangular K) and Blanchard-Quah (general K)
-#' identification. Mirrors the MATLAB
-#' \code{hist_decmp(y, beta, residuals, c, p, K, series)}.
-#'
-#' @param y TxN numeric matrix of original (undemeaned) data.
-#' @param fVAR List returned by \code{fVAR()}, containing at minimum
-#'   \code{beta}, \code{residuals}, \code{sigma}, \code{p}, \code{c},
-#'   and \code{n_exog}.
-#' @param K NxN structural impact matrix. For Cholesky identification pass
-#'   \code{t(chol(sigma))}; for BQ identification pass the matrix
-#'   returned by \code{solve(C1, D1)}.
-#' @param series Integer (1-indexed) selecting which variable to decompose.
-#'
-#' @return A list with two elements:
-#'   \item{histdec}{(T-p) x N numeric matrix. Column \code{j} is the
-#'     cumulative contribution of structural shock \code{j} to the chosen
-#'     variable at each point in time.}
-#'   \item{ystar}{(T-p) numeric vector of the demeaned realisation of the
-#'     chosen variable (benchmark series for the plot).}
-#'
-#' @details
-#' The structural shocks are recovered as
-#' \deqn{\varepsilon_t = K^{-1} u_t}
-#' where \eqn{u_t} are the reduced-form residuals. The structural MA
-#' representation is built by multiplying each Wold matrix by K:
-#' \deqn{\Theta_h = \Psi_h K}
-#' The contribution of shock \eqn{j} to variable \eqn{i} at time \eqn{t} is
-#' then the inner product of \eqn{\Theta_{0:t}[i,j]} with the time-reversed
-#' structural shocks \eqn{\varepsilon_{t:-1:0,j}}:
-#' \deqn{HD(t,j) = \sum_{h=0}^{t} \Theta_h[i,j]\, \varepsilon_{t-h,j}}
-#'
-#' @examples
-#' \dontrun{
-#' # Cholesky identification
-#' var_result <- fVAR(y, p = 12, c = 1)
-#' K_chol <- t(chol(var_result$sigma))
-#' hd <- fhistdec(y, var_result, K_chol, series = 1)
-#'
-#' # BQ identification
-#' wold  <- fwoldIRF(var_result, horizon = 40)
-#' C1    <- apply(wold, c(1, 2), sum)
-#' D1    <- t(chol(C1 %*% var_result$sigma %*% t(C1)))
-#' K_bq  <- solve(C1, D1)
-#' hd_bq <- fhistdec(y, var_result, K_bq, series = 1)
-#' }
-#'
-#' @seealso \code{\link{fVAR}}, \code{\link{fcholeskyIRF}},
-#'   \code{\link{fwoldIRF}}, \code{\link{fplot_histdec}}
-#'
-#' @export
-fhistdec <- function(y, fVAR, K, series) {
-    .Call(`_tidyMacro_fhistdec`, y, fVAR, K, series)
-}
-
-#' Create Lagged Matrix
-#'
-#' Creates a matrix of lagged values from a time series matrix. For each
-#' variable and each lag from 1 to p, this function creates a column containing
-#' the lagged values, removing the first p rows to align the lags properly.
-#'
-#' @param y A numeric matrix, data frame, or tibble of time series data with T
-#'   rows (time periods) and N columns (variables)
-#' @param p An integer specifying the number of lags to create
-#'
-#' @return A numeric matrix with (T-p) rows and (N*p) columns. The columns are
-#'   organized as: all N variables at lag 1, then all N variables at lag 2, etc.
-#'   Column names are generated as "var_name_lag_k" where applicable.
-#'
-#' @details The function creates a lagged matrix where each column represents a
-#'   lagged version of the original variables. The lags are organized by lag
-#'   order first, then by variable. For example, with 2 variables and 2 lags,
-#'   the column order would be: var1_lag1, var2_lag1, var1_lag2, var2_lag2.
-#'
-#' @examples
-#' \dontrun{
-#' # Create sample data as data frame
-#' y <- data.frame(var1 = 1:10, var2 = 11:20)
-#'
-#' # Create 2 lags
-#' x <- lagmakerMatrix(y, 2)
-#'
-#' # Works with tibbles too
-#' library(tibble)
-#' y_tbl <- tibble(var1 = 1:10, var2 = 11:20)
-#' x <- lagmakerMatrix(y_tbl, 2)
-#' }
-#'
-#' @export
-flagmakerMatrix <- function(y, p) {
-    .Call(`_tidyMacro_flagmakerMatrix`, y, p)
-}
-
-#' @export
-fmaxIRF <- function(wold, S, var_idx) {
-    .Call(`_tidyMacro_fmaxIRF`, wold, S, var_idx)
-}
-
-#' Moving Block Bootstrap for VAR Residuals and Instruments
-#' 
-#' Computes a moving-block bootstrap sample for the reduced form errors
-#' of a VAR(p) model. Optionally bootstraps a matrix of instruments M.
-#' 
-#' @param eps (T-p) x N matrix of VAR residuals
-#' @param lags Integer lag order p of the VAR model
-#' @param BlockSize Integer block size for moving block bootstrap. 
-#'   If 0 or negative, automatically computed as round(5.03 * T^0.25)
-#' @param M Optional (T-p) x K matrix of instruments to bootstrap (default = NULL)
-#' 
-#' @return A list containing:
-#'   \itemize{
-#'     \item eps_boot: (T-p) x N matrix of bootstrapped residuals (centered)
-#'     \item M_boot: (T-p) x K matrix of bootstrapped instruments (centered), 
-#'                   or empty matrix if M not provided
-#'   }
-#' 
-#' @details
-#' The moving block bootstrap preserves the temporal dependence structure
-#' in the residuals. The default block size follows the recommendation from
-#' "Proxy SVARs: Asymptotic Theory, Bootstrap Inference, and the Effects 
-#' of Income Tax Changes in the United States".
-#' 
-#' Both residuals and instruments are centered to preserve their sample properties.
-#' For instruments, only non-zero values are centered (to handle sparse instruments).
-#' 
-#' @examples
-#' \dontrun{
-#' # Bootstrap residuals only
-#' eps <- matrix(rnorm(200), 100, 2)
-#' result <- fmbb_var(eps, lags = 2, BlockSize = 0)
-#' eps_boot <- result$eps_boot
-#' 
-#' # Bootstrap residuals and instruments
-#' M <- matrix(rnorm(100), 100, 1)
-#' result <- fmbb_var(eps, lags = 2, BlockSize = 0, M)
-#' M_boot <- result$M_boot
-#' }
-#' 
-#' @export
-fmbb_var <- function(eps, lags, BlockSize, M = NULL) {
-    .Call(`_tidyMacro_fmbb_var`, eps, lags, BlockSize, M)
-}
-
-#' Remove Small-Sample Bias from VAR Coefficient Estimates
-#'
-#' Computes the bootstrap mean of the VAR coefficients, subtracts the bias
-#' from the point estimates, and iteratively shrinks the correction towards
-#' zero if the bias-corrected system is explosive (all eigenvalues of the
-#' companion matrix must be strictly less than one).
-#'
-#' @param beta (Np+c+M) x N matrix of OLS VAR coefficient estimates
-#' @param c Integer intercept indicator (1 if intercept included, 0 otherwise)
-#' @param p Integer VAR lag order
-#' @param boot_beta (Np+c+M) x N x nboot cube of bootstrapped VAR coefficient
-#'   estimates collected from a first-pass bootstrap
-#'
-#' @return A list with elements:
-#'   Beta: N x (Np+c+M) bias-corrected coefficient matrix (transposed
-#'         relative to the input so it matches the convention used by
-#'         \code{fbootstrapCholCorrected})
-#'   corrections: integer count of iterative shrinkage steps applied
-#'                (1 means the first attempt was already stable)
-#'
-#' @details
-#' The bias is estimated as
-#'
-#'   bias = mean(boot_beta, dim=3) - beta'
-#'
-#' If the original estimates are already explosive the function returns the
-#' uncorrected estimates.  Otherwise the function applies the full bias
-#' correction and checks stability.  If the corrected system is still
-#' explosive (rare in practice) it reduces the correction factor by one
-#' percent per iteration until stability is achieved or 200 attempts are
-#' exhausted, at which point the uncorrected estimates are returned.
-#'
-#' This mirrors \code{remove_bias.m} from the MATLAB reference implementation.
-#'
-#' @seealso \code{\link{fbootstrapCholCorrected}}, \code{\link{fcompanionMatrix}}
-#'
-#' @export
-fremove_bias <- function(beta, c, p, boot_beta) {
-    .Call(`_tidyMacro_fremove_bias`, beta, c, p, boot_beta)
-}
-
-#' @export
-fuhligIRF <- function(wold, S, idx) {
-    .Call(`_tidyMacro_fuhligIRF`, wold, S, idx)
-}
-
-#' @export
-fuhlig_maxshare <- function(wold, S, idx) {
-    .Call(`_tidyMacro_fuhlig_maxshare`, wold, S, idx)
-}
-
 #' Compute Wold Impulse Response Functions for VAR Model
 #'
 #' @param fVAR A list containing VAR estimation results with elements:
@@ -1409,7 +1409,7 @@ fuhlig_maxshare <- function(wold, S, idx) {
 #' y <- matrix(rnorm(200), ncol = 2)
 #' exog <- matrix(rnorm(100), ncol = 1)
 #' VAR <- fVAR(y, p = 2, c = 1, exog = exog)
-#' irf <- fwoldIRF(VAR, horizon = 10)
+#' irf <- fWoldIRF(VAR, horizon = 10)
 #' # irf is a 2x2x11 array
 #' 
 #' # Plot impulse response
@@ -1418,7 +1418,7 @@ fuhlig_maxshare <- function(wold, S, idx) {
 #' }
 #'
 #' @export
-fwoldIRF <- function(fVAR, horizon) {
-    .Call(`_tidyMacro_fwoldIRF`, fVAR, horizon)
+fWoldIRF <- function(fVAR, horizon) {
+    .Call(`_tidyMacro_fWoldIRF`, fVAR, horizon)
 }
 

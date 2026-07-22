@@ -24,7 +24,7 @@ arma::cube fPolyConvolve_cpp(const arma::cube& A, const arma::cube& B, int nlags
 //' lag order (slice 1 = lag 0, slice 2 = lag 1, etc.).
 //'
 //' @param A 3-D array of dimension \eqn{d_1 \times d_2 \times A_3}
-//'   (e.g. Wold IRF coefficients from \code{fwoldIRF}).
+//'   (e.g. Wold IRF coefficients from \code{fWoldIRF}).
 //' @param B 3-D array of dimension \eqn{d_2 \times K \times B_3}
 //'   (e.g. \eqn{\Psi(L)} coefficients).
 //' @param nlags Integer. Number of output slices to return
@@ -32,7 +32,7 @@ arma::cube fPolyConvolve_cpp(const arma::cube& A, const arma::cube& B, int nlags
 //'
 //' @return A 3-D array of dimension \eqn{d_1 \times K \times} \code{nlags}.
 //'
-//' @seealso \code{\link{fwoldIRF}}, \code{\link{fcholeskyIRF}}
+//' @seealso \code{\link{fWoldIRF}}, \code{\link{fCholeskyIRF}}
 //'
 //' @export
 // [[Rcpp::export]]

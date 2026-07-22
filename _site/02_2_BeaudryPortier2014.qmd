@@ -42,7 +42,7 @@ library(tidyverse)
 library(tictoc)
 library(tidyMacro)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ## Data
@@ -77,13 +77,13 @@ Sigma <- var_result$sigma
 horizon <- 40
 
 # Wold IRFs by inverting (I - A(L))
-wold <- fwoldIRF(var_result, horizon = horizon)
+wold <- fWoldIRF(var_result, horizon = horizon)
 
 # Lower Cholesky factor of Sigma
 S <- t(chol(Sigma))
 
 # LR-Max point estimate
-struct_irf <- fmaxIRF(wold, S, var_idx = 1L)
+struct_irf <- fMaxIRF(wold, S, var_idx = 1L)
 ```
 
 ## Bootstrap Confidence Bands
@@ -92,7 +92,7 @@ struct_irf <- fmaxIRF(wold, S, var_idx = 1L)
 #| label: bootstrap-max
 
 tic()
-boot_max <- fbootstrapMaxCorrected(
+boot_max <- fBootstrapMaxCorrected(
   y          = y,
   var_result = var_result,
   nboot1     = 1000,
@@ -109,7 +109,7 @@ toc()
 #| label: fig-irf-boot-max
 #| fig-cap: "IRF to Tech. news shock — LR-Max bootstrap (68% and 90% confidence bands)"
 
-fplotirfLR(
+fPlotIRFLR(
   point       = struct_irf,
   boot_result = boot_max,
   varnames    = varnames,
@@ -124,10 +124,10 @@ Now we can compare the results to that of @barsky2012 and plot IRF results.
 ```{r}
 #| label: bootstrap-uhlig
 
-struct_irf_uhlig <- fuhligIRF(wold, S, idx = 1L)
+struct_irf_uhlig <- fUhligIRF(wold, S, idx = 1L)
 
 tic()
-boot_uhlig <- fbootstrapUhligCorrected(
+boot_uhlig <- fBootstrapUhligCorrected(
   y          = y,
   var_result = var_result,
   nboot1     = 1000,
@@ -144,7 +144,7 @@ toc()
 #| label: fig-irf-boot-uhlig
 #| fig-cap: "IRF to news shock — Uhlig max-share bootstrap (68% and 90% confidence bands)"
 
-fplotirfLR(
+fPlotIRFLR(
   point       = struct_irf_uhlig,
   boot_result = boot_uhlig,
   varnames    = varnames,

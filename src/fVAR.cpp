@@ -1,5 +1,5 @@
 #include "fVAR.h"
-#include "flagmakerMatrix.h"
+#include "fLagMakerMatrix.h"
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace arma;
@@ -11,7 +11,7 @@ static VARResult fVAR_cpp_impl(const arma::mat &y, int p, int c,
   int T = y.n_rows;
 
   arma::mat yfinal = y.rows(p, T - 1);
-  arma::mat lags = flagmakerMatrix(y, p);
+  arma::mat lags = fLagMakerMatrix(y, p);
 
   arma::mat X;
   if (c == 1) {
@@ -106,7 +106,7 @@ VARResult fVAR_cpp(const arma::mat &y, int p, int c,
 //' result <- fVAR(y, p = 2, c = 1, exog = exog)
 //' }
 //'
-//' @seealso \code{\link{fwoldIRF}}, \code{\link{fbootstrapChol}},
+//' @seealso \code{\link{fWoldIRF}}, \code{\link{fBootstrapChol}},
 //'   \code{\link{fAICBIC}}
 //'
 //' @export

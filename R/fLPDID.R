@@ -6,7 +6,7 @@
 #   fPlotLPDID()  — event-study plot; pass one result or several named
 #                   results directly: fPlotLPDID(`Spec A` = a, `Spec B` = b)
 #
-# Formula syntax (mirrors fLPpanel):
+# Formula syntax (mirrors fLPPanel):
 #   fLPDID(y ~ treat + controls, data, panel_id = c("id", "year"),
 #          treat = "treat", post = 9, pre = 9)
 #
@@ -98,7 +98,7 @@
 #' projections on clean-control samples with absorbed time fixed effects
 #' and cluster-robust (CR1, Stata `reghdfe` convention) standard errors.
 #' The horizon loop runs in parallel C++ (OpenMP). Formula syntax mirrors
-#' \code{\link{fLPpanel}}: supports \code{..macro} expansion and the
+#' \code{\link{fLPPanel}}: supports \code{..macro} expansion and the
 #' panel-aware operators \code{l()}, \code{f()} and \code{d()}.
 #'
 #' @param formula A formula \code{y ~ treat + controls}, e.g.
@@ -199,7 +199,7 @@ fLPDID <- function(formula, data,
   if (!is.numeric(conf) || length(conf) != 1L || conf <= 0 || conf >= 1)
     stop("fLPDID: 'conf' must be a single number in (0, 1).", call. = FALSE)
 
-  # ---- normalized integer time index (preserves gaps, as in fLPpanel) --
+  # ---- normalized integer time index (preserves gaps, as in fLPPanel) --
   t_raw <- data[[time_var]]
   if (inherits(t_raw, "Date") || inherits(t_raw, "POSIXct"))
     t_raw <- as.numeric(t_raw)
@@ -232,7 +232,7 @@ fLPDID <- function(formula, data,
   }
 
   diff_ex  <- .fLPDID_expand_diff_terms(main_str, data, id_var, time_var)
-  main_ex  <- .fLPpanel_expand_lag_terms(diff_ex$formula_chr, diff_ex$data,
+  main_ex  <- .fLPPanel_expand_lag_terms(diff_ex$formula_chr, diff_ex$data,
                                          id_var, time_var)
   main_str <- main_ex$formula_chr
   data     <- main_ex$data

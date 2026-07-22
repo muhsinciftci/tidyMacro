@@ -41,7 +41,7 @@ library(tidyverse)
 library(tidyMacro)
 library(tictoc)
 
-set_theme(ftheme_tidyMacro())
+set_theme(fThemeTidyMacro())
 ```
 
 ------------------------------------------------------------------------
@@ -86,7 +86,7 @@ residuals  <- var_result$residuals
 sigma_full <- var_result$sigma
 
 hor  <- 48
-wold <- fwoldIRF(var_result, horizon = hor)
+wold <- fWoldIRF(var_result, horizon = hor)
 ```
 
 ## Proxy SVAR: MBB Bootstrap
@@ -97,7 +97,7 @@ adjustZ <- c(1, nrow(iv_oil))
 adjustu <- c(nrow(residuals) - nrow(iv_oil) + 1, nrow(residuals))
 
 tic()
-result_mbb <- fbootstrapIV_mbb(
+result_mbb <- fBootstrapIVMBB(
     y          = finaldata,
     var_result = var_result,
     Z          = iv_oil,
@@ -118,7 +118,7 @@ toc()
 #| label: fig-irf
 #| fig-cap: "IRFs to oil supply news shock — MBB bootstrap (68% and 90% confidence bands)"
 
-fplotirf_iv(
+fPlotIRFIV(
     result_mbb = result_mbb,
     varnames   = varnames,
     shockname  = shockname,
@@ -194,7 +194,7 @@ oil_shock <- fGetShock(
 
 ```{r}
 #| label: hist-dec
-hd_result <- fhdIV(
+hd_result <- fHDIV(
     residuals = residuals,
     sigma     = sigma_full,
     s         = s,
@@ -212,7 +212,7 @@ HDshock <- hd_result$HDshock
 #| cache: true
 
 tic()
-boot_hd <- fbootstrapHDIV(
+boot_hd <- fBootstrapHDIV(
     y          = finaldata,
     var_result = var_result,
     Z          = iv_oil,
@@ -282,7 +282,7 @@ tibble(
   scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
   ylim(-150, 150) +
   labs(x = NULL, y = "%") +
-  ftheme_tidyMacro()
+  fThemeTidyMacro()
 ```
 
 ## Forecast Error Variance Decomposition
@@ -291,10 +291,10 @@ tibble(
 #| label: fig-fevd
 #| fig-cap: "Forecast error variance decomposition: share explained by oil supply news shock"
 
-fevd_result <- fevd_iv(s, S, wold, N, hor, sigma, u, T1 = T1, p = p)
+fevd_result <- fFEVDIV(s, S, wold, N, hor, sigma, u, T1 = T1, p = p)
 
-fplot_vardec(
-    fevd       = fevd_result$fevd_iv,
+fPlotVarDec(
+    fevd       = fevd_result$fFEVDIV,
     varnames   = varnames,
     shocknames = shockname
 ) +
@@ -331,7 +331,7 @@ cat("Wald statistic (HAC-robust F):", round(msw$Waldstat, 2), "\n")
 #| label: fig-irf-msw
 #| fig-cap: "Weak-IV robust IRFs — Anderson-Rubin (outer) and delta-method (inner) 90% bands"
 
-fplotirfMSW(
+fPlotIRFMSW(
     msw_result      = msw,
     varnames        = varnames,
     shockname       = shockname,

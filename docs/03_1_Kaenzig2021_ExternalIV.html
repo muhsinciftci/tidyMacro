@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
 <title>5&nbsp; Proxy SVAR (External Instruments) and Weak-IV Robust Inference – tidyMacro</title>
 <style>
@@ -86,7 +87,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./03_2_Kaenzig2021_Hetero.html" rel="next">
+<link href="./03_3_Kaenzig2021_InternalIV.html" rel="next">
 <link href="./02_2_BeaudryPortier2014.html" rel="prev">
 <link href="./logo.png" rel="icon" type="image/png">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
@@ -176,13 +177,25 @@ window.Quarto = {
     <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
     </a>
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">true</span>
+    <span class="navbar-title">tidyMacro</span>
     </a>
   </div>
-        <div class="quarto-navbar-tools tools-end">
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
+</i> 
+<span class="menu-text">PDF</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
     <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
 </div>
-          <div id="quarto-search" class="" title="Search"></div>
       </div> <!-- /container-fluid -->
     </nav>
   <nav class="quarto-secondary-nav">
@@ -190,7 +203,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./03_1_Kaenzig2021_ExternalIV.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./03_1_Kaenzig2021_ExternalIV.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -208,77 +221,66 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
   </div>
 </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Chapters</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./02_1_Gali1999.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Long run restrictions</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./02_2_BeaudryPortier2014.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
-      </ul>
-  </li>
     </ul>
     </div>
 </nav>
@@ -288,7 +290,7 @@ window.Quarto = {
 <!-- main -->
 <main class="content column-page-right" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Chapters</a></li><li class="breadcrumb-item"><a href="./03_1_Kaenzig2021_ExternalIV.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></h1>
 <p class="subtitle lead">The Macroeconomic Effects of Oil Supply News: Evidence from OPEC Announcements</p>
@@ -331,7 +333,7 @@ window.Quarto = {
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tictoc)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme</span>(<span class="fu">ftheme_tidyMacro</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set_theme</span>(<span class="fu">fThemeTidyMacro</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
@@ -373,7 +375,7 @@ window.Quarto = {
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>sigma_full <span class="ot">&lt;-</span> var_result<span class="sc">$</span>sigma</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>hor  <span class="ot">&lt;-</span> <span class="dv">48</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>wold <span class="ot">&lt;-</span> <span class="fu">fwoldIRF</span>(var_result, <span class="at">horizon =</span> hor)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>wold <span class="ot">&lt;-</span> <span class="fu">fWoldIRF</span>(var_result, <span class="at">horizon =</span> hor)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="proxy-svar-mbb-bootstrap" class="level2" data-number="5.6">
@@ -383,7 +385,7 @@ window.Quarto = {
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>adjustu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">nrow</span>(residuals) <span class="sc">-</span> <span class="fu">nrow</span>(iv_oil) <span class="sc">+</span> <span class="dv">1</span>, <span class="fu">nrow</span>(residuals))</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>result_mbb <span class="ot">&lt;-</span> <span class="fu">fbootstrapIV_mbb</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>result_mbb <span class="ot">&lt;-</span> <span class="fu">fBootstrapIVMBB</span>(</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y          =</span> finaldata,</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">var_result =</span> var_result,</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Z          =</span> iv_oil,</span>
@@ -397,13 +399,13 @@ window.Quarto = {
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Using 3 thread(s) for parallel bootstrap computation...</span></span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.099 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.986 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="impulse-response-functions" class="level2" data-number="5.7">
 <h2 data-number="5.7" class="anchored" data-anchor-id="impulse-response-functions"><span class="header-section-number">5.7</span> Impulse Response Functions</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fplotirf_iv</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFIV</span>(</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">result_mbb =</span> result_mbb,</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">varnames   =</span> varnames,</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">shockname  =</span> shockname,</span>
@@ -453,23 +455,23 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
 <span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_header</span>(<span class="at">title =</span> <span class="st">"First-Stage Instrument Strength"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_footnote</span>(<span class="st">"Rule of thumb: F-stat &gt; 10 indicates a strong instrument."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="tekhestqgu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#tekhestqgu table {
+<div id="lxoutbsntf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#lxoutbsntf table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#tekhestqgu thead, #tekhestqgu tbody, #tekhestqgu tfoot, #tekhestqgu tr, #tekhestqgu td, #tekhestqgu th {
+#lxoutbsntf thead, #lxoutbsntf tbody, #lxoutbsntf tfoot, #lxoutbsntf tr, #lxoutbsntf td, #lxoutbsntf th {
   border-style: none;
 }
 
-#tekhestqgu p {
+#lxoutbsntf p {
   margin: 0;
   padding: 0;
 }
 
-#tekhestqgu .gt_table {
+#lxoutbsntf .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -495,12 +497,12 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-left-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_caption {
+#lxoutbsntf .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#tekhestqgu .gt_title {
+#lxoutbsntf .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -512,7 +514,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-bottom-width: 0;
 }
 
-#tekhestqgu .gt_subtitle {
+#lxoutbsntf .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -524,7 +526,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-top-width: 0;
 }
 
-#tekhestqgu .gt_heading {
+#lxoutbsntf .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -536,13 +538,13 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-right-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_bottom_border {
+#lxoutbsntf .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_col_headings {
+#lxoutbsntf .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -557,7 +559,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-right-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_col_heading {
+#lxoutbsntf .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -577,7 +579,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   overflow-x: hidden;
 }
 
-#tekhestqgu .gt_column_spanner_outer {
+#lxoutbsntf .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -589,15 +591,15 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   padding-right: 4px;
 }
 
-#tekhestqgu .gt_column_spanner_outer:first-child {
+#lxoutbsntf .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#tekhestqgu .gt_column_spanner_outer:last-child {
+#lxoutbsntf .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#tekhestqgu .gt_column_spanner {
+#lxoutbsntf .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -609,11 +611,11 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   width: 100%;
 }
 
-#tekhestqgu .gt_spanner_row {
+#lxoutbsntf .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#tekhestqgu .gt_group_heading {
+#lxoutbsntf .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -639,7 +641,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   text-align: left;
 }
 
-#tekhestqgu .gt_empty_group_heading {
+#lxoutbsntf .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -654,15 +656,15 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   vertical-align: middle;
 }
 
-#tekhestqgu .gt_from_md > :first-child {
+#lxoutbsntf .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#tekhestqgu .gt_from_md > :last-child {
+#lxoutbsntf .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#tekhestqgu .gt_row {
+#lxoutbsntf .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -681,7 +683,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   overflow-x: hidden;
 }
 
-#tekhestqgu .gt_stub {
+#lxoutbsntf .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -694,7 +696,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   padding-right: 5px;
 }
 
-#tekhestqgu .gt_stub_row_group {
+#lxoutbsntf .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -708,15 +710,15 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   vertical-align: top;
 }
 
-#tekhestqgu .gt_row_group_first td {
+#lxoutbsntf .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#tekhestqgu .gt_row_group_first th {
+#lxoutbsntf .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#tekhestqgu .gt_summary_row {
+#lxoutbsntf .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -726,16 +728,16 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   padding-right: 5px;
 }
 
-#tekhestqgu .gt_first_summary_row {
+#lxoutbsntf .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_first_summary_row.thick {
+#lxoutbsntf .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#tekhestqgu .gt_last_summary_row {
+#lxoutbsntf .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -745,7 +747,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-bottom-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_grand_summary_row {
+#lxoutbsntf .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -755,7 +757,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   padding-right: 5px;
 }
 
-#tekhestqgu .gt_first_grand_summary_row {
+#lxoutbsntf .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -765,7 +767,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-top-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_last_grand_summary_row_top {
+#lxoutbsntf .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -775,11 +777,11 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-bottom-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_striped {
+#lxoutbsntf .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#tekhestqgu .gt_table_body {
+#lxoutbsntf .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -788,7 +790,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-bottom-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_footnotes {
+#lxoutbsntf .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -802,7 +804,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-right-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_footnote {
+#lxoutbsntf .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -811,7 +813,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   padding-right: 5px;
 }
 
-#tekhestqgu .gt_sourcenotes {
+#lxoutbsntf .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -825,7 +827,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   border-right-color: #D3D3D3;
 }
 
-#tekhestqgu .gt_sourcenote {
+#lxoutbsntf .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -833,72 +835,72 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
   padding-right: 5px;
 }
 
-#tekhestqgu .gt_left {
+#lxoutbsntf .gt_left {
   text-align: left;
 }
 
-#tekhestqgu .gt_center {
+#lxoutbsntf .gt_center {
   text-align: center;
 }
 
-#tekhestqgu .gt_right {
+#lxoutbsntf .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#tekhestqgu .gt_font_normal {
+#lxoutbsntf .gt_font_normal {
   font-weight: normal;
 }
 
-#tekhestqgu .gt_font_bold {
+#lxoutbsntf .gt_font_bold {
   font-weight: bold;
 }
 
-#tekhestqgu .gt_font_italic {
+#lxoutbsntf .gt_font_italic {
   font-style: italic;
 }
 
-#tekhestqgu .gt_super {
+#lxoutbsntf .gt_super {
   font-size: 65%;
 }
 
-#tekhestqgu .gt_footnote_marks {
+#lxoutbsntf .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#tekhestqgu .gt_asterisk {
+#lxoutbsntf .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#tekhestqgu .gt_indent_1 {
+#lxoutbsntf .gt_indent_1 {
   text-indent: 5px;
 }
 
-#tekhestqgu .gt_indent_2 {
+#lxoutbsntf .gt_indent_2 {
   text-indent: 10px;
 }
 
-#tekhestqgu .gt_indent_3 {
+#lxoutbsntf .gt_indent_3 {
   text-indent: 15px;
 }
 
-#tekhestqgu .gt_indent_4 {
+#lxoutbsntf .gt_indent_4 {
   text-indent: 20px;
 }
 
-#tekhestqgu .gt_indent_5 {
+#lxoutbsntf .gt_indent_5 {
   text-indent: 25px;
 }
 
-#tekhestqgu .katex-display {
+#lxoutbsntf .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#tekhestqgu div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#lxoutbsntf div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -982,7 +984,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
 <section id="historical-decomposition" class="level2" data-number="5.11">
 <h2 data-number="5.11" class="anchored" data-anchor-id="historical-decomposition"><span class="header-section-number">5.11</span> Historical Decomposition</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hd_result <span class="ot">&lt;-</span> <span class="fu">fhdIV</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hd_result <span class="ot">&lt;-</span> <span class="fu">fHDIV</span>(</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">residuals =</span> residuals,</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigma     =</span> sigma_full,</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">s         =</span> s,</span>
@@ -997,7 +999,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
 <h2 data-number="5.12" class="anchored" data-anchor-id="bootstrap-uncertainty-bands-for-historical-decomposition"><span class="header-section-number">5.12</span> Bootstrap Uncertainty Bands for Historical Decomposition</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>boot_hd <span class="ot">&lt;-</span> <span class="fu">fbootstrapHDIV</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>boot_hd <span class="ot">&lt;-</span> <span class="fu">fBootstrapHDIV</span>(</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">y          =</span> finaldata,</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">var_result =</span> var_result,</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Z          =</span> iv_oil,</span>
@@ -1012,7 +1014,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Using 3 thread(s) for bootstrap HD computation...</span></span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1.144 sec elapsed</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.958 sec elapsed</span></span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>HD1_upper <span class="ot">&lt;-</span> boot_hd<span class="sc">$</span>upper[, <span class="dv">1</span>]</span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>HD1_lower <span class="ot">&lt;-</span> boot_hd<span class="sc">$</span>lower[, <span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1065,7 +1067,7 @@ Figure&nbsp;5.1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% co
 <span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"5 years"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
 <span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">150</span>, <span class="dv">150</span>) <span class="sc">+</span></span>
 <span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"%"</span>) <span class="sc">+</span></span>
-<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ftheme_tidyMacro</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fThemeTidyMacro</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-hist-dec" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1083,10 +1085,10 @@ Figure&nbsp;5.2: Historical decomposition: contribution of oil supply news shock
 <section id="forecast-error-variance-decomposition" class="level2" data-number="5.13">
 <h2 data-number="5.13" class="anchored" data-anchor-id="forecast-error-variance-decomposition"><span class="header-section-number">5.13</span> Forecast Error Variance Decomposition</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fevd_result <span class="ot">&lt;-</span> <span class="fu">fevd_iv</span>(s, S, wold, N, hor, sigma, u, <span class="at">T1 =</span> T1, <span class="at">p =</span> p)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fevd_result <span class="ot">&lt;-</span> <span class="fu">fFEVDIV</span>(s, S, wold, N, hor, sigma, u, <span class="at">T1 =</span> T1, <span class="at">p =</span> p)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">fplot_vardec</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">fevd       =</span> fevd_result<span class="sc">$</span>fevd_iv,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotVarDec</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">fevd       =</span> fevd_result<span class="sc">$</span>fFEVDIV,</span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">varnames   =</span> varnames,</span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">shocknames =</span> shockname</span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
@@ -1130,7 +1132,7 @@ Figure&nbsp;5.3: Forecast error variance decomposition: share explained by oil s
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wald statistic (HAC-robust F): 11.67</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fplotirfMSW</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFMSW</span>(</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">msw_result      =</span> msw,</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">varnames        =</span> varnames,</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">shockname       =</span> shockname,</span>
@@ -1584,8 +1586,8 @@ Montiel Olea, José L., James H. Stock, and Mark W. Watson. 2021. <span>“Infer
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./03_2_Kaenzig2021_Hetero.html" class="pagination-link" aria-label="Identification via Heteroskedasticity">
-        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./03_3_Kaenzig2021_InternalIV.html" class="pagination-link" aria-label="Internal Instruments: Cholesky on Augmented VAR">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
