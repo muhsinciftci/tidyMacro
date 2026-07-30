@@ -47,7 +47,8 @@ struct LPResult {
   std::vector<arma::mat> ses;     // H+1 matrices (kr x n_y) — full SEs
 };
 
-// Internal C++ function (callable from other translation units)
+// Internal C++ function (callable from other translation units).
+// Defaults live in the .cpp definitions (project convention).
 LPResult fLP_internal(
     const arma::mat& Y,
     const arma::mat& X,
@@ -58,7 +59,8 @@ LPResult fLP_internal(
     bool             store_full,
     bool             cumulative,
     int              n_threads,
-    int              nw_offset    = 1
+    int              nw_offset,
+    bool             verbose
 );
 
 // R-callable wrapper
@@ -72,7 +74,8 @@ Rcpp::List fLP_cpp(
     bool      store_full,
     bool      cumulative,
     int       n_threads,
-    int       nw_offset
+    int       nw_offset,
+    bool      verbose
 );
 
 #endif // FLP_H

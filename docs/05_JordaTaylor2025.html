@@ -8,7 +8,7 @@
 
 <meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>9&nbsp; Local Projections with Shocks and IV – tidyMacro</title>
+<title>10&nbsp; Local Projections with Shocks and IV – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -88,7 +88,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./06_AlmuzaraSancibrian2024.html" rel="next">
-<link href="./04_ForniGambettiRicco.html" rel="prev">
+<link href="./05_lp_syntax.html" rel="prev">
 <link href="./logo.png" rel="icon" type="image/png">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -129,35 +129,6 @@ div.csl-indent {
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <meta property="og:title" content="tidyMacro">
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
@@ -203,7 +174,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05_JordaTaylor2025.html"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05_JordaTaylor2025.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -265,20 +236,26 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./05_lp_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections — Common Syntax and Conventions</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
     </ul>
@@ -292,7 +269,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></h1>
+<h1 class="title"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></h1>
 <p class="subtitle lead">A guided tour via Jordà and Taylor (2025)</p>
 </div>
 
@@ -310,33 +287,18 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="9.1">
-<h2 data-number="9.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">9.1</span> Overview</h2>
-<p>This document is both a <strong>replication</strong> of <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> and a <strong>feature tour</strong> of <code>tidyMacro</code>’s local-projection tools:</p>
+<section id="overview" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">10.1</span> Overview</h2>
+<p>This chapter is a <strong>replication</strong> of <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> with <code>fLP()</code> and <code>fLPIV()</code>. Syntax conventions common to all four local-projection engines — formulas, <code>..macros</code>, <code>l()</code>/<code>f()</code>, multi-band <code>conf</code>, thread rules, output shapes — live in the <a href="05_lp_syntax.html">Local Projections syntax primer</a>; this chapter focuses on the empirical exercise.</p>
+<p>The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences <code>CPI_{t+h} - CPI_{t-1}</code> and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls. Two features specific to reproducing <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> in MATLAB (<code>LPmodel.m</code>) matter here:</p>
 <ul>
-<li><code>fLP()</code> — Jordà (2005) local projections with a <code>fixest</code>-style formula, automatic lag / lead operators (<code>l(x, 1:4)</code>), macro expansion (<code>..controls</code>), multi-equation LHS (<code>c(y1, y2, y3) ~ ...</code>) and <strong>multi-level confidence bands from a single fit</strong> (<code>conf = c(0.68, 0.95)</code>).</li>
-<li><code>fPlotLP()</code> — companion plotting function that draws one ribbon per confidence level and facets across LHS variables.</li>
+<li>The Newey-West bandwidth rule is Jordà’s classic <code>= h</code>, i.e.&nbsp;<code>nw_offset = 0</code> (the syntax primer explains the default). Under this rule the standard errors match <code>OLSmodel.m</code> bit-for-bit.</li>
+<li>The LP-IV specification uses a fixed HAC bandwidth of 6 (<code>nw_lags_iv = 6</code>), matching Stata’s <code>vce(hac nw 6)</code>.</li>
 </ul>
-<p>The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences <code>CPI_{t+h} - CPI_{t-1}</code> and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls.</p>
-<p><strong>LP-OLS.</strong> One direct regression per horizon; under the long-difference convention the LHS is <span class="math inline">\(y_{t+h} - y_{t-1}\)</span>:</p>
-<p><span class="math display">\[y_{t+h} - y_{t-1} = \alpha_h + \beta_h\, s_t + \gamma_h' w_t + e_{t+h},
-\qquad h = 0, 1, \dots, H,\]</span></p>
-<p>with IRF <span class="math inline">\(\{\hat{\beta}_h\}_{h=0}^{H}\)</span> and Newey-West sandwich variance</p>
-<p><span class="math display">\[V_h = (X'X)^{-1}\, X' \Omega X\, (X'X)^{-1},
-\qquad
-L_h = \max\{\texttt{nw\_lags} + h + \texttt{nw\_offset},\, 0\}.\]</span></p>
-<p><strong>LP-IV.</strong> With endogenous treatment <span class="math inline">\(d_t\)</span> instrumented by <span class="math inline">\(Z_t\)</span>, after residualising <span class="math inline">\(Y\)</span>, <span class="math inline">\(D\)</span>, <span class="math inline">\(Z\)</span> on the exogenous controls (FWL) the 2SLS point estimate and delta-method HAC standard error are</p>
-<p><span class="math display">\[\hat{\beta}_h = \frac{\hat{D}'\, Y_r}{\hat{D}'\, D_r},
-\qquad
-\widehat{\mathrm{se}}(\hat{\beta}_h)
-  = \frac{\sqrt{\widehat{\mathrm{LRV}}(\hat{D}_t \varepsilon_t)}}{\lvert \hat{D}'\, D_r \rvert},
-\qquad
-\varepsilon_t = Y_{r,t} - \hat{\beta}_h D_{r,t}.\]</span></p>
-<p><strong>HAC standard errors.</strong> <code>fLP()</code> always uses the full Newey-West sandwich <code>V_h = (X'X)⁻¹ · X'ΩX · (X'X)⁻¹</code> — the estimator used in Jordà (2005), Stock &amp; Watson (2018), Plagborg-Møller &amp; Wolf (2021), Cesa-Bianchi’s VAR Toolbox, Stata’s <code>newey</code>, R’s <code>sandwich::NeweyWest</code>, and virtually every published LP application. The Bartlett bandwidth defaults to Miranda-Agrippino &amp; Ricco’s <code>nw_lags + h + 1</code> rule; set <code>nw_offset = 0</code> for the classic Jordà <code>= h</code> rule (which matches Cesa-Bianchi’s <code>LPmodel.m</code> bit-for-bit for the Jordà-Taylor replication).</p>
 <hr>
 </section>
-<section id="setup" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">9.2</span> Setup</h2>
+<section id="setup" class="level2" data-number="10.2">
+<h2 data-number="10.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">10.2</span> Setup</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
@@ -347,8 +309,8 @@ L_h = \max\{\texttt{nw\_lags} + h + \texttt{nw\_offset},\, 0\}.\]</span></p>
 </div>
 <hr>
 </section>
-<section id="data" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="data"><span class="header-section-number">9.3</span> Data</h2>
+<section id="data" class="level2" data-number="10.3">
+<h2 data-number="10.3" class="anchored" data-anchor-id="data"><span class="header-section-number">10.3</span> Data</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"JordaTaylor2025"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -392,7 +354,7 @@ L_h = \max\{\texttt{nw\_lags} + h + \texttt{nw\_offset},\, 0\}.\]</span></p>
 <img src="05_JordaTaylor2025_files/figure-html/fig-data-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.1: Variables used in the LP replications
+Figure&nbsp;10.1: Variables used in the LP replications
 </figcaption>
 </figure>
 </div>
@@ -400,8 +362,8 @@ Figure&nbsp;9.1: Variables used in the LP replications
 </div>
 <hr>
 </section>
-<section id="classic-lp-ols-replication-one-fit-two-bands" class="level2" data-number="9.4">
-<h2 data-number="9.4" class="anchored" data-anchor-id="classic-lp-ols-replication-one-fit-two-bands"><span class="header-section-number">9.4</span> 1 · Classic LP-OLS replication — one fit, two bands</h2>
+<section id="classic-lp-ols-replication-one-fit-two-bands" class="level2" data-number="10.4">
+<h2 data-number="10.4" class="anchored" data-anchor-id="classic-lp-ols-replication-one-fit-two-bands"><span class="header-section-number">10.4</span> 1 · Classic LP-OLS replication — one fit, two bands</h2>
 <p>The Jordà-Taylor (2025) result. A single call to <code>fLP()</code> delivers both the 68% and 95% bands: pass <code>conf = c(0.68, 0.95)</code> and the bands are rebuilt from the raw <code>irfs_se</code> in the fit object — no need to estimate twice.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"dLogGDP"</span>, <span class="st">"dLogCPI"</span>, <span class="st">"dSTIR"</span>)</span>
@@ -418,8 +380,8 @@ Figure&nbsp;9.1: Variables used in the LP replications
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_threads  =</span> <span class="dv">1</span></span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="direct-plot" class="level3" data-number="9.4.1">
-<h3 data-number="9.4.1" class="anchored" data-anchor-id="direct-plot"><span class="header-section-number">9.4.1</span> Direct plot</h3>
+<section id="direct-plot" class="level3" data-number="10.4.1">
+<h3 data-number="10.4.1" class="anchored" data-anchor-id="direct-plot"><span class="header-section-number">10.4.1</span> Direct plot</h3>
 <p><code>fPlotLP()</code> draws one ribbon per band automatically (widest first, so the tighter band sits visually on top).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">fPlotLP</span>(lp_jt) <span class="sc">+</span></span>
@@ -427,8 +389,8 @@ Figure&nbsp;9.1: Variables used in the LP replications
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Percent"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="customized-plot-from-tidy-data" class="level3" data-number="9.4.2">
-<h3 data-number="9.4.2" class="anchored" data-anchor-id="customized-plot-from-tidy-data"><span class="header-section-number">9.4.2</span> Customized plot from tidy data</h3>
+<section id="customized-plot-from-tidy-data" class="level3" data-number="10.4.2">
+<h3 data-number="10.4.2" class="anchored" data-anchor-id="customized-plot-from-tidy-data"><span class="header-section-number">10.4.2</span> Customized plot from tidy data</h3>
 <p>Every plot can also be assembled by hand from the tidy plot data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">fPlotLP</span>(lp_jt, <span class="at">return_data =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
@@ -451,7 +413,7 @@ Figure&nbsp;9.1: Variables used in the LP replications
 <img src="05_JordaTaylor2025_files/figure-html/fig-jt-custom-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-jt-custom-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.2: Same fit, hand-rolled ggplot from <code>fPlotLP(..., return_data = TRUE)</code>
+Figure&nbsp;10.2: Same fit, hand-rolled ggplot from <code>fPlotLP(..., return_data = TRUE)</code>
 </figcaption>
 </figure>
 </div>
@@ -460,8 +422,8 @@ Figure&nbsp;9.2: Same fit, hand-rolled ggplot from <code>fPlotLP(..., return_dat
 <hr>
 </section>
 </section>
-<section id="many-responses-to-one-shock-multi-equation-lhs" class="level2" data-number="9.5">
-<h2 data-number="9.5" class="anchored" data-anchor-id="many-responses-to-one-shock-multi-equation-lhs"><span class="header-section-number">9.5</span> 2 · Many responses to one shock: Multi-equation LHS</h2>
+<section id="many-responses-to-one-shock-multi-equation-lhs" class="level2" data-number="10.5">
+<h2 data-number="10.5" class="anchored" data-anchor-id="many-responses-to-one-shock-multi-equation-lhs"><span class="header-section-number">10.5</span> 2 · Many responses to one shock: Multi-equation LHS</h2>
 <p><code>fLP()</code> accepts a vector-valued LHS: <code>c(y1, y2, y3) ~ shock + ...</code>. Each LHS variable is estimated as its own local projection against the shared RHS — in parallel across horizons (OpenMP) — and returned as a single <code>fLP</code> object. Combined with <code>conf = c(0.68, 0.95)</code>, one call yields a full multi-response × multi-band figure.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>lp_multi <span class="ot">&lt;-</span> <span class="fu">fLP</span>(</span>
@@ -486,7 +448,7 @@ Figure&nbsp;9.2: Same fit, hand-rolled ggplot from <code>fPlotLP(..., return_dat
 <img src="05_JordaTaylor2025_files/figure-html/fig-multi-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-multi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.3: Multi-equation LP — two responses to one Romer-Romer shock, one fit
+Figure&nbsp;10.3: Multi-equation LP — two responses to one Romer-Romer shock, one fit
 </figcaption>
 </figure>
 </div>
@@ -495,8 +457,8 @@ Figure&nbsp;9.3: Multi-equation LP — two responses to one Romer-Romer shock, o
 <p>Behind the scenes each response has its own regression; only the RHS is shared. This is materially faster than looping in R because the horizon loop is parallelised in C++ and only the OLS cross-products are formed once per horizon. Note also that <code>fLP()</code> does <strong>not</strong> auto-augment the RHS — the RHS you write is exactly what enters each regression. For instance, above the <code>dSTIR</code> equation happens to have <code>dSTIR_l1..l4</code> on the RHS only because <code>dSTIR</code> is a member of the <code>..controls</code> macro; if you drop it from <code>controls</code>, its own lags disappear from the RHS.</p>
 <hr>
 </section>
-<section id="level-vs-cumulative-responses" class="level2" data-number="9.6">
-<h2 data-number="9.6" class="anchored" data-anchor-id="level-vs-cumulative-responses"><span class="header-section-number">9.6</span> 3 · Level vs cumulative responses</h2>
+<section id="level-vs-cumulative-responses" class="level2" data-number="10.6">
+<h2 data-number="10.6" class="anchored" data-anchor-id="level-vs-cumulative-responses"><span class="header-section-number">10.6</span> 3 · Level vs cumulative responses</h2>
 <p><code>cumulative = TRUE</code> regresses <code>y_{t+h} - y_{t-1}</code> on the RHS; <code>FALSE</code> regresses the level <code>y_{t+h}</code>. Comparing them makes the “level” vs “long-difference” distinction explicit.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lp_cum <span class="ot">&lt;-</span> <span class="fu">fLP</span>(</span>
@@ -536,36 +498,9 @@ Figure&nbsp;9.3: Multi-equation LP — two responses to one Romer-Romer shock, o
 </div>
 <hr>
 </section>
-<section id="newey-west-bandwidth-choices" class="level2" data-number="9.7">
-<h2 data-number="9.7" class="anchored" data-anchor-id="newey-west-bandwidth-choices"><span class="header-section-number">9.7</span> 4 · Newey-West bandwidth choices</h2>
-<p><code>fLP()</code> uses the Bartlett-kernel Newey-West sandwich throughout. The bandwidth at horizon <code>h</code> is <code>max(nw_lags + h + nw_offset, 0)</code>. Two conventions:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th><code>nw_offset</code></th>
-<th>Effective bandwidth</th>
-<th>Where it comes from</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>1L</code> (default)</td>
-<td><code>nw_lags + h + 1</code></td>
-<td>Miranda-Agrippino &amp; Ricco</td>
-</tr>
-<tr class="even">
-<td><code>0L</code></td>
-<td><code>nw_lags + h</code></td>
-<td>Classic Jordà (2005); matches Cesa-Bianchi’s <code>LPmodel.m</code> (Jordà-Taylor 2025)</td>
-</tr>
-</tbody>
-</table>
-<p>Point estimates are of course identical across choices — only the standard errors move. The classic Jordà rule is the tighter of the two here.</p>
+<section id="newey-west-bandwidth-matching-matlab-vs-the-mar-default" class="level2" data-number="10.7">
+<h2 data-number="10.7" class="anchored" data-anchor-id="newey-west-bandwidth-matching-matlab-vs-the-mar-default"><span class="header-section-number">10.7</span> 4 · Newey-West bandwidth: matching MATLAB vs the MA&amp;R default</h2>
+<p>Two bandwidth rules give <strong>identical point estimates</strong> but different SE bands: the classic Jordà <code>= h</code> rule (<code>nw_offset = 0</code>, matches <code>LPmodel.m</code> bit-for-bit) and the Miranda-Agrippino &amp; Ricco <code>= h + 1</code> rule (<code>nw_offset = 1</code>, the <code>fLP()</code> default). The syntax primer covers the general convention; here we visualise the resulting band gap on this replication.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>lp_jorda <span class="ot">&lt;-</span> <span class="fu">fLP</span>(CPI <span class="sc">~</span> RRShock <span class="sc">+</span> <span class="fu">l</span>(..controls, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> jt_lp, <span class="at">horizons =</span> <span class="dv">17</span>, <span class="at">shock =</span> <span class="st">"RRShock"</span>,</span>
@@ -599,7 +534,7 @@ Figure&nbsp;9.3: Multi-equation LP — two responses to one Romer-Romer shock, o
 <img src="05_JordaTaylor2025_files/figure-html/fig-nw-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.4: Same IRF, different NW bandwidth rule at 90%
+Figure&nbsp;10.4: Same IRF, different NW bandwidth rule at 90%
 </figcaption>
 </figure>
 </div>
@@ -607,8 +542,8 @@ Figure&nbsp;9.4: Same IRF, different NW bandwidth rule at 90%
 </div>
 <hr>
 </section>
-<section id="lp-iv-unemployment-response-to-an-ffr-shock" class="level2" data-number="9.8">
-<h2 data-number="9.8" class="anchored" data-anchor-id="lp-iv-unemployment-response-to-an-ffr-shock"><span class="header-section-number">9.8</span> 5 · LP-IV — Unemployment response to an FFR shock</h2>
+<section id="lp-iv-unemployment-response-to-an-ffr-shock" class="level2" data-number="10.8">
+<h2 data-number="10.8" class="anchored" data-anchor-id="lp-iv-unemployment-response-to-an-ffr-shock"><span class="header-section-number">10.8</span> 5 · LP-IV — Unemployment response to an FFR shock</h2>
 <p><code>fLPIV()</code> estimates local projections with an <strong>external instrument</strong>, mirroring <code>fLP()</code>’s formula-based syntax. Replicates Jordà &amp; Taylor (2025) Figure 6a: the unemployment response to a unit federal-funds-rate shock, instrumented by the Romer-Romer (RR) narrative shock.</p>
 <p>The specification (Ex6 tab of the JT2025 workbook, monthly 1985M1-2000M1):</p>
 <ul>
@@ -645,7 +580,7 @@ Figure&nbsp;9.4: Same IRF, different NW bandwidth rule at 90%
 <img src="05_JordaTaylor2025_files/figure-html/fig-iv-data-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iv-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.5: Variables used in the LP-IV replication
+Figure&nbsp;10.5: Variables used in the LP-IV replication
 </figcaption>
 </figure>
 </div>
@@ -734,11 +669,11 @@ Figure&nbsp;9.5: Variables used in the LP-IV replication
 <span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 47  0.3183</span></span>
 <span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 48  0.2646</span></span>
 <span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; First-stage F (h = 0..H):  8.36, 8, 7.91, 7.85, 7.76, 7.77, 7.56, 7.69, 7.69, 7.61, 7.68, 7.76, 7.72, 7.62, 7.5, 7.46, 7.4, 7.35, 7.31, 7.28, 7.22, 7.18, 7.13, 7.05, 7.12, 7.04, 6.99, 6.95, 6.81, 6.76, 6.65, 6.6, 6.56, 6.57, 6.53, 6.49, 6.42, 6.36, 6.31, 6.28, 6.23, 6.02, 6, 5.94, 5.91, 5.83, 5.82, 5.7, 5.63</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; First-stage F (h = 0..H):  7.4, 7.08, 6.99, 6.93, 6.85, 6.85, 6.66, 6.77, 6.76, 6.69, 6.74, 6.81, 6.77, 6.67, 6.57, 6.52, 6.46, 6.41, 6.37, 6.33, 6.28, 6.24, 6.19, 6.11, 6.17, 6.09, 6.04, 6, 5.87, 5.82, 5.72, 5.67, 5.63, 5.63, 5.59, 5.55, 5.48, 5.42, 5.38, 5.34, 5.29, 5.1, 5.08, 5.02, 4.99, 4.91, 4.9, 4.79, 4.72</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The print method summarises the endogenous treatment, control set, instrument formula, and the Newey-West bandwidth rule (fixed vs horizon-varying).</p>
-<section id="impulse-response-and-first-stage-strength" class="level3" data-number="9.8.1">
-<h3 data-number="9.8.1" class="anchored" data-anchor-id="impulse-response-and-first-stage-strength"><span class="header-section-number">9.8.1</span> Impulse response and first-stage strength</h3>
+<section id="impulse-response-and-first-stage-strength" class="level3" data-number="10.8.1">
+<h3 data-number="10.8.1" class="anchored" data-anchor-id="impulse-response-and-first-stage-strength"><span class="header-section-number">10.8.1</span> Impulse response and first-stage strength</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLP</span>(lp_iv) <span class="sc">+</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Unemployment to a unit FFR shock (LP-IV)"</span>,</span>
@@ -751,7 +686,7 @@ Figure&nbsp;9.5: Variables used in the LP-IV replication
 <img src="05_JordaTaylor2025_files/figure-html/fig-iv-irf-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iv-irf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.6: Jordà-Taylor (2025) Figure 6a: unemployment response to an FFR shock instrumented by the RR narrative shock
+Figure&nbsp;10.6: Jordà-Taylor (2025) Figure 6a: unemployment response to an FFR shock instrumented by the RR narrative shock
 </figcaption>
 </figure>
 </div>
@@ -771,18 +706,18 @@ Figure&nbsp;9.6: Jordà-Taylor (2025) Figure 6a: unemployment response to an FFR
 <img src="05_JordaTaylor2025_files/figure-html/fig-iv-fs-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iv-fs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.7: First-stage F-statistic across horizons (values below 10 flag a weak-instrument concern)
+Figure&nbsp;10.7: First-stage F-statistic across horizons (values below 10 flag a weak-instrument concern)
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The <code>Fstat_fs</code> and <code>rsqr_fs</code> fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising.</p>
+<p>The <code>Fstat_fs</code> and <code>rsqr_fs</code> fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising. The df convention (<code>Th - kc - nz</code>) is documented in the <a href="05_lp_syntax.html#the-estimating-equations">syntax primer</a>.</p>
 <hr>
 </section>
 </section>
-<section id="tidy-output-for-downstream-work" class="level2" data-number="9.9">
-<h2 data-number="9.9" class="anchored" data-anchor-id="tidy-output-for-downstream-work"><span class="header-section-number">9.9</span> 6 · Tidy output for downstream work</h2>
+<section id="tidy-output-for-downstream-work" class="level2" data-number="10.9">
+<h2 data-number="10.9" class="anchored" data-anchor-id="tidy-output-for-downstream-work"><span class="header-section-number">10.9</span> 6 · Tidy output for downstream work</h2>
 <p><code>tidy.fLP()</code> returns a long data frame. For single-band fits, the shape matches the historical <code>broom</code>-style output (<code>estimate</code>, <code>se</code>, <code>lower</code>, <code>upper</code>). For multi-band fits, one <code>lower_X</code> / <code>upper_X</code> column pair is produced per confidence level. It works on both <code>fLP()</code> and <code>fLPIV()</code> results.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy.fLP</span>(lp_jt) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">6</span>)</span>
@@ -830,14 +765,11 @@ Figure&nbsp;9.7: First-stage F-statistic across horizons (values below 10 flag a
 </div>
 <hr>
 </section>
-<section id="summary" class="level2" data-number="9.10">
-<h2 data-number="9.10" class="anchored" data-anchor-id="summary"><span class="header-section-number">9.10</span> Summary</h2>
+<section id="summary" class="level2" data-number="10.10">
+<h2 data-number="10.10" class="anchored" data-anchor-id="summary"><span class="header-section-number">10.10</span> Summary</h2>
 <ul>
-<li><strong>One fit for many responses.</strong> <code>c(y1, y2, y3) ~ shock + ...</code> runs one LP per LHS in parallel across horizons.</li>
-<li><strong>One fit for many bands.</strong> <code>conf = c(0.68, 0.95)</code> builds every band from the same <code>irfs_se</code>; no re-estimation.</li>
-<li><strong><code>fPlotLP()</code></strong> paints those responses and bands directly, or returns a tibble via <code>return_data = TRUE</code> for hand-rolled ggplots. It works on <code>fLP()</code> and <code>fLPIV()</code> fits interchangeably.</li>
-<li><strong>HAC standard errors.</strong> <code>fLP()</code> and <code>fLPIV()</code> both use full Newey-West sandwiches (<code>fLPIV()</code> via the delta-method IV form). <code>nw_offset = 0</code> and <code>nw_lags_iv = k</code> reproduce the Jordà-Taylor (2025) MATLAB standard errors.</li>
-<li><strong>LP-IV.</strong> <code>fLPIV()</code> mirrors <code>fLP()</code>’s formula syntax and adds an <code>instruments = ~ …</code> argument; the endogenous treatment is named via <code>endog = "…"</code>. Multi-band and multi-LHS support are inherited.</li>
+<li><code>nw_offset = 0</code> (classic Jordà <code>= h</code> rule) and <code>nw_lags_iv = 6</code> reproduce the <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> MATLAB / Stata standard errors.</li>
+<li>Both <code>fLP()</code> and <code>fLPIV()</code> handle multi-band <code>conf</code> and, for <code>fLP()</code>, multi-equation LHS in a single fit — see the <a href="05_lp_syntax.html">syntax primer</a> for the shared conventions.</li>
 </ul>
 </section>
 <section id="references" class="level2 unnumbered">
@@ -1259,13 +1191,13 @@ Jorda, Oscar, and Alan M. Taylor. 2025. <span>“Local <span>Projections</span>.
   </script>
 <nav class="page-navigation column-page-right">
   <div class="nav-page nav-page-previous">
-      <a href="./04_ForniGambettiRicco.html" class="pagination-link" aria-label="External instrument SVAR analysis for noninvertible shocks">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span>
+      <a href="./05_lp_syntax.html" class="pagination-link" aria-label="Local Projections — Common Syntax and Conventions">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections — Common Syntax and Conventions</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="./06_AlmuzaraSancibrian2024.html" class="pagination-link" aria-label="Panel Local Projections">
-        <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -9,6 +9,7 @@
 #define ARMA_DONT_USE_OPENMP
 
 #include "fLPDID.h"
+#include "panel_shift.h"
 #include <RcppArmadillo.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -17,6 +18,7 @@
 #include <unordered_map>
 #include <vector>
 #include <cmath>
+#include <limits>
 
 using namespace arma;
 
@@ -45,34 +47,38 @@ Rcpp::List fLPDID_cpp(
     int  ccc,
     bool pmd,
     bool reweight,
-    int  n_threads
+    int  n_threads,
+    bool verbose = false
 ) {
   const uword n = y.n_elem;
   const uword K = X.n_cols;
 
+  // ---- boundary validation (this engine is directly Rcpp-exported) ----
+  if (n == 0)
+    Rcpp::stop("fLPDID_cpp: y is empty.");
+  if (treat.n_elem != n || i_index.n_elem != n ||
+      t_index.n_elem != n || cl_index.n_elem != n ||
+      X.n_rows != n)
+    Rcpp::stop("fLPDID_cpp: y, treat, X, i_index, t_index, cl_index must have the same length.");
+  if (pre_window < 0 || post_window < 0)
+    Rcpp::stop("fLPDID_cpp: pre_window and post_window must be non-negative.");
+  if (ccc < 0 || ccc > 2)
+    Rcpp::stop("fLPDID_cpp: ccc must be one of 0, 1, or 2.");
+  if (nonabsorbing && ccc > 0 && Lwin < 0)
+    Rcpp::stop("fLPDID_cpp: Lwin must be non-negative when nonabsorbing = TRUE and ccc > 0.");
+
   // =====================================================================
-  // 1. Panel index: per-unit row lists and t -> row maps (gap robust)
+  // 1. Panel index: per-unit row lists and t -> row maps (gap robust) -
+  //    shared helper (see src/panel_shift.h).
   // =====================================================================
-  std::unordered_map<int, uword> uix;  uix.reserve(512);
-  std::vector<uword> unit_of(n);
-  uword nu = 0;
-  for (uword k = 0; k < n; ++k) {
-    auto it = uix.find(i_index(k));
-    if (it == uix.end()) { uix.emplace(i_index(k), nu); unit_of[k] = nu++; }
-    else                 { unit_of[k] = it->second; }
-  }
-  std::vector<std::vector<uword>> unit_rows(nu);
-  for (uword k = 0; k < n; ++k) unit_rows[unit_of[k]].push_back(k);
-  std::vector<std::unordered_map<int, uword>> t2r(nu);
-  for (uword u = 0; u < nu; ++u) {
-    t2r[u].reserve(unit_rows[u].size() * 2);
-    for (uword k : unit_rows[u]) t2r[u].emplace(t_index(k), k);
-  }
+  std::vector<uword>                          unit_of;
+  std::vector<std::vector<uword>>             unit_rows;
+  std::vector<std::unordered_map<int, uword>> t2r;
+  panel_build_index(i_index, t_index, unit_of, unit_rows, t2r);
+  const uword nu = unit_rows.size();
 
   auto row_at = [&](uword k, int off) -> sword {
-    const auto& m = t2r[unit_of[k]];
-    auto it = m.find(t_index(k) + off);
-    return (it == m.end()) ? sword(-1) : sword(it->second);
+    return panel_row_at(k, off, unit_of, t2r, t_index);
   };
 
   // =====================================================================
@@ -89,16 +95,43 @@ Rcpp::List fLPDID_cpp(
     }
   }
   if (pmd) {
-    // baseline = running mean of ALL past outcomes within the unit
+    // Stata PMD baseline (DGJT replication scripts, e.g.
+    //   inst/LPDID/codes/main_text_simulation/first_sim_pmd_LPDiD_estimation.do):
+    //
+    //   bysort stateid (year) : gen cumulative_y = sum(ln_y)      // sum() treats missing as 0
+    //   gen time  = year - start_year + 1                          // start_year = GLOBAL min year
+    //   gen aveLY = L.cumulative_y / (time - 1)                    // baseline
+    //
+    // We reproduce this exactly:
+    //   * numerator: running per-unit sum of y, treating NA as 0
+    //   * baseline is defined only when the immediately preceding
+    //     calendar row exists for the unit (Stata's L.  returns missing
+    //     otherwise), i.e. row_at(k, -1) >= 0
+    //   * denominator: (t_index(k) - global_t_min), i.e. `time - 1`
+    //
+    // This matches the published replication numbers on unbalanced /
+    // gap-containing panels; the previous observed-past denominator
+    // diverged from Stata off the balanced case.
+    const int t_min_global = t_index.min();
+
+    vec cum_y(n, fill::value(datum::nan));
     for (uword u = 0; u < nu; ++u) {
       std::vector<uword> rows = unit_rows[u];
       std::sort(rows.begin(), rows.end(),
                 [&](uword a, uword b) { return t_index(a) < t_index(b); });
-      double s = 0.0; uword c = 0;
+      double s = 0.0;
       for (uword k : rows) {
-        base(k) = (c > 0) ? s / double(c) : datum::nan;
-        if (fin(y(k))) { s += y(k); ++c; }
+        if (fin(y(k))) s += y(k);   // Stata sum(): missing -> 0
+        cum_y(k) = s;
       }
+    }
+    for (uword k = 0; k < n; ++k) {
+      const sword l = row_at(k, -1);
+      const double time_minus_1 = double(t_index(k) - t_min_global);
+      if (l >= 0 && fin(cum_y((uword)l)) && time_minus_1 > 0.0) {
+        base(k) = cum_y((uword)l) / time_minus_1;
+      }
+      // else: baseline stays NaN (Stata's aveLY missing case)
     }
   }
 
@@ -136,6 +169,32 @@ Rcpp::List fLPDID_cpp(
         ccsm[j][k] = ccsm[j - 1][k] && (l >= 0) && ccsm[j - 1][(uword)l];
       }
   }
+
+  // =====================================================================
+  // 3b. Precomputed global compact time and cluster ids. Every horizon
+  //     previously rebuilt an unordered_map<int, uword> from scratch;
+  //     with global codes ready the per-horizon remap is a plain array
+  //     lookup + a scratch counter of size nT_global / nG_global.
+  // =====================================================================
+  uword nT_global = 0, nG_global = 0;
+  std::vector<uword> t_compact(n), g_compact(n);
+  {
+    std::unordered_map<int, uword> tm;  tm.reserve(256);
+    for (uword k = 0; k < n; ++k) {
+      auto it = tm.find(t_index(k));
+      if (it == tm.end()) { t_compact[k] = nT_global; tm.emplace(t_index(k), nT_global++); }
+      else                { t_compact[k] = it->second; }
+    }
+  }
+  {
+    std::unordered_map<int, uword> gm;  gm.reserve(512);
+    for (uword k = 0; k < n; ++k) {
+      auto it = gm.find(cl_index(k));
+      if (it == gm.end()) { g_compact[k] = nG_global; gm.emplace(cl_index(k), nG_global++); }
+      else                { g_compact[k] = it->second; }
+    }
+  }
+  const uword NONE = std::numeric_limits<uword>::max();
 
   // =====================================================================
   // 4. Per-horizon estimation (shared read-only caches; thread safe)
@@ -195,15 +254,17 @@ Rcpp::List fLPDID_cpp(
     if (m0 < K + 3) return R;
 
     // ---- 4b. compact year ids; reweighting; row selection ------------
-    std::unordered_map<int, uword> ymap0;
+    // Densify only the years that appear this horizon by scanning
+    // t_compact[k] against a scratch remap of size nT_global. Same for
+    // clusters. No unordered_map allocations inside the horizon loop.
+    std::vector<uword> ymap_scratch(nT_global, NONE);
     std::vector<uword> yid0(m0);
+    uword nY0 = 0;
     for (uword s = 0; s < m0; ++s) {
-      const int tv = t_index(rows[s]);
-      auto it = ymap0.find(tv);
-      if (it == ymap0.end()) { yid0[s] = ymap0.size(); ymap0.emplace(tv, yid0[s]); }
-      else                   { yid0[s] = it->second; }
+      const uword tg = t_compact[rows[s]];
+      if (ymap_scratch[tg] == NONE) ymap_scratch[tg] = nY0++;
+      yid0[s] = ymap_scratch[tg];
     }
-    const uword nY0 = ymap0.size();
 
     std::vector<uword> sel;  sel.reserve(m0);
     std::vector<double> wy;  // per-year weight (reweight case)
@@ -223,25 +284,26 @@ Rcpp::List fLPDID_cpp(
     const uword m = sel.size();
     if (m < K + 3) return R;
 
-    // recompact year & cluster ids over the selected rows
-    std::unordered_map<int, uword> ymap, gmap;
+    // Recompact year & cluster ids over the SELECTED rows (which may be
+    // a strict subset when reweight = TRUE drops undefined-weight years).
+    // Reset ymap_scratch positions that were touched by yid0 first.
+    for (uword s = 0; s < m0; ++s) ymap_scratch[t_compact[rows[s]]] = NONE;
+
+    std::vector<uword> gmap_scratch(nG_global, NONE);
     std::vector<uword> yid(m), gid(m);
     vec w(m, fill::ones);
+    uword nY = 0, nG = 0;
     for (uword s = 0; s < m; ++s) {
       const uword s0 = sel[s];
       const uword k  = rows[s0];
-      const int tv = t_index(k);
-      auto it = ymap.find(tv);
-      if (it == ymap.end()) { yid[s] = ymap.size(); ymap.emplace(tv, yid[s]); }
-      else                  { yid[s] = it->second; }
-      const int gv = cl_index(k);
-      auto ig = gmap.find(gv);
-      if (ig == gmap.end()) { gid[s] = gmap.size(); gmap.emplace(gv, gid[s]); }
-      else                  { gid[s] = ig->second; }
+      const uword tg = t_compact[k];
+      if (ymap_scratch[tg] == NONE) ymap_scratch[tg] = nY++;
+      yid[s] = ymap_scratch[tg];
+      const uword gg = g_compact[k];
+      if (gmap_scratch[gg] == NONE) gmap_scratch[gg] = nG++;
+      gid[s] = gmap_scratch[gg];
       if (reweight) w(s) = wy[yid0[s0]];
     }
-    const uword nY = ymap.size();
-    const uword nG = gmap.size();
     if (nG < 2) return R;
 
     // ---- 4c. build design, weighted within-year demeaning ------------

@@ -52,7 +52,8 @@ LPResult fLP_internal(
     bool             store_full,
     bool             cumulative,
     int              n_threads,
-    int              nw_offset
+    int              nw_offset,
+    bool             verbose
 ) {
   // ---------- dimensions -----------------------------------------------
   const int T  = static_cast<int>(Y.n_rows);
@@ -85,22 +86,26 @@ LPResult fLP_internal(
   }
 
   // ---------- threading setup ------------------------------------------
+  // Unified rule across LP engines: n_threads <= 0 → use all available cores.
   int actual_threads = 1;
 #ifdef _OPENMP
-  actual_threads = (n_threads == 0)
-                       ? std::max(1, omp_get_max_threads() - 1)
+  actual_threads = (n_threads <= 0)
+                       ? std::max(1, omp_get_max_threads())
                        : n_threads;
-  omp_set_num_threads(actual_threads);
-  std::printf("fLP: using %d thread(s) for parallel horizon loop...\n",
-              actual_threads);
+  if (verbose) {
+    std::printf("fLP: using %d thread(s) for parallel horizon loop...\n",
+                actual_threads);
+  }
 #else
   (void) n_threads;
-  std::printf("fLP: OpenMP not available. Running single-threaded.\n");
+  if (verbose) {
+    std::printf("fLP: OpenMP not available. Running single-threaded.\n");
+  }
 #endif
 
   // ---------- horizon loop (parallel over h) ---------------------------
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) num_threads(actual_threads)
 #endif
   for (int h = 0; h <= H; h++) {
 
@@ -160,6 +165,11 @@ LPResult fLP_internal(
     //      across equations) --------------------------------------------
     const arma::mat Xreg = arma::join_rows(arma::ones<arma::vec>(Th), Xh);  // Th x kr
 
+    // Row `sc` of invXpX; needed for both the full-sandwich and the
+    // shock-only (fast) branches. Computing it once per horizon avoids
+    // redoing the extraction inside the equation loop.
+    const arma::rowvec invXpX_sc = invXpX.row(sc);
+
     // ---- loop over equations (each LHS variable) ----------------------
     for (int eq = 0; eq < ny; eq++) {
 
@@ -180,28 +190,41 @@ LPResult fLP_internal(
       XU.each_col() %= u;       // row t scaled by u(t)
       const arma::mat S = XU.t();  // kr x Th, S.col(t) = X_reg_t * u_t
 
-      arma::mat G(kr, kr, arma::fill::zeros);
-      for (int a = 0; a <= nwL; a++) {
-        const double w = static_cast<double>(nwL + 1 - a) /
-                         static_cast<double>(nwL + 1);        // Bartlett
-        const arma::mat Gamma_a = S.cols(a, Th - 1) * S.cols(0, Th - 1 - a).t();
-        if (a == 0) {
-          G += w * Gamma_a;
-        } else {
-          G += w * (Gamma_a + Gamma_a.t());
-        }
-      }
-
-      const arma::mat V = invXpX * G * invXpX;   // kr x kr
-
+      double var_sc;
       if (store_full) {
+        // Need every diagonal element of V, so form the full sandwich.
+        arma::mat G(kr, kr, arma::fill::zeros);
+        for (int a = 0; a <= nwL; a++) {
+          const double w = static_cast<double>(nwL + 1 - a) /
+                           static_cast<double>(nwL + 1);        // Bartlett
+          const arma::mat Gamma_a = S.cols(a, Th - 1) * S.cols(0, Th - 1 - a).t();
+          if (a == 0) G += w * Gamma_a;
+          else        G += w * (Gamma_a + Gamma_a.t());
+        }
+        const arma::mat V = invXpX * G * invXpX;
+        var_sc = V(sc, sc);
         for (int j = 0; j < kr; j++) {
           Se_h(j, eq) = std::sqrt(std::max(0.0, V(j, j)));
         }
+      } else {
+        // Fast path: we only need V(sc, sc) = invXpX(sc, :) * G * invXpX(:, sc).
+        // Rewrite as sum_a w_a * (invXpX_sc * Gamma_a * invXpX_sc') using
+        // a = S' invXpX_sc'  (Th x 1) so invXpX_sc * Gamma_a * invXpX_sc'
+        // = sum_{t=a}^{Th-1} a(t) * a(t - a).
+        const arma::vec a_vec = S.t() * invXpX_sc.t();   // Th x 1
+        double G_sc = arma::dot(a_vec, a_vec);           // Gamma_0
+        for (int lag = 1; lag <= nwL; lag++) {
+          const double w = static_cast<double>(nwL + 1 - lag) /
+                           static_cast<double>(nwL + 1);
+          double gamma_lag = 0.0;
+          for (int t = lag; t < Th; t++) gamma_lag += a_vec(t) * a_vec(t - lag);
+          G_sc += 2.0 * w * gamma_lag;
+        }
+        var_sc = G_sc;
       }
 
       const double irf_h = Beta(sc, eq);
-      const double se_sh = std::sqrt(std::max(0.0, V(sc, sc)));
+      const double se_sh = std::sqrt(std::max(0.0, var_sc));
 
       out.irfs(h, eq)       = irf_h;
       out.irfs_se(h, eq)    = se_sh;
@@ -273,7 +296,8 @@ Rcpp::List fLP_cpp(
     bool      store_full   = false,
     bool      cumulative   = false,
     int       n_threads    = 0,
-    int       nw_offset    = 1
+    int       nw_offset    = 1,
+    bool      verbose      = false
 ) {
   if (Y.n_rows != X.n_rows) {
     Rcpp::stop("fLP_cpp: Y and X must have the same number of rows.");
@@ -293,12 +317,14 @@ Rcpp::List fLP_cpp(
   if (nw_lags_base < 0) {
     Rcpp::stop("fLP_cpp: nw_lags_base must be non-negative.");
   }
-  if (n_threads < 0) {
-    Rcpp::stop("fLP_cpp: n_threads must be non-negative.");
-  }
+  // Boundary safety for direct .Call users — R wrappers drop NA via
+  // complete.cases but +Inf / -Inf slip through.
+  if (!Y.is_finite() || !X.is_finite())
+    Rcpp::stop("fLP_cpp: Y and X must be finite (no NA/NaN/Inf).");
 
   LPResult res = fLP_internal(Y, X, H, shock_col, conf_level, nw_lags_base,
-                              store_full, cumulative, n_threads, nw_offset);
+                              store_full, cumulative, n_threads, nw_offset,
+                              verbose);
 
   Rcpp::List out = Rcpp::List::create(
     Rcpp::Named("irfs")       = res.irfs,

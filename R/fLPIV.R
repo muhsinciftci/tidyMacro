@@ -214,7 +214,8 @@ fLPIV <- function(formula, instruments, data,
     conf_level = as.double(conf[1L]),
     nw_lags_iv = as.integer(nw_lags_iv),
     cumulative = isTRUE(cumulative),
-    n_threads  = as.integer(n_threads)
+    n_threads  = as.integer(n_threads),
+    verbose    = FALSE
   )
 
   # -------------------------------------------------------------------

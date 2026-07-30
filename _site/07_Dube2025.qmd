@@ -17,30 +17,22 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This chapter replicates the two empirical applications of @dube2025 with `tidyMacro`'s LP-DiD tools:
+This chapter replicates the two empirical applications of @dube2025 with `fLPDID()` and `fPlotLPDID()`. Shared conventions across the LP engines — formula grammar, `..macros`, gap-safe `l()` / `f()` / `d()`, `panel_id` handling, duplicate-row rejection, output tibble shape — are documented once in the [Local Projections syntax primer](05_lp_syntax.html). Below we focus on what is DiD-specific.
 
-- `fLPDID()` — the LP-DiD estimator in C++ (OpenMP-parallel over horizons), with clean-control samples for absorbing and non-absorbing treatments, optional reweighting to the equally-weighted ATT, PMD baselines, and CR1 cluster-robust standard errors matching Stata's `reghdfe`.
-- `fPlotLPDID()` — companion event-study plot; pass several named results for a faceted comparison.
-
-The interface mirrors `fLPPanel()`: a fixest-style formula with `..macro` expansion and panel-aware operators — `l(x, 1:4)` for lags, `f(x, k)` for leads, and `d(x)` for first differences, so DGJT's "four lags of the outcome in levels and changes" is simply `l(lshare, 1:4) + l(d(lshare), 1:4)`. Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference.
-
-LP-DiD estimates, for each horizon $h$, the long-difference regression
-
+For each horizon $h$ the long-difference regression
 $$y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
-\;+\; \tau_t \;+\; \varepsilon_{it},$$
+\;+\; \tau_t \;+\; \varepsilon_{it}$$
+is fit on a **clean-control sample** (newly treated units and units that stay untreated over the relevant window). Pre-treatment horizons replace $y_{i,t+h}$ by $y_{i,t-j}$ as placebo tests, with $\beta_{-1}=0$ as the normalization.
 
-restricted to a **clean-control sample**: newly treated units ($\Delta D_{it}=1$) and units that remain untreated over the relevant window. Pre-treatment horizons replace $y_{i,t+h}$ with $y_{i,t-j}$ and serve as placebo tests, with $\beta_{-1}=0$ as the normalization:
+**Estimator-specific arguments** (beyond the shared list; see `?fLPDID` for the full API):
 
-$$y_{i,t-j} - y_{i,t-1} \;=\; \beta_{-j}\, \Delta D_{it} \;+\; X_{it}'\gamma_{-j} \;+\; \tau_t \;+\; \varepsilon_{it},
-\qquad j = 2, \dots, \text{pre}.$$
-
-The default OLS coefficient is a variance-weighted average of clean $2\times 2$ comparisons; the equally-weighted ATT is recovered by inverting the implicit weights,
-
-$$w_{it} = \frac{1}{1 - p_t},$$
-
-and `pmd = TRUE` replaces the $y_{i,t-1}$ baseline with the pre-treatment mean $\bar{y}_{i,<t}$. Standard errors are CR1 cluster-robust with correction
-
-$$c = \frac{G}{G-1} \cdot \frac{N-1}{N-K}.$$
+- `post`, `pre` — event-time windows (`fLPDID()` uses these instead of `horizons`).
+- `treat` — name of the treatment level column.
+- `cluster` — cluster column for the CR1 sandwich (default = unit id).
+- `nonabsorbing = TRUE` — non-absorbing treatment; requires the stabilization window `L` and the clean-control flavor `ccc ∈ {0, 1, 2}`.
+- `pmd = TRUE` — pre-mean-differenced baseline (Stata calendar-time formula, see §5 of the syntax primer).
+- `reweight = TRUE` — equally-weighted ATT via $w = 1/(1-p_t)$; with non-empty controls this is **not** the DDCG `teffects ra` estimator and the function warns accordingly.
+- Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference. Any `| time` you write is accepted but redundant.
 
 ```{r setup}
 library(tidyMacro)
@@ -158,9 +150,9 @@ Democratization raises GDP per capita by roughly 15–25 log points over 25–30
 
 ## Notes on the implementation
 
-- **Weighting.** `reweight = TRUE` implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is not yet in the C++ engine.
-- **Baselines.** `pmd = TRUE` replaces the $y_{t-1}$ baseline with the average of all pre-period outcomes, which reduces noise under measurement error.
-- **Inference.** Standard errors are CR1 cluster-robust with $c = \tfrac{G}{G-1}\,\tfrac{N-1}{N-K}$ and $K$ counting the absorbed time fixed effects, matching Stata's `reghdfe ..., absorb(year) vce(cluster id)`.
-- **Missing-value semantics.** The recursive clean-control sets follow Stata's conventions at panel boundaries: a missing treatment change counts as "no change"; a missing lagged clean-control flag counts as failing the condition. This matters for matching the original results observation-for-observation.
+Generic behavior — gap-safe operators, duplicate `(id, time)` rejection, argument validation, PMD baseline formula, `reweight + controls` warning, direct-C++ boundary checks — is documented in the [syntax primer](05_lp_syntax.html). The two items below are LP-DiD-specific and worth flagging in the empirical context:
+
+- **Weighting.** `reweight = TRUE` implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is **not** in the C++ engine; the runtime warning triggered by `reweight = TRUE` with non-empty controls makes this explicit at the point of use.
+- **Missing-value semantics for clean-control sets.** The recursive CCS follow Stata's conventions at panel boundaries: a missing treatment change counts as "no change" (condition OK); a missing lagged clean-control flag counts as failing the condition. This matters for reproducing the original results observation-for-observation.
 
 ## References {.unnumbered}

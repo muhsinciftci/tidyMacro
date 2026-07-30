@@ -8,7 +8,7 @@
 
 <meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>10&nbsp; Panel Local Projections – tidyMacro</title>
+<title>11&nbsp; Panel Local Projections – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -203,7 +203,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./06_AlmuzaraSancibrian2024.html"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./06_AlmuzaraSancibrian2024.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -265,20 +265,26 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./05_lp_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections — Common Syntax and Conventions</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
     </ul>
@@ -292,7 +298,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></h1>
+<h1 class="title"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></h1>
 <p class="subtitle lead">Micro Responses to Macro Shocks — Almuzara &amp; Sancibrián (2024)</p>
 </div>
 
@@ -310,41 +316,25 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="10.1">
-<h2 data-number="10.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">10.1</span> Overview</h2>
-<p>This chapter demonstrates <code>fLPPanel()</code> — <code>tidyMacro</code>’s panel local-projection estimator, a C++/OpenMP port of <code>panel_LP.m</code> from <span class="citation" data-cites="almuzara2024micro">Almuzara and Sancibrián (<a href="#ref-almuzara2024micro" role="doc-biblioref">2024</a>)</span>.</p>
-<p>The estimated panel local projection is</p>
-<p><span class="math display">\[y_{i,t+h} = \alpha^{(h)}_{\mathrm{FE}}
-  + \beta_h\, (s_{it}\, x_t)
+<section id="overview" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">11.1</span> Overview</h2>
+<p>This chapter demonstrates <code>fLPPanel()</code> — <code>tidyMacro</code>’s panel local-projection estimator, a C++/OpenMP port of <code>panel_LP.m</code> from <span class="citation" data-cites="almuzara2024micro">Almuzara and Sancibrián (<a href="#ref-almuzara2024micro" role="doc-biblioref">2024</a>)</span>. Shared conventions (formula grammar, <code>..macros</code>, <code>l()</code>/<code>f()</code>, <code>panel_id</code>, output shapes, multi-band <code>conf</code>) are documented in the <a href="05_lp_syntax.html">Local Projections syntax primer</a>; this chapter focuses on the panel-specific estimator and replicates the reference R port on a synthetic unbalanced panel.</p>
+<p>The estimated equation at horizon <span class="math inline">\(h\)</span> (per <span class="math inline">\(j\)</span>-th interaction component of <span class="math inline">\(s_{it}\,x_t\)</span>) is <span class="math display">\[y_{i,t+h} = \alpha^{(h)}_{\mathrm{FE}}
+  + \beta_h^{(j)}\, (s_{it,j}\, x_t)
   + \gamma_h' w_{it}
   + \sum_{k=1}^{\min(h,\, p_{\max})} \delta_{hk}'\, v_{i,t-k}
-  + u_{i,t+h},\]</span></p>
-<p>where <span class="math inline">\(x_t\)</span> is the aggregate shock, <span class="math inline">\(s_{it}\)</span> an optional unit-level covariate scaling the response, <span class="math inline">\(w_{it}\)</span> additional controls, and <span class="math inline">\(v_{i,t-k}\)</span> lags of the regressand and shock regressor. Inference is time-clustered:</p>
-<p><span class="math display">\[\hat{V}_h = (X'X)^{-1} \Big( \sum_t Z_t Z_t' \Big) (X'X)^{-1},
-\qquad
-Z_t = \sum_i X_{it}\, \hat{u}_{it},\]</span></p>
-<p>with normal critical values by default, or <span class="math inline">\(t\)</span> critical values with the <span class="citation" data-cites="imbens2016">Imbens and Kolesár (<a href="#ref-imbens2016" role="doc-biblioref">2016</a>)</span> data-determined degrees of freedom under <code>small_sample = TRUE</code>. <code>cumulative = TRUE</code> projects <span class="math inline">\(\sum_{r=0}^{h} y_{i,t+r}\)</span>.</p>
-<p>Like <code>fLP()</code>, the syntax is <code>fixest</code>-style and <strong>what-you-see-is-what-you-estimate</strong>:</p>
+  + u_{i,t+h}.\]</span></p>
+<p><strong>Estimator-specific arguments</strong> (beyond the shared list):</p>
 <ul>
-<li>Formula <code>y ~ shock + controls | fe1 + fe2</code> — fixed effects go after <code>|</code>.</li>
-<li>Panel structure via <code>panel_id = c("id_col", "time_col")</code>.</li>
-<li>Macro expansion <code>..vars</code> for character-vector variable lists.</li>
-<li>Panel-aware <code>l()</code> / <code>f()</code> operators (lags/leads never cross unit boundaries).</li>
-<li>Multi-band bands from a single fit via <code>conf = c(0.68, 0.95)</code>.</li>
-<li>Plot with <code>fPlotLP()</code>.</li>
+<li><code>small_sample = TRUE</code> invokes the <span class="citation" data-cites="imbens2016">Imbens and Kolesár (<a href="#ref-imbens2016" role="doc-biblioref">2016</a>)</span> refinement, reporting a component-specific effective degrees of freedom instead of the default asymptotic <span class="math inline">\(t\)</span>-clustered (LAHR) SE <span class="math inline">\(\hat V_h = (X'X)^{-1}\big(\sum_t Z_t Z_t'\big)(X'X)^{-1}\)</span> with <span class="math inline">\(Z_t = \sum_i X_{it}\hat u_{it}\)</span>.</li>
+<li><code>p_max</code> caps the number of lags of the regressand and the shock interaction added as controls (at horizon <span class="math inline">\(h\)</span> the effective number is <span class="math inline">\(\min(h, p_\max)\)</span>).</li>
+<li><code>cumulative = TRUE</code> projects <span class="math inline">\(\sum_{r=0}^{h} y_{i,t+r}\)</span> instead of <span class="math inline">\(y_{i,t+h}\)</span>.</li>
 </ul>
-<p>Under the hood, the engine handles:</p>
-<ul>
-<li><strong>High-dimensional fixed effects</strong> via alternating group-mean demeaning.</li>
-<li><strong>Unbalanced panels</strong> — per-unit hash-lookup shifts, per-horizon <code>keep</code> masks (gaps are preserved, never silently closed).</li>
-<li><strong>Cumulative</strong> or standard responses.</li>
-<li>Two SE regimes: asymptotic <em>time-clustered</em> (LAHR) or the <span class="citation" data-cites="imbens2016">Imbens and Kolesár (<a href="#ref-imbens2016" role="doc-biblioref">2016</a>)</span> small-sample refinement with component-specific effective degrees of freedom.</li>
-</ul>
-<p>Below we replicate the workflow of <span class="citation" data-cites="almuzara2024micro">Almuzara and Sancibrián (<a href="#ref-almuzara2024micro" role="doc-biblioref">2024</a>)</span> on a synthetic <strong>unbalanced</strong> sample panel, in a single <code>fLPPanel()</code> call, and check numerical agreement against the authors’ reference R port.</p>
+<p>Output-side, <code>fLPPanel()</code> additionally exposes per-horizon <code>status</code> and <code>converged</code> vectors that flag no-complete-rows or HDFE non-convergence at individual horizons — the syntax primer’s <a href="05_lp_syntax.html#what-each-engine-returns">output section</a> explains the encoding.</p>
 <hr>
 </section>
-<section id="setup" class="level2" data-number="10.2">
-<h2 data-number="10.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">10.2</span> Setup</h2>
+<section id="setup" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">11.2</span> Setup</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
@@ -352,8 +342,8 @@ Z_t = \sum_i X_{it}\, \hat{u}_{it},\]</span></p>
 </div>
 <hr>
 </section>
-<section id="a-sample-unbalanced-panel" class="level2" data-number="10.3">
-<h2 data-number="10.3" class="anchored" data-anchor-id="a-sample-unbalanced-panel"><span class="header-section-number">10.3</span> A sample unbalanced panel</h2>
+<section id="a-sample-unbalanced-panel" class="level2" data-number="11.3">
+<h2 data-number="11.3" class="anchored" data-anchor-id="a-sample-unbalanced-panel"><span class="header-section-number">11.3</span> A sample unbalanced panel</h2>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -417,7 +407,7 @@ Note
 <img src="06_AlmuzaraSancibrian2024_files/figure-html/fig-panel-coverage-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-panel-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.1: Observation availability by firm and time. Sparse cells reflect staggered entry, mid-sample attrition, and random missingness.
+Figure&nbsp;11.1: Observation availability by firm and time. Sparse cells reflect staggered entry, mid-sample attrition, and random missingness.
 </figcaption>
 </figure>
 </div>
@@ -425,8 +415,8 @@ Figure&nbsp;10.1: Observation availability by firm and time. Sparse cells reflec
 </div>
 <hr>
 </section>
-<section id="estimation-one-flppanel-call" class="level2" data-number="10.4">
-<h2 data-number="10.4" class="anchored" data-anchor-id="estimation-one-flppanel-call"><span class="header-section-number">10.4</span> Estimation — one <code>fLPPanel()</code> call</h2>
+<section id="estimation-one-flppanel-call" class="level2" data-number="11.4">
+<h2 data-number="11.4" class="anchored" data-anchor-id="estimation-one-flppanel-call"><span class="header-section-number">11.4</span> Estimation — one <code>fLPPanel()</code> call</h2>
 <p>The formula says <em>exactly</em> what the estimator does. <code>shock:size</code> is the elementwise product <span class="math inline">\(s_{it}\,X_t\)</span> that generates cross-sectional variation (necessary once the unit-invariant shock is absorbed into <code>tt</code> fixed effects). Two-way FE go after <code>|</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lp_pkg <span class="ot">&lt;-</span> <span class="fu">fLPPanel</span>(</span>
@@ -462,8 +452,8 @@ Figure&nbsp;10.1: Observation availability by firm and time. Sparse cells reflec
 </div>
 <hr>
 </section>
-<section id="side-by-side-check-against-fixest" class="level2" data-number="10.5">
-<h2 data-number="10.5" class="anchored" data-anchor-id="side-by-side-check-against-fixest"><span class="header-section-number">10.5</span> Side-by-side check against <code>fixest</code></h2>
+<section id="side-by-side-check-against-fixest" class="level2" data-number="11.5">
+<h2 data-number="11.5" class="anchored" data-anchor-id="side-by-side-check-against-fixest"><span class="header-section-number">11.5</span> Side-by-side check against <code>fixest</code></h2>
 <p><code>fixest</code> doesn’t ship a dedicated panel-LP function, but a cumulative panel LP is <em>definitionally</em> a stack of <code>feols</code> fits — one per horizon, with the leaded / cumulated regressand on the LHS and the same shock and fixed-effects on the RHS. We build that stack manually and compare it against <code>fLPPanel()</code> on the <strong>same unbalanced sample</strong>.</p>
 <p>For an apples-to-apples comparison we fit <code>fLPPanel()</code> again with <code>small_sample = FALSE</code> so both estimators use asymptotic time-clustered (LAHR) standard errors.</p>
 <div class="cell">
@@ -529,7 +519,7 @@ Figure&nbsp;10.1: Observation availability by firm and time. Sparse cells reflec
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(lp_pkg_asy<span class="sc">$</span>irfs)    <span class="sc">-</span> fixest_tbl<span class="sc">$</span>estimate)),</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(lp_pkg_asy<span class="sc">$</span>irfs_se) <span class="sc">-</span> fixest_tbl<span class="sc">$</span>se))</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; max |estimate diff| = 4.885e-15</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; max |estimate diff| = 1.132e-14</span></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; max |SE       diff| = 2.882e-02  (fixest cluster small-sample multiplier)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
@@ -564,7 +554,7 @@ Figure&nbsp;10.1: Observation availability by firm and time. Sparse cells reflec
 <img src="06_AlmuzaraSancibrian2024_files/figure-html/fig-panel-lp-fixest-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-panel-lp-fixest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.2: IRF and 90% band on the unbalanced sample. Left: tidyMacro::fLPPanel() with asymptotic time-clustered SEs. Right: stack of fixest::feols fits, one per horizon, with the same clustering.
+Figure&nbsp;11.2: IRF and 90% band on the unbalanced sample. Left: tidyMacro::fLPPanel() with asymptotic time-clustered SEs. Right: stack of fixest::feols fits, one per horizon, with the same clustering.
 </figcaption>
 </figure>
 </div>
@@ -591,8 +581,8 @@ Figure&nbsp;10.2: IRF and 90% band on the unbalanced sample. Left: tidyMacro::fL
 </div>
 <hr>
 </section>
-<section id="two-band-plot-via-fplotlp" class="level2" data-number="10.6">
-<h2 data-number="10.6" class="anchored" data-anchor-id="two-band-plot-via-fplotlp"><span class="header-section-number">10.6</span> Two-band plot via <code>fPlotLP()</code></h2>
+<section id="two-band-plot-via-fplotlp" class="level2" data-number="11.6">
+<h2 data-number="11.6" class="anchored" data-anchor-id="two-band-plot-via-fplotlp"><span class="header-section-number">11.6</span> Two-band plot via <code>fPlotLP()</code></h2>
 <p>The result object has class <code>c("fLPPanel", "fLP")</code> so every <code>fLP</code> helper transfers:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLP</span>(lp_pkg) <span class="sc">+</span></span>
@@ -604,7 +594,7 @@ Figure&nbsp;10.2: IRF and 90% band on the unbalanced sample. Left: tidyMacro::fL
 <img src="06_AlmuzaraSancibrian2024_files/figure-html/fig-panel-lp-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-panel-lp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.3: Cumulative response with 68% (inner) and 90% (outer) Imbens-Kolesar bands
+Figure&nbsp;11.3: Cumulative response with 68% (inner) and 90% (outer) Imbens-Kolesar bands
 </figcaption>
 </figure>
 </div>
@@ -612,112 +602,9 @@ Figure&nbsp;10.3: Cumulative response with 68% (inner) and 90% (outer) Imbens-Ko
 </div>
 <hr>
 </section>
-<section id="other-supported-specifications" class="level2" data-number="10.7">
-<h2 data-number="10.7" class="anchored" data-anchor-id="other-supported-specifications"><span class="header-section-number">10.7</span> Other supported specifications</h2>
-<p><strong>No interaction, one-way FE.</strong> Bare <code>shock</code> term, unit FE only:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>df_alt <span class="ot">&lt;-</span> df_panel <span class="sc">|&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">shock_i =</span> shock <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> <span class="fu">rnorm</span>(<span class="fu">n</span>()),   <span class="co"># firm-varying shock</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">X1      =</span> <span class="fu">rnorm</span>(<span class="fu">n</span>()))</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>df_alt<span class="sc">$</span>y_alt <span class="ot">&lt;-</span> <span class="fl">1.0</span> <span class="sc">*</span> df_alt<span class="sc">$</span>shock_i <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> df_alt<span class="sc">$</span>X1 <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">nrow</span>(df_alt))</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">fLPPanel</span>(</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  y_alt <span class="sc">~</span> X1 <span class="sc">+</span> shock_i <span class="sc">|</span> unit,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data     =</span> df_alt,</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"unit"</span>, <span class="st">"tt"</span>),</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">shock    =</span> <span class="st">"shock_i"</span>,</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">horizons =</span> <span class="dv">4</span>, <span class="at">n_threads =</span> <span class="dv">2</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Panel Local Projections (fLPPanel)</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------- </span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Original formula :  y_alt ~ X1 + shock_i | unit </span></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Panel index      :  id = unit, time = tt</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Shock term(s)    :  shock_i </span></span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Response         :  y_alt </span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fixed effects    :  unit </span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Horizons         :  0 to 4</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Cumulative       :  FALSE </span></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; SE               :  asymptotic time-clustered (LAHR) </span></span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Confidence       :  90% </span></span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Observations     :  16021 </span></span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Lag order p_max  :  0 </span></span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; IRF (shock = 'shock_i'):</span></span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   shock_i</span></span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0  1.0084</span></span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1  0.0832</span></span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 -0.3391</span></span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 -0.4072</span></span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4  0.2898</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><strong>No fixed effects.</strong> Omit the <code>|</code> entirely — becomes pooled OLS with time-clustered SEs:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fLPPanel</span>(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  y_alt <span class="sc">~</span> X1 <span class="sc">+</span> shock_i,</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data     =</span> df_alt,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"unit"</span>, <span class="st">"tt"</span>),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">shock    =</span> <span class="st">"shock_i"</span>,</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">horizons =</span> <span class="dv">4</span>, <span class="at">n_threads =</span> <span class="dv">2</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Panel Local Projections (fLPPanel)</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------- </span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Original formula :  y_alt ~ X1 + shock_i </span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Panel index      :  id = unit, time = tt</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Shock term(s)    :  shock_i </span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Response         :  y_alt </span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fixed effects    :  (none)</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Horizons         :  0 to 4</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Cumulative       :  FALSE </span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; SE               :  asymptotic time-clustered (LAHR) </span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Confidence       :  90% </span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Observations     :  16021 </span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Lag order p_max  :  0 </span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; IRF (shock = 'shock_i'):</span></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   shock_i</span></span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0  1.0098</span></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1  0.1900</span></span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 -0.1749</span></span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 -0.2208</span></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4  0.4028</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p><strong>Panel-aware lags with macros.</strong> <code>l()</code> / <code>f()</code> respect unit boundaries; macros expand inside them:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>controls <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"shock"</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fLPPanel</span>(</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> shock<span class="sc">:</span>size <span class="sc">+</span> <span class="fu">l</span>(..controls, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">l</span>(y, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">|</span> unit <span class="sc">+</span> tt,</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data     =</span> df_panel,</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"unit"</span>, <span class="st">"tt"</span>),</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">shock    =</span> <span class="st">"shock:size"</span>,</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">horizons =</span> <span class="dv">5</span>, <span class="at">conf =</span> <span class="fl">0.90</span>, <span class="at">n_threads =</span> <span class="dv">2</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Panel Local Projections (fLPPanel)</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------- </span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Original formula :  y ~ shock:size + l(..controls, 1:2) + l(y, 1:2) | unit + tt </span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Panel index      :  id = unit, time = tt</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Shock term(s)    :  shock:size </span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Response         :  y </span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fixed effects    :  unit + tt </span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Horizons         :  0 to 5</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Cumulative       :  FALSE </span></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; SE               :  asymptotic time-clustered (LAHR) </span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Confidence       :  90% </span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Observations     :  14021 </span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Lag order p_max  :  0 </span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; IRF (shock = 'shock:size'):</span></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      shock:size</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0 -6.167115e+11</span></span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 -6.171752e+11</span></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 -5.722120e+11</span></span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3  4.219612e+11</span></span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4  2.501968e+12</span></span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5 -1.623001e+13</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<section id="other-supported-specifications" class="level2" data-number="11.7">
+<h2 data-number="11.7" class="anchored" data-anchor-id="other-supported-specifications"><span class="header-section-number">11.7</span> Other supported specifications</h2>
+<p>Alternative shapes — bare shock, no interaction, no fixed effects, panel-aware lags with macros — follow the shared formula grammar and are demonstrated in the <a href="05_lp_syntax.html">Local Projections syntax primer</a>. Everything documented there works with <code>fLPPanel()</code> unchanged.</p>
 </section>
 <section id="references" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
@@ -1142,12 +1029,12 @@ Imbens, Guido W., and Michal Kolesár. 2016. <span>“Robust Standard Errors in 
 <nav class="page-navigation column-page-right">
   <div class="nav-page nav-page-previous">
       <a href="./05_JordaTaylor2025.html" class="pagination-link" aria-label="Local Projections with Shocks and IV">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="./07_Dube2025.html" class="pagination-link" aria-label="Local Projections Difference-in-Differences">
-        <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

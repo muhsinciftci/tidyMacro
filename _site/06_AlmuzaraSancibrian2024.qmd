@@ -17,41 +17,22 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This chapter demonstrates `fLPPanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro.
+This chapter demonstrates `fLPPanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro. Shared conventions (formula grammar, `..macros`, `l()`/`f()`, `panel_id`, output shapes, multi-band `conf`) are documented in the [Local Projections syntax primer](05_lp_syntax.html); this chapter focuses on the panel-specific estimator and replicates the reference R port on a synthetic unbalanced panel.
 
-The estimated panel local projection is
-
+The estimated equation at horizon $h$ (per $j$-th interaction component of $s_{it}\,x_t$) is
 $$y_{i,t+h} = \alpha^{(h)}_{\mathrm{FE}}
-  + \beta_h\, (s_{it}\, x_t)
+  + \beta_h^{(j)}\, (s_{it,j}\, x_t)
   + \gamma_h' w_{it}
   + \sum_{k=1}^{\min(h,\, p_{\max})} \delta_{hk}'\, v_{i,t-k}
-  + u_{i,t+h},$$
+  + u_{i,t+h}.$$
 
-where $x_t$ is the aggregate shock, $s_{it}$ an optional unit-level covariate scaling the response, $w_{it}$ additional controls, and $v_{i,t-k}$ lags of the regressand and shock regressor. Inference is time-clustered:
+**Estimator-specific arguments** (beyond the shared list):
 
-$$\hat{V}_h = (X'X)^{-1} \Big( \sum_t Z_t Z_t' \Big) (X'X)^{-1},
-\qquad
-Z_t = \sum_i X_{it}\, \hat{u}_{it},$$
+- `small_sample = TRUE` invokes the @imbens2016 refinement, reporting a component-specific effective degrees of freedom instead of the default asymptotic $t$-clustered (LAHR) SE $\hat V_h = (X'X)^{-1}\big(\sum_t Z_t Z_t'\big)(X'X)^{-1}$ with $Z_t = \sum_i X_{it}\hat u_{it}$.
+- `p_max` caps the number of lags of the regressand and the shock interaction added as controls (at horizon $h$ the effective number is $\min(h, p_\max)$).
+- `cumulative = TRUE` projects $\sum_{r=0}^{h} y_{i,t+r}$ instead of $y_{i,t+h}$.
 
-with normal critical values by default, or $t$ critical values with the @imbens2016 data-determined degrees of freedom under `small_sample = TRUE`. `cumulative = TRUE` projects $\sum_{r=0}^{h} y_{i,t+r}$.
-
-Like `fLP()`, the syntax is `fixest`-style and **what-you-see-is-what-you-estimate**:
-
-- Formula `y ~ shock + controls | fe1 + fe2` — fixed effects go after `|`.
-- Panel structure via `panel_id = c("id_col", "time_col")`.
-- Macro expansion `..vars` for character-vector variable lists.
-- Panel-aware `l()` / `f()` operators (lags/leads never cross unit boundaries).
-- Multi-band bands from a single fit via `conf = c(0.68, 0.95)`.
-- Plot with `fPlotLP()`.
-
-Under the hood, the engine handles:
-
-- **High-dimensional fixed effects** via alternating group-mean demeaning.
-- **Unbalanced panels** — per-unit hash-lookup shifts, per-horizon `keep` masks (gaps are preserved, never silently closed).
-- **Cumulative** or standard responses.
-- Two SE regimes: asymptotic *time-clustered* (LAHR) or the @imbens2016 small-sample refinement with component-specific effective degrees of freedom.
-
-Below we replicate the workflow of @almuzara2024micro on a synthetic **unbalanced** sample panel, in a single `fLPPanel()` call, and check numerical agreement against the authors' reference R port.
+Output-side, `fLPPanel()` additionally exposes per-horizon `status` and `converged` vectors that flag no-complete-rows or HDFE non-convergence at individual horizons — the syntax primer's [output section](05_lp_syntax.html#what-each-engine-returns) explains the encoding.
 
 ------------------------------------------------------------------------
 
@@ -285,50 +266,6 @@ fPlotLP(lp_pkg) +
 
 ## Other supported specifications
 
-**No interaction, one-way FE.** Bare `shock` term, unit FE only:
-
-```{r}
-#| label: lp-panel-noint
-set.seed(42)
-df_alt <- df_panel |>
-  mutate(shock_i = shock + 0.3 * rnorm(n()),   # firm-varying shock
-         X1      = rnorm(n()))
-df_alt$y_alt <- 1.0 * df_alt$shock_i + 0.3 * df_alt$X1 + rnorm(nrow(df_alt))
-
-fLPPanel(
-  y_alt ~ X1 + shock_i | unit,
-  data     = df_alt,
-  panel_id = c("unit", "tt"),
-  shock    = "shock_i",
-  horizons = 4, n_threads = 2
-)
-```
-
-**No fixed effects.** Omit the `|` entirely — becomes pooled OLS with time-clustered SEs:
-
-```{r}
-#| label: lp-panel-nofe
-fLPPanel(
-  y_alt ~ X1 + shock_i,
-  data     = df_alt,
-  panel_id = c("unit", "tt"),
-  shock    = "shock_i",
-  horizons = 4, n_threads = 2
-)
-```
-
-**Panel-aware lags with macros.** `l()` / `f()` respect unit boundaries; macros expand inside them:
-
-```{r}
-#| label: lp-panel-lags
-controls <- c("shock")
-fLPPanel(
-  y ~ shock:size + l(..controls, 1:2) + l(y, 1:2) | unit + tt,
-  data     = df_panel,
-  panel_id = c("unit", "tt"),
-  shock    = "shock:size",
-  horizons = 5, conf = 0.90, n_threads = 2
-)
-```
+Alternative shapes — bare shock, no interaction, no fixed effects, panel-aware lags with macros — follow the shared formula grammar and are demonstrated in the [Local Projections syntax primer](05_lp_syntax.html). Everything documented there works with `fLPPanel()` unchanged.
 
 ## References {.unnumbered}

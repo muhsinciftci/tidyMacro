@@ -9,6 +9,7 @@
 #define ARMA_DONT_USE_OPENMP
 
 #include "fLPPanel.h"
+#include "panel_shift.h"
 #include <RcppArmadillo.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -23,83 +24,40 @@ using namespace arma;
 
 
 // =======================================================================
-// Internal helpers
+// Internal helpers (panel index / gap-aware shift live in panel_shift.h,
+// shared with fLPDID.cpp).
 // =======================================================================
-
-// Panel time-shift for a single column: for each unit i, produce
-// y1(row) = y0(row') where row' is the unit-i row with time = t + L, or
-// NaN if that time is missing. L > 0 → lead ; L < 0 → lag.
-static arma::vec panel_time_shift(
-    const arma::vec& y0,
-    const std::vector<std::vector<arma::uword>>& unit_rows,
-    const std::vector<std::unordered_map<int, arma::uword>>& t_to_row,
-    const arma::ivec& t_index,
-    int L
-) {
-  const arma::uword n = y0.n_elem;
-  arma::vec y1(n, arma::fill::value(arma::datum::nan));
-
-  for (arma::uword u = 0; u < unit_rows.size(); ++u) {
-    const auto& rows = unit_rows[u];
-    const auto& map  = t_to_row[u];
-    for (arma::uword k : rows) {
-      auto it = map.find(t_index(k) + L);
-      if (it != map.end()) y1(k) = y0(it->second);
-    }
-  }
-  return y1;
-}
-
-// Build per-unit row lists and t→row maps used by every panel_time_shift
-// invocation. Called once per fLPPanel_internal call.
-static void build_panel_index(
-    const arma::ivec& i_index,
-    const arma::ivec& t_index,
-    std::vector<std::vector<arma::uword>>& unit_rows,
-    std::vector<std::unordered_map<int, arma::uword>>& t_to_row
-) {
-  const arma::uword n = i_index.n_elem;
-  std::unordered_map<int, arma::uword> unit_ix;
-  unit_ix.reserve(256);
-  arma::uword next = 0;
-
-  std::vector<arma::uword> unit_of(n);
-  for (arma::uword k = 0; k < n; ++k) {
-    auto it = unit_ix.find(i_index(k));
-    if (it == unit_ix.end()) {
-      unit_ix.emplace(i_index(k), next);
-      unit_of[k] = next++;
-    } else {
-      unit_of[k] = it->second;
-    }
-  }
-  unit_rows.assign(next, {});
-  for (arma::uword k = 0; k < n; ++k) unit_rows[unit_of[k]].push_back(k);
-
-  t_to_row.assign(next, {});
-  for (arma::uword u = 0; u < next; ++u) {
-    t_to_row[u].reserve(unit_rows[u].size() * 2);
-    for (arma::uword k : unit_rows[u]) t_to_row[u].emplace(t_index(k), k);
-  }
-}
 
 
 // High-dimensional fixed-effects residualization by iterative alternating
-// group-mean demeaning. Matches `regress_HDFE` in the MATLAB source.
+// group-mean demeaning. Matches `regress_HDFE` in the MATLAB / R source.
+//
+// Convergence uses a RELATIVE Frobenius-norm criterion (scale-invariant);
+// max_iter is bumped to match the reference (fixest::demean default 10000).
+// The final OLS uses arma::solve with pinv fallback so a rank-deficient
+// residualised design does not silently produce garbage coefficients.
 static void regress_HDFE(
     arma::mat& y,
     arma::mat& X,
     const arma::imat& FE,
     arma::vec& b_out,
-    double tol      = 1e-8,
-    arma::uword max_iter = 500
+    bool&      converged_out,
+    double tol           = 1e-8,
+    arma::uword max_iter = 10000
 ) {
   const arma::uword n_FE = FE.n_cols;
   const arma::uword n_X  = X.n_cols;
 
+  converged_out = true;
+
   if (n_FE == 0) {
-    if (n_X > 0) b_out = arma::solve(X, y, arma::solve_opts::fast);
-    else         b_out.reset();
+    if (n_X > 0) {
+      if (!arma::solve(b_out, X, y, arma::solve_opts::fast)) {
+        b_out = arma::pinv(X) * y;
+      }
+    } else {
+      b_out.reset();
+    }
     return;
   }
 
@@ -123,33 +81,50 @@ static void regress_HDFE(
     for (arma::uword k = 0; k < FE.n_rows; ++k) groups[f][compact[k]].push_back(k);
   }
 
+  // demean_by returns the squared Frobenius norm of the *change* it made
+  // to M. Accumulating those in-flight avoids materialising `y_old` and
+  // `X_old` (previously two full-matrix copies per iteration).
   auto demean_by = [&](arma::mat& M,
-                       const std::vector<std::vector<arma::uword>>& gs) {
+                       const std::vector<std::vector<arma::uword>>& gs)
+      -> double {
+    double sq_change = 0.0;
     for (const auto& rows : gs) {
       const arma::uword m = rows.size();
       if (m == 0) continue;
       arma::rowvec sums(M.n_cols, arma::fill::zeros);
       for (arma::uword r : rows) sums += M.row(r);
       sums /= static_cast<double>(m);
+      // subtracting `sums` from `m` rows changes those rows by `-sums`;
+      // the total squared change equals m * dot(sums, sums).
+      sq_change += static_cast<double>(m) * arma::dot(sums, sums);
       for (arma::uword r : rows) M.row(r) -= sums;
     }
+    return sq_change;
   };
 
   bool converged = false;
   for (arma::uword iter = 0; iter < max_iter && !converged; ++iter) {
-    arma::mat y_old = y;
-    arma::mat X_old = X;
+    double sq_diff = 0.0;
     for (arma::uword f = 0; f < n_FE; ++f) {
-      demean_by(y, groups[f]);
-      if (n_X > 0) demean_by(X, groups[f]);
+      sq_diff += demean_by(y, groups[f]);
+      if (n_X > 0) sq_diff += demean_by(X, groups[f]);
     }
-    const double d1 = arma::norm(y - y_old, "fro");
-    const double d2 = (n_X > 0) ? arma::norm(X - X_old, "fro") : 0.0;
-    if (std::sqrt(d1 * d1 + d2 * d2) < tol) converged = true;
+    const double diff  = std::sqrt(sq_diff);
+    const double n1    = arma::norm(y, "fro");
+    const double n2    = (n_X > 0) ? arma::norm(X, "fro") : 0.0;
+    const double denom = std::sqrt(n1 * n1 + n2 * n2);
+    // Relative rule; falls back to absolute if the scale is ~0.
+    if (diff <= tol * std::max(denom, 1.0)) converged = true;
   }
+  converged_out = converged;
 
-  if (n_X > 0) b_out = arma::solve(X, y, arma::solve_opts::fast);
-  else         b_out.reset();
+  if (n_X > 0) {
+    if (!arma::solve(b_out, X, y, arma::solve_opts::fast)) {
+      b_out = arma::pinv(X) * y;
+    }
+  } else {
+    b_out.reset();
+  }
 }
 
 
@@ -169,7 +144,8 @@ LPPanelResult fLPPanel_internal(
     int  p_max,
     bool small_sample,
     bool cumulative,
-    int  n_threads
+    int  n_threads,
+    bool verbose
 ) {
   const arma::uword n_obs = y_in.n_rows;
 
@@ -203,10 +179,11 @@ LPPanelResult fLPPanel_internal(
     }
   }
 
-  // Panel index (per-unit rows and t→row maps)
-  std::vector<std::vector<arma::uword>> unit_rows;
-  std::vector<std::unordered_map<int, arma::uword>> t_to_row;
-  build_panel_index(i_index, t_index, unit_rows, t_to_row);
+  // Panel index (per-unit rows and t→row maps) — shared helper.
+  std::vector<arma::uword>                            unit_of;
+  std::vector<std::vector<arma::uword>>               unit_rows;
+  std::vector<std::unordered_map<int, arma::uword>>   t_to_row;
+  panel_build_index(i_index, t_index, unit_of, unit_rows, t_to_row);
 
   // --------- Precompute lead / cumulate columns for all horizons -------
   arma::mat y_h_all(n_obs, H + 1);
@@ -234,33 +211,38 @@ LPPanelResult fLPPanel_internal(
     }
   }
 
-  // Output allocation
+  // Output allocation. CI/pval bands are rebuilt in R from (estimate,
+  // SE, df) so they are not computed here — this avoids R::qt / R::pt
+  // calls inside the OpenMP region.
   LPPanelResult out;
-  out.estimate.set_size(H + 1, n_s); out.estimate.zeros();
-  out.SE.set_size(H + 1, n_s);       out.SE.zeros();
-  out.df.set_size(H + 1, n_s);       out.df.zeros();
-  out.CI90.set_size(H + 1, n_s, 2);  out.CI90.zeros();
-  out.CI95.set_size(H + 1, n_s, 2);  out.CI95.zeros();
-  out.CI99.set_size(H + 1, n_s, 2);  out.CI99.zeros();
-  out.pval.set_size(H + 1, n_s);     out.pval.zeros();
+  out.estimate.set_size(H + 1, n_s);  out.estimate.fill(arma::datum::nan);
+  out.SE.set_size(H + 1, n_s);        out.SE.fill(arma::datum::nan);
+  out.df.set_size(H + 1, n_s);        out.df.fill(arma::datum::nan);
+  out.status.set_size(H + 1);         out.status.zeros();
+  out.converged.set_size(H + 1);      out.converged.ones();
 
-  // Threading
+  // Threading — unified rule across all LP engines:
+  //   n_threads <= 0 -> use all available cores
+  //   n_threads  > 0 -> use exactly that many
   int actual_threads = 1;
 #ifdef _OPENMP
-  actual_threads = (n_threads == 0)
-                       ? std::max(1, omp_get_max_threads() - 1)
+  actual_threads = (n_threads <= 0)
+                       ? std::max(1, omp_get_max_threads())
                        : n_threads;
-  omp_set_num_threads(actual_threads);
-  std::printf("fLPPanel: using %d thread(s) for parallel horizon loop...\n",
-              actual_threads);
+  if (verbose) {
+    std::printf("fLPPanel: using %d thread(s) for parallel horizon loop...\n",
+                actual_threads);
+  }
 #else
   (void) n_threads;
-  std::printf("fLPPanel: OpenMP not available. Running single-threaded.\n");
+  if (verbose) {
+    std::printf("fLPPanel: OpenMP not available. Running single-threaded.\n");
+  }
 #endif
 
   // ---- Horizon loop (parallel over h) ----
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) num_threads(actual_threads)
 #endif
   for (int h = 0; h <= H; ++h) {
 
@@ -291,7 +273,8 @@ LPPanelResult fLPPanel_internal(
     }
     const arma::uvec keep_idx = arma::find(keep);
     if (keep_idx.n_elem == 0) {
-      Rcpp::stop("fLPPanel: no complete observations at horizon %d.", h);
+      out.status(h) = 1;   // no complete observations — leave NaN, warn in R
+      continue;
     }
 
     arma::vec y_LP0 = y_h.elem(keep_idx);
@@ -312,7 +295,13 @@ LPPanelResult fLPPanel_internal(
     arma::mat y_LP = y_LP0;
     arma::mat X_LP = X_LP0;
     arma::vec b_LP;
-    regress_HDFE(y_LP, X_LP, FE_LP0, b_LP);
+    bool hdfe_ok = true;
+    regress_HDFE(y_LP, X_LP, FE_LP0, b_LP, hdfe_ok);
+    if (!hdfe_ok) {
+      out.converged(h) = 0;
+      out.status(h)    = 2;   // flag but continue: coefficients may still be
+                              // usable, R wrapper decides how to surface
+    }
 
     for (arma::uword is = 0; is < n_s; ++is) out.estimate(h, is) = b_LP(is);
 
@@ -395,26 +384,8 @@ LPPanelResult fLPPanel_internal(
       }
     }
 
-    // Fixed 90/95/99 CIs and p-values
-    for (arma::uword is = 0; is < n_s; ++is) {
-      const double est = out.estimate(h, is);
-      const double se  = out.SE(h, is);
-      const double df  = out.df(h, is);
-
-      const double q90 = R::qt(0.95, df, 1, 0);
-      const double q95 = R::qt(0.975, df, 1, 0);
-      const double q99 = R::qt(0.995, df, 1, 0);
-
-      out.CI90(h, is, 0) = est - q90 * se;
-      out.CI90(h, is, 1) = est + q90 * se;
-      out.CI95(h, is, 0) = est - q95 * se;
-      out.CI95(h, is, 1) = est + q95 * se;
-      out.CI99(h, is, 0) = est - q99 * se;
-      out.CI99(h, is, 1) = est + q99 * se;
-
-      const double t_stat = std::abs(est / se);
-      out.pval(h, is) = 2.0 * (1.0 - R::pt(t_stat, df, 1, 0));
-    }
+    // CI bands and p-values are computed in R from (estimate, SE, df);
+    // keeping them out of the parallel region avoids R::qt / R::pt calls.
   }
 
   return out;
@@ -445,19 +416,44 @@ Rcpp::List fLPPanel_cpp(
     int  p_max,
     bool small_sample = false,
     bool cumulative   = false,
-    int  n_threads    = 0
+    int  n_threads    = 0,
+    bool verbose      = false
 ) {
+  // Boundary validation — the R wrapper does most of it, but this engine is
+  // also exported for direct .Call, so guard against non-finite and shape
+  // errors here before entering the parallel region.
+  if (y.n_rows == 0) Rcpp::stop("fLPPanel_cpp: y is empty.");
+  if (y.n_cols == 0) Rcpp::stop("fLPPanel_cpp: y must have at least one column.");
+  if (s.n_rows != y.n_rows || X.n_rows != y.n_rows ||
+      (W.n_cols  > 0 && W.n_rows  != y.n_rows) ||
+      (FE.n_cols > 0 && FE.n_rows != y.n_rows) ||
+      i_index.n_elem != y.n_rows || t_index.n_elem != y.n_rows) {
+    Rcpp::stop("fLPPanel_cpp: y, s, X, W, FE, i_index, t_index row counts must match.");
+  }
+  if (H < 0 || p_max < 0)
+    Rcpp::stop("fLPPanel_cpp: H and p_max must be non-negative.");
+
   LPPanelResult r = fLPPanel_internal(y, s, X, W, FE, i_index, t_index,
                                       H, p_max, small_sample, cumulative,
-                                      n_threads);
+                                      n_threads, verbose);
+
+  // Surface per-horizon issues collected during the parallel region.
+  const arma::uword n_no_obs   = arma::accu(r.status == 1);
+  const arma::uword n_hdfe_bad = arma::accu(r.status == 2);
+  if (n_no_obs > 0) {
+    Rcpp::warning("fLPPanel: %u horizon(s) had no complete observations; "
+                  "estimates set to NA.", (unsigned)n_no_obs);
+  }
+  if (n_hdfe_bad > 0) {
+    Rcpp::warning("fLPPanel: HDFE demeaning did not converge for %u horizon(s); "
+                  "check for near-collinear fixed effects.", (unsigned)n_hdfe_bad);
+  }
 
   return Rcpp::List::create(
-    Rcpp::Named("estimate") = r.estimate,
-    Rcpp::Named("SE")       = r.SE,
-    Rcpp::Named("df")       = r.df,
-    Rcpp::Named("CI90")     = r.CI90,
-    Rcpp::Named("CI95")     = r.CI95,
-    Rcpp::Named("CI99")     = r.CI99,
-    Rcpp::Named("pval")     = r.pval
+    Rcpp::Named("estimate")  = r.estimate,
+    Rcpp::Named("SE")        = r.SE,
+    Rcpp::Named("df")        = r.df,
+    Rcpp::Named("status")    = r.status,
+    Rcpp::Named("converged") = r.converged
   );
 }

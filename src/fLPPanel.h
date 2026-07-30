@@ -35,10 +35,9 @@ struct LPPanelResult {
   arma::mat  estimate;   // (H+1) x n_s
   arma::mat  SE;         // (H+1) x n_s
   arma::mat  df;         // (H+1) x n_s
-  arma::cube CI90;       // (H+1) x n_s x 2
-  arma::cube CI95;       // (H+1) x n_s x 2
-  arma::cube CI99;       // (H+1) x n_s x 2
-  arma::mat  pval;       // (H+1) x n_s
+  arma::ivec status;     // (H+1)   0 = OK, 1 = no complete rows,
+                         //         2 = HDFE non-convergence
+  arma::ivec converged;  // (H+1)   1 = HDFE converged, 0 = did not
 };
 
 LPPanelResult fLPPanel_internal(
@@ -53,7 +52,8 @@ LPPanelResult fLPPanel_internal(
     int  p_max,
     bool small_sample,
     bool cumulative,
-    int  n_threads
+    int  n_threads,
+    bool verbose
 );
 
 Rcpp::List fLPPanel_cpp(
@@ -68,7 +68,8 @@ Rcpp::List fLPPanel_cpp(
     int  p_max,
     bool small_sample,
     bool cumulative,
-    int  n_threads
+    int  n_threads,
+    bool verbose
 );
 
 #endif // FLPPANEL_H

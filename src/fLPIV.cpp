@@ -43,7 +43,8 @@ LPIVResult fLPIV_internal(
     double           conf_level,
     int              nw_lags_iv,
     bool             cumulative,
-    int              n_threads
+    int              n_threads,
+    bool             verbose
 ) {
   const int T   = static_cast<int>(Y.n_rows);
   const int ny  = static_cast<int>(Y.n_cols);
@@ -53,8 +54,10 @@ LPIVResult fLPIV_internal(
 
   const int offset = cumulative ? 1 : 0;
 
-  if (T <= H + offset || T - H - offset <= kc + 1) {
-    Rcpp::stop("fLPIV: not enough observations for the largest horizon.");
+  // Alignment with the R wrapper's min_obs guard: need at least
+  // kc + nz + a couple of df at the largest horizon.
+  if (T <= H + offset || T - H - offset <= kc + nz) {
+    Rcpp::stop("fLPIV: not enough observations for the largest horizon (need > kc + nz rows).");
   }
   if (D.n_rows != Y.n_rows || Z.n_rows != Y.n_rows ||
       (nc > 0 && C.n_rows != Y.n_rows)) {
@@ -76,19 +79,22 @@ LPIVResult fLPIV_internal(
 
   int actual_threads = 1;
 #ifdef _OPENMP
-  actual_threads = (n_threads == 0)
-                       ? std::max(1, omp_get_max_threads() - 1)
+  actual_threads = (n_threads <= 0)
+                       ? std::max(1, omp_get_max_threads())
                        : n_threads;
-  omp_set_num_threads(actual_threads);
-  std::printf("fLPIV: using %d thread(s) for parallel horizon loop...\n",
-              actual_threads);
+  if (verbose) {
+    std::printf("fLPIV: using %d thread(s) for parallel horizon loop...\n",
+                actual_threads);
+  }
 #else
   (void) n_threads;
-  std::printf("fLPIV: OpenMP not available. Running single-threaded.\n");
+  if (verbose) {
+    std::printf("fLPIV: OpenMP not available. Running single-threaded.\n");
+  }
 #endif
 
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) num_threads(actual_threads)
 #endif
   for (int h = 0; h <= H; h++) {
 
@@ -111,22 +117,28 @@ LPIVResult fLPIV_internal(
     }
     const int Th = static_cast<int>(Yh.n_rows);
 
-    // ---- extended controls: [1, C_h] ----------------------------------
-    arma::mat Cext(Th, kc);
-    Cext.col(0) = arma::ones<arma::vec>(Th);
-    if (nc > 0) Cext.cols(1, kc - 1) = Ch;
-
-    // Cache (Cext' Cext)^{-1}
-    const arma::mat CtC = Cext.t() * Cext;
-    arma::mat CtC_inv;
-    if (!arma::inv_sympd(CtC_inv, CtC)) {
-      CtC_inv = arma::pinv(CtC);
-    }
-
     // ---- FWL residuals ------------------------------------------------
-    const arma::mat Yr = fwl_residuals(Yh, Cext, CtC_inv);   // Th x ny
-    const arma::mat Zr = fwl_residuals(Zh, Cext, CtC_inv);   // Th x nz
-    const arma::vec Dr = fwl_residuals(arma::mat(Dh), Cext, CtC_inv);  // Th x 1
+    // When nc == 0 the projection onto [1, C_h] collapses to a projection
+    // onto a constant, i.e. mean-centering. Skip forming Cext / CtC_inv
+    // entirely in that case — the common case for LP-IV specifications.
+    arma::mat Yr;
+    arma::mat Zr;
+    arma::vec Dr;
+    if (nc == 0) {
+      Yr = Yh.each_row() - arma::mean(Yh, 0);
+      Zr = Zh.each_row() - arma::mean(Zh, 0);
+      Dr = Dh - arma::mean(Dh);
+    } else {
+      arma::mat Cext(Th, kc);
+      Cext.col(0) = arma::ones<arma::vec>(Th);
+      Cext.cols(1, kc - 1) = Ch;
+      const arma::mat CtC = Cext.t() * Cext;
+      arma::mat CtC_inv;
+      if (!arma::inv_sympd(CtC_inv, CtC)) CtC_inv = arma::pinv(CtC);
+      Yr = fwl_residuals(Yh, Cext, CtC_inv);
+      Zr = fwl_residuals(Zh, Cext, CtC_inv);
+      Dr = fwl_residuals(arma::mat(Dh), Cext, CtC_inv);
+    }
 
     // ---- first stage: D_hat = Zr (Zr' Zr)^{-1} Zr' Dr -----------------
     const arma::mat ZrtZr = Zr.t() * Zr;
@@ -138,20 +150,30 @@ LPIVResult fLPIV_internal(
     const arma::vec Dhat      = Zr * gamma_hat;              // Th x 1
     const arma::vec eps_fs    = Dr - Dhat;                    // first-stage resid
 
-    // First-stage F-stat and R^2 (using demeaned Dr — Dr is already
-    // residualised on constant via Cext, so its mean is ~0).
+    // First-stage F-stat and R^2. Dr and Zr are FWL-residualised on
+    // [1, C_h] (kc columns), so under H0 the correct residual degrees
+    // of freedom for the full regression D ~ [1, C, Z] is Th - kc - nz,
+    // NOT Th - nz. Using the latter overstates the denominator df and
+    // inflates F, materially when nc is large.
     const double rss_res = arma::dot(Dr, Dr);          // total SS of Dr
     const double rss_unr = arma::dot(eps_fs, eps_fs);  // resid SS after Zr
-    const double kz = static_cast<double>(nz);
-    const double F_h = (Th > nz)
-        ? ((rss_res - rss_unr) / kz) / (rss_unr / (Th - kz))
-        : 0.0;
+    const double kz  = static_cast<double>(nz);
+    const int    df2 = Th - kc - nz;
+    const double F_h = (df2 > 0 && rss_unr > 0.0)
+        ? ((rss_res - rss_unr) / kz) / (rss_unr / static_cast<double>(df2))
+        : arma::datum::nan;
     const double R2_fs = (rss_res > 0.0) ? 1.0 - rss_unr / rss_res : 0.0;
     out.Fstat_fs(h) = F_h;
     out.rsqr_fs(h)  = R2_fs;
 
-    // Denominator: D_hat' Dr = D_hat' D_hat (since Zr projects Dr -> D_hat)
-    const double denom_h = arma::dot(Dhat, Dr);
+    // Denominator: D_hat' Dr = D_hat' D_hat (since Zr projects Dr -> D_hat).
+    // Guard against numerically-zero denominators with a scale-aware
+    // tolerance rather than exact-zero equality — a truly weak instrument
+    // will otherwise silently return `0` estimates and SEs.
+    const double denom_h  = arma::dot(Dhat, Dr);
+    const double denom_tol = std::max(1e-12,
+                                      arma::norm(Dhat) * arma::norm(Dr) * 1e-10);
+    const bool   denom_ok = std::fabs(denom_h) > denom_tol;
 
     // ---- Newey-West bandwidth for the score g_t -----------------------
     // nw_lags_iv > 0 : fixed bandwidth = nw_lags_iv
@@ -165,7 +187,7 @@ LPIVResult fLPIV_internal(
 
       const arma::vec Yr_eq = Yr.col(eq);
       const double num_h    = arma::dot(Dhat, Yr_eq);
-      const double b_h      = (denom_h != 0.0) ? num_h / denom_h : 0.0;
+      const double b_h      = denom_ok ? num_h / denom_h : arma::datum::nan;
       const arma::vec eps   = Yr_eq - b_h * Dr;
 
       // Score and its demeaned version
@@ -184,9 +206,9 @@ LPIVResult fLPIV_internal(
         LRV += 2.0 * w * gamma_j;
       }
 
-      const double se_h = (std::abs(denom_h) > 0.0)
-          ? std::sqrt(std::max(0.0, LRV)) / std::abs(denom_h)
-          : 0.0;
+      const double se_h = denom_ok
+          ? std::sqrt(std::max(0.0, LRV)) / std::fabs(denom_h)
+          : arma::datum::nan;
 
       out.irfs(h, eq)       = b_h;
       out.irfs_se(h, eq)    = se_h;
@@ -238,7 +260,8 @@ Rcpp::List fLPIV_cpp(
     double    conf_level,
     int       nw_lags_iv,
     bool      cumulative = false,
-    int       n_threads  = 0
+    int       n_threads  = 0,
+    bool      verbose    = false
 ) {
   if (Y.n_rows == 0) Rcpp::stop("fLPIV_cpp: Y is empty.");
   if (H < 0) Rcpp::stop("fLPIV_cpp: H must be non-negative.");
@@ -246,11 +269,14 @@ Rcpp::List fLPIV_cpp(
     Rcpp::stop("fLPIV_cpp: conf_level must be in (0, 1).");
   if (nw_lags_iv < 0)
     Rcpp::stop("fLPIV_cpp: nw_lags_iv must be non-negative.");
-  if (n_threads < 0)
-    Rcpp::stop("fLPIV_cpp: n_threads must be non-negative.");
+  // Boundary safety for direct .Call users — reject non-finite inputs
+  // early rather than letting NaNs propagate through the horizon loop.
+  if (!Y.is_finite() || !D.is_finite() || !Z.is_finite() ||
+      (C.n_elem > 0 && !C.is_finite()))
+    Rcpp::stop("fLPIV_cpp: Y, D, Z, C must be finite (no NA/NaN/Inf).");
 
   LPIVResult res = fLPIV_internal(Y, D, Z, C, H, conf_level, nw_lags_iv,
-                                  cumulative, n_threads);
+                                  cumulative, n_threads, verbose);
 
   return Rcpp::List::create(
     Rcpp::Named("irfs")       = res.irfs,

@@ -13,7 +13,8 @@ fLPIV_cpp(
   conf_level,
   nw_lags_iv,
   cumulative = FALSE,
-  n_threads = 0L
+  n_threads = 0L,
+  verbose = FALSE
 )
 }
 \arguments{

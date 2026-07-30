@@ -50,7 +50,8 @@ LPIVResult fLPIV_internal(
     double           conf_level,
     int              nw_lags_iv,
     bool             cumulative,
-    int              n_threads
+    int              n_threads,
+    bool             verbose
 );
 
 Rcpp::List fLPIV_cpp(
@@ -62,7 +63,8 @@ Rcpp::List fLPIV_cpp(
     double    conf_level,
     int       nw_lags_iv,
     bool      cumulative,
-    int       n_threads
+    int       n_threads,
+    bool      verbose
 );
 
 #endif // FLPIV_H

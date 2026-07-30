@@ -47,7 +47,8 @@ Rcpp::List fLPDID_cpp(
     int  ccc,
     bool pmd,
     bool reweight,
-    int  n_threads
+    int  n_threads,
+    bool verbose
 );
 
 #endif

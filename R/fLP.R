@@ -517,7 +517,8 @@ fLP <- function(formula, data, horizons = 12L,
     store_full   = isTRUE(store_full),
     cumulative   = isTRUE(cumulative),
     n_threads    = as.integer(n_threads),
-    nw_offset    = as.integer(nw_offset)
+    nw_offset    = as.integer(nw_offset),
+    verbose      = FALSE
   )
 
   # ---------------------------------------------------------------------

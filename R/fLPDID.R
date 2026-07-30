@@ -35,35 +35,26 @@
 # Internal helpers
 # =======================================================================
 
-# Panel-aware shift: lag (k > 0) or lead (k < 0) within units, robust to
-# time gaps. Returns a vector aligned with the original row order.
-.flpdid_shift <- function(x, id, time, k) {
+# Panel-aware shift on the normalized integer time grid: lag (k > 0) or
+# lead (k < 0) within units. `id` and `t_norm` are aligned with `x` and
+# already share the same integer step, so this correctly handles Date /
+# POSIXct / non-unit-step numeric time indexes.
+.flpdid_shift <- function(x, id, t_norm, k) {
   if (k == 0L) return(x)
-  ord <- order(id, time)
-  xo  <- x[ord]; io <- id[ord]; to <- time[ord]
-  n   <- length(x)
-  res <- rep(NA_real_, n)
-  a   <- abs(k)
-  if (a < n) {
-    if (k > 0L) {                       # lag
-      idx <- (a + 1L):n
-      ok  <- io[idx] == io[idx - a] & to[idx] == to[idx - a] + a
-      res[idx[ok]] <- xo[(idx - a)[ok]]
-    } else {                            # lead
-      idx <- 1L:(n - a)
-      ok  <- io[idx] == io[idx + a] & to[idx] == to[idx + a] - a
-      res[idx[ok]] <- xo[(idx + a)[ok]]
-    }
-  }
-  out <- rep(NA_real_, n)
-  out[ord] <- res
+  key      <- paste(id, t_norm, sep = "|")
+  key_look <- paste(id, t_norm - k, sep = "|")
+  idx <- match(key_look, key)
+  out <- rep(NA_real_, length(x))
+  ok  <- !is.na(idx)
+  out[ok] <- x[idx[ok]]
   out
 }
 
 # Expand d(x) tokens: creates column "x_d1" = x - l(x, 1) and rewrites the
-# formula string. Runs BEFORE the l()/f() expansion, so l(d(x), 1:4)
-# becomes l(x_d1, 1:4) and then expands to x_d1_l1 ... x_d1_l4.
-.fLPDID_expand_diff_terms <- function(formula_chr, data, id_var, time_var) {
+# formula string. Runs BEFORE the l()/f() expansion so `l(d(x), 1:4)`
+# becomes `l(x_d1, 1:4)` and then expands to x_d1_l1 ... x_d1_l4.
+# `t_norm` is the normalized integer time; `id_vec` the id column.
+.fLPDID_expand_diff_terms <- function(formula_chr, data, id_vec, t_norm) {
   pattern <- "d\\(([A-Za-z_.][A-Za-z0-9_.]*)\\)"
   repeat {
     m <- regexpr(pattern, formula_chr, perl = TRUE)
@@ -77,8 +68,7 @@
     col_name <- sprintf("%s_d1", var)
     if (!col_name %in% names(data)) {
       x <- as.numeric(data[[var]])
-      data[[col_name]] <- x - .flpdid_shift(x, data[[id_var]],
-                                            data[[time_var]], 1L)
+      data[[col_name]] <- x - .flpdid_shift(x, id_vec, t_norm, 1L)
     }
     formula_chr <- sub(pattern, col_name, formula_chr, perl = TRUE)
   }
@@ -190,6 +180,29 @@ fLPDID <- function(formula, data,
     if (!v %in% names(data))
       stop(sprintf("fLPDID: column '%s' not found in data.", v),
            call. = FALSE)
+  # ---- scalar / range validation for numeric + logical args -----------
+  for (nm_flag in c("nonabsorbing", "pmd", "reweight")) {
+    v <- get(nm_flag)
+    if (!is.logical(v) || length(v) != 1L || is.na(v))
+      stop(sprintf("fLPDID: '%s' must be a single TRUE/FALSE value.", nm_flag),
+           call. = FALSE)
+  }
+  if (!is.numeric(pre)  || length(pre)  != 1L || is.na(pre)  ||
+      pre  < 0 || pre  != floor(pre))
+    stop("fLPDID: 'pre' must be a non-negative integer.", call. = FALSE)
+  if (!is.numeric(post) || length(post) != 1L || is.na(post) ||
+      post < 0 || post != floor(post))
+    stop("fLPDID: 'post' must be a non-negative integer.", call. = FALSE)
+  if (!is.numeric(ccc)  || length(ccc)  != 1L || is.na(ccc)  ||
+      !ccc %in% c(0L, 1L, 2L))
+    stop("fLPDID: 'ccc' must be one of 0, 1, or 2.", call. = FALSE)
+  if (!is.null(L) && (!is.numeric(L) || length(L) != 1L || is.na(L) ||
+                      L < 0 || L != floor(L)))
+    stop("fLPDID: 'L' must be a non-negative integer or NULL.", call. = FALSE)
+  if (!is.numeric(n_threads) || length(n_threads) != 1L || is.na(n_threads) ||
+      n_threads != floor(n_threads))
+    stop("fLPDID: 'n_threads' must be an integer (<=0 = all cores).",
+         call. = FALSE)
   if (nonabsorbing && ccc > 0 && is.null(L))
     stop("fLPDID: `nonabsorbing = TRUE` requires the stabilization window `L`.",
          call. = FALSE)
@@ -198,6 +211,17 @@ fLPDID <- function(formula, data,
          call. = FALSE)
   if (!is.numeric(conf) || length(conf) != 1L || conf <= 0 || conf >= 1)
     stop("fLPDID: 'conf' must be a single number in (0, 1).", call. = FALSE)
+
+  # Reweight + controls is NOT the DDCG `teffects ra` regression-adjustment
+  # estimator — surface that at runtime, not only in docs.
+  if (isTRUE(reweight)) {
+    # controls existence is only known after formula parsing; emit a
+    # tentative warning here that becomes accurate once controls are
+    # parsed (we recheck below and downgrade the message if unneeded).
+    reweight_needs_note <- TRUE
+  } else {
+    reweight_needs_note <- FALSE
+  }
 
   # ---- normalized integer time index (preserves gaps, as in fLPPanel) --
   t_raw <- data[[time_var]]
@@ -211,6 +235,14 @@ fLPDID <- function(formula, data,
   if (!is.finite(step) || step <= 0)
     stop("fLPDID: could not determine the time step.", call. = FALSE)
   t_index <- as.integer(round((t_raw - min(t_raw, na.rm = TRUE)) / step))
+
+  # Duplicate (id, time) rows silently corrupt the panel time->row map
+  # used by the C++ engine — reject them up-front.
+  dup <- duplicated(paste(data[[id_var]], t_index, sep = "|"))
+  if (any(dup))
+    stop(sprintf(
+      "fLPDID: found %d duplicate (%s, %s) row(s); each unit-time pair must be unique.",
+      sum(dup), id_var, time_var), call. = FALSE)
 
   # ---- formula -> string; macro, d(), l()/f() expansion ----------------
   formula_chr <- paste(deparse(formula), collapse = " ")
@@ -231,9 +263,10 @@ fLPDID <- function(formula, data,
            "' from the formula.", call. = FALSE)
   }
 
-  diff_ex  <- .fLPDID_expand_diff_terms(main_str, data, id_var, time_var)
+  diff_ex  <- .fLPDID_expand_diff_terms(main_str, data,
+                                        data[[id_var]], t_index)
   main_ex  <- .fLPPanel_expand_lag_terms(diff_ex$formula_chr, diff_ex$data,
-                                         id_var, time_var)
+                                         diff_ex$data[[id_var]], t_index)
   main_str <- main_ex$formula_chr
   data     <- main_ex$data
 
@@ -289,6 +322,16 @@ fLPDID <- function(formula, data,
     stop(sprintf("fLPDID: cluster column '%s' not found in data.", cl_var),
          call. = FALSE)
 
+  # Finalize the reweight+controls note now that controls are parsed.
+  if (reweight_needs_note && length(control_labels) > 0L) {
+    warning(
+      "fLPDID: reweight = TRUE with controls uses simple inverse-implicit ",
+      "reweighting, NOT the DDCG `teffects ra` regression-adjustment ",
+      "estimator (see Dube-Girardi-Jorda-Taylor Figure 4). Interpret the ",
+      "reweighted ATT accordingly.",
+      call. = FALSE)
+  }
+
   # ---- C++ engine -------------------------------------------------------
   out <- fLPDID_cpp(
     y            = as.numeric(data[[lhs_vars]]),
@@ -304,7 +347,8 @@ fLPDID <- function(formula, data,
     ccc          = as.integer(ccc),
     pmd          = isTRUE(pmd),
     reweight     = isTRUE(reweight),
-    n_threads    = as.integer(n_threads)
+    n_threads    = as.integer(n_threads),
+    verbose      = FALSE
   )
 
   res <- tibble::tibble(

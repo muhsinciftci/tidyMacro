@@ -17,34 +17,12 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This document is both a **replication** of @jorda2025 and a **feature tour** of `tidyMacro`'s local-projection tools:
+This chapter is a **replication** of @jorda2025 with `fLP()` and `fLPIV()`. Syntax conventions common to all four local-projection engines — formulas, `..macros`, `l()`/`f()`, multi-band `conf`, thread rules, output shapes — live in the [Local Projections syntax primer](05_lp_syntax.html); this chapter focuses on the empirical exercise.
 
-- `fLP()` — Jordà (2005) local projections with a `fixest`-style formula, automatic lag / lead operators (`l(x, 1:4)`), macro expansion (`..controls`), multi-equation LHS (`c(y1, y2, y3) ~ ...`) and **multi-level confidence bands from a single fit** (`conf = c(0.68, 0.95)`).
-- `fPlotLP()` — companion plotting function that draws one ribbon per confidence level and facets across LHS variables.
+The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences `CPI_{t+h} - CPI_{t-1}` and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls. Two features specific to reproducing @jorda2025 in MATLAB (`LPmodel.m`) matter here:
 
-The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences `CPI_{t+h} - CPI_{t-1}` and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls.
-
-**LP-OLS.** One direct regression per horizon; under the long-difference convention the LHS is $y_{t+h} - y_{t-1}$:
-
-$$y_{t+h} - y_{t-1} = \alpha_h + \beta_h\, s_t + \gamma_h' w_t + e_{t+h},
-\qquad h = 0, 1, \dots, H,$$
-
-with IRF $\{\hat{\beta}_h\}_{h=0}^{H}$ and Newey-West sandwich variance
-
-$$V_h = (X'X)^{-1}\, X' \Omega X\, (X'X)^{-1},
-\qquad
-L_h = \max\{\texttt{nw\_lags} + h + \texttt{nw\_offset},\, 0\}.$$
-
-**LP-IV.** With endogenous treatment $d_t$ instrumented by $Z_t$, after residualising $Y$, $D$, $Z$ on the exogenous controls (FWL) the 2SLS point estimate and delta-method HAC standard error are
-
-$$\hat{\beta}_h = \frac{\hat{D}'\, Y_r}{\hat{D}'\, D_r},
-\qquad
-\widehat{\mathrm{se}}(\hat{\beta}_h)
-  = \frac{\sqrt{\widehat{\mathrm{LRV}}(\hat{D}_t \varepsilon_t)}}{\lvert \hat{D}'\, D_r \rvert},
-\qquad
-\varepsilon_t = Y_{r,t} - \hat{\beta}_h D_{r,t}.$$
-
-**HAC standard errors.** `fLP()` always uses the full Newey-West sandwich `V_h = (X'X)⁻¹ · X'ΩX · (X'X)⁻¹` — the estimator used in Jordà (2005), Stock & Watson (2018), Plagborg-Møller & Wolf (2021), Cesa-Bianchi's VAR Toolbox, Stata's `newey`, R's `sandwich::NeweyWest`, and virtually every published LP application. The Bartlett bandwidth defaults to Miranda-Agrippino & Ricco's `nw_lags + h + 1` rule; set `nw_offset = 0` for the classic Jordà `= h` rule (which matches Cesa-Bianchi's `LPmodel.m` bit-for-bit for the Jordà-Taylor replication).
+- The Newey-West bandwidth rule is Jordà's classic `= h`, i.e. `nw_offset = 0` (the syntax primer explains the default). Under this rule the standard errors match `OLSmodel.m` bit-for-bit.
+- The LP-IV specification uses a fixed HAC bandwidth of 6 (`nw_lags_iv = 6`), matching Stata's `vce(hac nw 6)`.
 
 ------------------------------------------------------------------------
 
@@ -226,16 +204,9 @@ fPlotLP(lp_cum) + ggtitle('Cumulative Response') + fPlotLP(lp_lev) + ggtitle('Le
 
 ------------------------------------------------------------------------
 
-## 4 · Newey-West bandwidth choices
+## 4 · Newey-West bandwidth: matching MATLAB vs the MA&R default
 
-`fLP()` uses the Bartlett-kernel Newey-West sandwich throughout. The bandwidth at horizon `h` is `max(nw_lags + h + nw_offset, 0)`. Two conventions:
-
-| `nw_offset` | Effective bandwidth | Where it comes from |
-|------------------------|------------------------|------------------------|
-| `1L` (default) | `nw_lags + h + 1` | Miranda-Agrippino & Ricco |
-| `0L` | `nw_lags + h` | Classic Jordà (2005); matches Cesa-Bianchi's `LPmodel.m` (Jordà-Taylor 2025) |
-
-Point estimates are of course identical across choices — only the standard errors move. The classic Jordà rule is the tighter of the two here.
+Two bandwidth rules give **identical point estimates** but different SE bands: the classic Jordà `= h` rule (`nw_offset = 0`, matches `LPmodel.m` bit-for-bit) and the Miranda-Agrippino & Ricco `= h + 1` rule (`nw_offset = 1`, the `fLP()` default). The syntax primer covers the general convention; here we visualise the resulting band gap on this replication.
 
 ```{r}
 #| label: lp-nw-options
@@ -352,7 +323,7 @@ tibble::tibble(horizon = 0:48, F = as.numeric(lp_iv$Fstat_fs)) |>
          title = "First-stage F across horizons")
 ```
 
-The `Fstat_fs` and `rsqr_fs` fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising.
+The `Fstat_fs` and `rsqr_fs` fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising. The df convention (`Th - kc - nz`) is documented in the [syntax primer](05_lp_syntax.html#the-estimating-equations).
 
 ------------------------------------------------------------------------
 
@@ -379,10 +350,7 @@ tidy.fLP(lp_iv) |> head(6)
 
 ## Summary
 
-- **One fit for many responses.** `c(y1, y2, y3) ~ shock + ...` runs one LP per LHS in parallel across horizons.
-- **One fit for many bands.** `conf = c(0.68, 0.95)` builds every band from the same `irfs_se`; no re-estimation.
-- **`fPlotLP()`** paints those responses and bands directly, or returns a tibble via `return_data = TRUE` for hand-rolled ggplots. It works on `fLP()` and `fLPIV()` fits interchangeably.
-- **HAC standard errors.** `fLP()` and `fLPIV()` both use full Newey-West sandwiches (`fLPIV()` via the delta-method IV form). `nw_offset = 0` and `nw_lags_iv = k` reproduce the Jordà-Taylor (2025) MATLAB standard errors.
-- **LP-IV.** `fLPIV()` mirrors `fLP()`'s formula syntax and adds an `instruments = ~ …` argument; the endogenous treatment is named via `endog = "…"`. Multi-band and multi-LHS support are inherited.
+- `nw_offset = 0` (classic Jordà `= h` rule) and `nw_lags_iv = 6` reproduce the @jorda2025 MATLAB / Stata standard errors.
+- Both `fLP()` and `fLPIV()` handle multi-band `conf` and, for `fLP()`, multi-equation LHS in a single fit — see the [syntax primer](05_lp_syntax.html) for the shared conventions.
 
 ## References {.unnumbered}

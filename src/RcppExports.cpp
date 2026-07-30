@@ -475,8 +475,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fLP_cpp
-Rcpp::List fLP_cpp(const arma::mat& Y, const arma::mat& X, int H, int shock_col, double conf_level, int nw_lags_base, bool store_full, bool cumulative, int n_threads, int nw_offset);
-RcppExport SEXP _tidyMacro_fLP_cpp(SEXP YSEXP, SEXP XSEXP, SEXP HSEXP, SEXP shock_colSEXP, SEXP conf_levelSEXP, SEXP nw_lags_baseSEXP, SEXP store_fullSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP nw_offsetSEXP) {
+Rcpp::List fLP_cpp(const arma::mat& Y, const arma::mat& X, int H, int shock_col, double conf_level, int nw_lags_base, bool store_full, bool cumulative, int n_threads, int nw_offset, bool verbose);
+RcppExport SEXP _tidyMacro_fLP_cpp(SEXP YSEXP, SEXP XSEXP, SEXP HSEXP, SEXP shock_colSEXP, SEXP conf_levelSEXP, SEXP nw_lags_baseSEXP, SEXP store_fullSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP nw_offsetSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -490,13 +490,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type cumulative(cumulativeSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< int >::type nw_offset(nw_offsetSEXP);
-    rcpp_result_gen = Rcpp::wrap(fLP_cpp(Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(fLP_cpp(Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // fLPDID_cpp
-Rcpp::List fLPDID_cpp(const arma::vec& y, const arma::vec& treat, const arma::mat& X, const arma::ivec& i_index, const arma::ivec& t_index, const arma::ivec& cl_index, int pre_window, int post_window, bool nonabsorbing, int Lwin, int ccc, bool pmd, bool reweight, int n_threads);
-RcppExport SEXP _tidyMacro_fLPDID_cpp(SEXP ySEXP, SEXP treatSEXP, SEXP XSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP cl_indexSEXP, SEXP pre_windowSEXP, SEXP post_windowSEXP, SEXP nonabsorbingSEXP, SEXP LwinSEXP, SEXP cccSEXP, SEXP pmdSEXP, SEXP reweightSEXP, SEXP n_threadsSEXP) {
+Rcpp::List fLPDID_cpp(const arma::vec& y, const arma::vec& treat, const arma::mat& X, const arma::ivec& i_index, const arma::ivec& t_index, const arma::ivec& cl_index, int pre_window, int post_window, bool nonabsorbing, int Lwin, int ccc, bool pmd, bool reweight, int n_threads, bool verbose);
+RcppExport SEXP _tidyMacro_fLPDID_cpp(SEXP ySEXP, SEXP treatSEXP, SEXP XSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP cl_indexSEXP, SEXP pre_windowSEXP, SEXP post_windowSEXP, SEXP nonabsorbingSEXP, SEXP LwinSEXP, SEXP cccSEXP, SEXP pmdSEXP, SEXP reweightSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -514,13 +515,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type pmd(pmdSEXP);
     Rcpp::traits::input_parameter< bool >::type reweight(reweightSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fLPDID_cpp(y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(fLPDID_cpp(y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // fLPIV_cpp
-Rcpp::List fLPIV_cpp(const arma::mat& Y, const arma::vec& D, const arma::mat& Z, const arma::mat& C, int H, double conf_level, int nw_lags_iv, bool cumulative, int n_threads);
-RcppExport SEXP _tidyMacro_fLPIV_cpp(SEXP YSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP CSEXP, SEXP HSEXP, SEXP conf_levelSEXP, SEXP nw_lags_ivSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP) {
+Rcpp::List fLPIV_cpp(const arma::mat& Y, const arma::vec& D, const arma::mat& Z, const arma::mat& C, int H, double conf_level, int nw_lags_iv, bool cumulative, int n_threads, bool verbose);
+RcppExport SEXP _tidyMacro_fLPIV_cpp(SEXP YSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP CSEXP, SEXP HSEXP, SEXP conf_levelSEXP, SEXP nw_lags_ivSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -533,13 +535,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nw_lags_iv(nw_lags_ivSEXP);
     Rcpp::traits::input_parameter< bool >::type cumulative(cumulativeSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fLPIV_cpp(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(fLPIV_cpp(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // fLPPanel_cpp
-Rcpp::List fLPPanel_cpp(const arma::mat& y, const arma::mat& s, const arma::mat& X, const arma::mat& W, const arma::imat& FE, const arma::ivec& i_index, const arma::ivec& t_index, int H, int p_max, bool small_sample, bool cumulative, int n_threads);
-RcppExport SEXP _tidyMacro_fLPPanel_cpp(SEXP ySEXP, SEXP sSEXP, SEXP XSEXP, SEXP WSEXP, SEXP FESEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP HSEXP, SEXP p_maxSEXP, SEXP small_sampleSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP) {
+Rcpp::List fLPPanel_cpp(const arma::mat& y, const arma::mat& s, const arma::mat& X, const arma::mat& W, const arma::imat& FE, const arma::ivec& i_index, const arma::ivec& t_index, int H, int p_max, bool small_sample, bool cumulative, int n_threads, bool verbose);
+RcppExport SEXP _tidyMacro_fLPPanel_cpp(SEXP ySEXP, SEXP sSEXP, SEXP XSEXP, SEXP WSEXP, SEXP FESEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP HSEXP, SEXP p_maxSEXP, SEXP small_sampleSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -555,7 +558,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type small_sample(small_sampleSEXP);
     Rcpp::traits::input_parameter< bool >::type cumulative(cumulativeSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fLPPanel_cpp(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(fLPPanel_cpp(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -777,10 +781,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tidyMacro_fHeteroIRF", (DL_FUNC) &_tidyMacro_fHeteroIRF, 7},
     {"_tidyMacro_fBootstrapHetero", (DL_FUNC) &_tidyMacro_fBootstrapHetero, 13},
     {"_tidyMacro_fHistDec", (DL_FUNC) &_tidyMacro_fHistDec, 4},
-    {"_tidyMacro_fLP_cpp", (DL_FUNC) &_tidyMacro_fLP_cpp, 10},
-    {"_tidyMacro_fLPDID_cpp", (DL_FUNC) &_tidyMacro_fLPDID_cpp, 14},
-    {"_tidyMacro_fLPIV_cpp", (DL_FUNC) &_tidyMacro_fLPIV_cpp, 9},
-    {"_tidyMacro_fLPPanel_cpp", (DL_FUNC) &_tidyMacro_fLPPanel_cpp, 12},
+    {"_tidyMacro_fLP_cpp", (DL_FUNC) &_tidyMacro_fLP_cpp, 11},
+    {"_tidyMacro_fLPDID_cpp", (DL_FUNC) &_tidyMacro_fLPDID_cpp, 15},
+    {"_tidyMacro_fLPIV_cpp", (DL_FUNC) &_tidyMacro_fLPIV_cpp, 10},
+    {"_tidyMacro_fLPPanel_cpp", (DL_FUNC) &_tidyMacro_fLPPanel_cpp, 13},
     {"_tidyMacro_fLagMakerMatrix", (DL_FUNC) &_tidyMacro_fLagMakerMatrix, 2},
     {"_tidyMacro_fMBBVAR", (DL_FUNC) &_tidyMacro_fMBBVAR, 4},
     {"_tidyMacro_fMSW", (DL_FUNC) &_tidyMacro_fMSW, 9},

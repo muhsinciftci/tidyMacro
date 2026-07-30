@@ -953,12 +953,12 @@ fHistDec <- function(y, fVAR, K, series) {
 #'   engine), and optionally \code{betas} and \code{ses}.
 #'
 #' @keywords internal
-fLP_cpp <- function(Y, X, H, shock_col, conf_level, nw_lags_base, store_full = FALSE, cumulative = FALSE, n_threads = 0L, nw_offset = 1L) {
-    .Call(`_tidyMacro_fLP_cpp`, Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset)
+fLP_cpp <- function(Y, X, H, shock_col, conf_level, nw_lags_base, store_full = FALSE, cumulative = FALSE, n_threads = 0L, nw_offset = 1L, verbose = FALSE) {
+    .Call(`_tidyMacro_fLP_cpp`, Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset, verbose)
 }
 
-fLPDID_cpp <- function(y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads) {
-    .Call(`_tidyMacro_fLPDID_cpp`, y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads)
+fLPDID_cpp <- function(y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads, verbose = FALSE) {
+    .Call(`_tidyMacro_fLPDID_cpp`, y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads, verbose)
 }
 
 #' Local Projections with External Instrument — C++ Engine
@@ -985,8 +985,8 @@ fLPDID_cpp <- function(y, treat, X, i_index, t_index, cl_index, pre_window, post
 #'   \code{rsqr_fs} (first-stage R^2 per horizon).
 #'
 #' @keywords internal
-fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE, n_threads = 0L) {
-    .Call(`_tidyMacro_fLPIV_cpp`, Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads)
+fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_tidyMacro_fLPIV_cpp`, Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads, verbose)
 }
 
 #' Panel Local Projections — Internal C++ engine
@@ -996,8 +996,8 @@ fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE,
 #'
 #' @keywords internal
 #' @noRd
-fLPPanel_cpp <- function(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample = FALSE, cumulative = FALSE, n_threads = 0L) {
-    .Call(`_tidyMacro_fLPPanel_cpp`, y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads)
+fLPPanel_cpp <- function(y, s, X, W, FE, i_index, t_index, H, p_max, small_sample = FALSE, cumulative = FALSE, n_threads = 0L, verbose = FALSE) {
+    .Call(`_tidyMacro_fLPPanel_cpp`, y, s, X, W, FE, i_index, t_index, H, p_max, small_sample, cumulative, n_threads, verbose)
 }
 
 #' Create Lagged Matrix

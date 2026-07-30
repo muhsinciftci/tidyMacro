@@ -8,7 +8,7 @@
 
 <meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>11&nbsp; Local Projections Difference-in-Differences – tidyMacro</title>
+<title>12&nbsp; Local Projections Difference-in-Differences – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -202,7 +202,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -264,20 +264,26 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./05_lp_syntax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections — Common Syntax and Conventions</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
   </div>
 </li>
     </ul>
@@ -291,7 +297,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></h1>
+<h1 class="title"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></h1>
 <p class="subtitle lead">Replicating Dube, Girardi, Jordà and Taylor 2025</p>
 </div>
 
@@ -309,24 +315,21 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="11.1">
-<h2 data-number="11.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">11.1</span> Overview</h2>
-<p>This chapter replicates the two empirical applications of <span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span> with <code>tidyMacro</code>’s LP-DiD tools:</p>
+<section id="overview" class="level2" data-number="12.1">
+<h2 data-number="12.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">12.1</span> Overview</h2>
+<p>This chapter replicates the two empirical applications of <span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span> with <code>fLPDID()</code> and <code>fPlotLPDID()</code>. Shared conventions across the LP engines — formula grammar, <code>..macros</code>, gap-safe <code>l()</code> / <code>f()</code> / <code>d()</code>, <code>panel_id</code> handling, duplicate-row rejection, output tibble shape — are documented once in the <a href="05_lp_syntax.html">Local Projections syntax primer</a>. Below we focus on what is DiD-specific.</p>
+<p>For each horizon <span class="math inline">\(h\)</span> the long-difference regression <span class="math display">\[y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
+\;+\; \tau_t \;+\; \varepsilon_{it}\]</span> is fit on a <strong>clean-control sample</strong> (newly treated units and units that stay untreated over the relevant window). Pre-treatment horizons replace <span class="math inline">\(y_{i,t+h}\)</span> by <span class="math inline">\(y_{i,t-j}\)</span> as placebo tests, with <span class="math inline">\(\beta_{-1}=0\)</span> as the normalization.</p>
+<p><strong>Estimator-specific arguments</strong> (beyond the shared list; see <code>?fLPDID</code> for the full API):</p>
 <ul>
-<li><code>fLPDID()</code> — the LP-DiD estimator in C++ (OpenMP-parallel over horizons), with clean-control samples for absorbing and non-absorbing treatments, optional reweighting to the equally-weighted ATT, PMD baselines, and CR1 cluster-robust standard errors matching Stata’s <code>reghdfe</code>.</li>
-<li><code>fPlotLPDID()</code> — companion event-study plot; pass several named results for a faceted comparison.</li>
+<li><code>post</code>, <code>pre</code> — event-time windows (<code>fLPDID()</code> uses these instead of <code>horizons</code>).</li>
+<li><code>treat</code> — name of the treatment level column.</li>
+<li><code>cluster</code> — cluster column for the CR1 sandwich (default = unit id).</li>
+<li><code>nonabsorbing = TRUE</code> — non-absorbing treatment; requires the stabilization window <code>L</code> and the clean-control flavor <code>ccc ∈ {0, 1, 2}</code>.</li>
+<li><code>pmd = TRUE</code> — pre-mean-differenced baseline (Stata calendar-time formula, see §5 of the syntax primer).</li>
+<li><code>reweight = TRUE</code> — equally-weighted ATT via <span class="math inline">\(w = 1/(1-p_t)\)</span>; with non-empty controls this is <strong>not</strong> the DDCG <code>teffects ra</code> estimator and the function warns accordingly.</li>
+<li>Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference. Any <code>| time</code> you write is accepted but redundant.</li>
 </ul>
-<p>The interface mirrors <code>fLPPanel()</code>: a fixest-style formula with <code>..macro</code> expansion and panel-aware operators — <code>l(x, 1:4)</code> for lags, <code>f(x, k)</code> for leads, and <code>d(x)</code> for first differences, so DGJT’s “four lags of the outcome in levels and changes” is simply <code>l(lshare, 1:4) + l(d(lshare), 1:4)</code>. Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference.</p>
-<p>LP-DiD estimates, for each horizon <span class="math inline">\(h\)</span>, the long-difference regression</p>
-<p><span class="math display">\[y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
-\;+\; \tau_t \;+\; \varepsilon_{it},\]</span></p>
-<p>restricted to a <strong>clean-control sample</strong>: newly treated units (<span class="math inline">\(\Delta D_{it}=1\)</span>) and units that remain untreated over the relevant window. Pre-treatment horizons replace <span class="math inline">\(y_{i,t+h}\)</span> with <span class="math inline">\(y_{i,t-j}\)</span> and serve as placebo tests, with <span class="math inline">\(\beta_{-1}=0\)</span> as the normalization:</p>
-<p><span class="math display">\[y_{i,t-j} - y_{i,t-1} \;=\; \beta_{-j}\, \Delta D_{it} \;+\; X_{it}'\gamma_{-j} \;+\; \tau_t \;+\; \varepsilon_{it},
-\qquad j = 2, \dots, \text{pre}.\]</span></p>
-<p>The default OLS coefficient is a variance-weighted average of clean <span class="math inline">\(2\times 2\)</span> comparisons; the equally-weighted ATT is recovered by inverting the implicit weights,</p>
-<p><span class="math display">\[w_{it} = \frac{1}{1 - p_t},\]</span></p>
-<p>and <code>pmd = TRUE</code> replaces the <span class="math inline">\(y_{i,t-1}\)</span> baseline with the pre-treatment mean <span class="math inline">\(\bar{y}_{i,&lt;t}\)</span>. Standard errors are CR1 cluster-robust with correction</p>
-<p><span class="math display">\[c = \frac{G}{G-1} \cdot \frac{N-1}{N-K}.\]</span></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -336,8 +339,8 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"DemocracyGrowth"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="banking-deregulation-and-the-labor-share" class="level2" data-number="11.2">
-<h2 data-number="11.2" class="anchored" data-anchor-id="banking-deregulation-and-the-labor-share"><span class="header-section-number">11.2</span> Banking deregulation and the labor share</h2>
+<section id="banking-deregulation-and-the-labor-share" class="level2" data-number="12.2">
+<h2 data-number="12.2" class="anchored" data-anchor-id="banking-deregulation-and-the-labor-share"><span class="header-section-number">12.2</span> Banking deregulation and the labor share</h2>
 <p>The first application (DGJT, Figure 3) revisits the effect of US <strong>inter-state banking deregulation</strong> on the private labor share: 46 states, 1970–1996, absorbing staggered treatment.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>bank_fe <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
@@ -383,8 +386,8 @@ window.Quarto = {
 </div>
 <p>Across specifications the LP-DiD estimates are small and statistically indistinguishable from zero — DGJT’s point: the large negative effects found by two-way fixed-effects event studies in this setting are an artifact of forbidden comparisons, not a feature of the data. The same exercise for intra-state branching amounts to <code>fLPDID(lshare ~ branch, ..., treat = "branch")</code>.</p>
 </section>
-<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="11.3">
-<h2 data-number="11.3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">11.3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
+<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="12.3">
+<h2 data-number="12.3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">12.3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
 <p>By default the LP-DiD OLS coefficient is a <strong>variance-weighted</strong> average of clean <span class="math inline">\(2\times2\)</span> comparisons — efficient, but it overweights treatment cohorts observed when the treated share is small. Setting <code>reweight = TRUE</code> inverts the implicit weights (<span class="math inline">\(w = 1/(1-p_t)\)</span>) and recovers the <strong>equally-weighted</strong> ATT.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bank_rw <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(lshare <span class="sc">~</span> bank,</span>
@@ -408,8 +411,8 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="11.4">
-<h2 data-number="11.4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">11.4</span> Democracy and growth (non-absorbing treatment)</h2>
+<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="12.4">
+<h2 data-number="12.4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">12.4</span> Democracy and growth (non-absorbing treatment)</h2>
 <p>The second application (DGJT, Figure 4) revisits <span class="citation" data-cites="acemoglu2019">Acemoglu et al. (<a href="#ref-acemoglu2019" role="doc-biblioref">2019</a>)</span> . Treatment is <strong>non-absorbing</strong> — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP (<code>l(lgdp, 1:4)</code>) and clean-control samples are built recursively over a stabilization window of <span class="math inline">\(L = 20\)</span> years.</p>
 <p>Three flavors of the clean-control condition (<code>ccc</code>):</p>
 <ul>
@@ -454,13 +457,12 @@ window.Quarto = {
 </div>
 <p>Democratization raises GDP per capita by roughly 15–25 log points over 25–30 years, with flat pre-trends. Restricting to clean controls (<code>ccc = 1, 2</code>) moderates the ANRR estimates, as contaminated comparisons are removed from the control group.</p>
 </section>
-<section id="notes-on-the-implementation" class="level2" data-number="11.5">
-<h2 data-number="11.5" class="anchored" data-anchor-id="notes-on-the-implementation"><span class="header-section-number">11.5</span> Notes on the implementation</h2>
+<section id="notes-on-the-implementation" class="level2" data-number="12.5">
+<h2 data-number="12.5" class="anchored" data-anchor-id="notes-on-the-implementation"><span class="header-section-number">12.5</span> Notes on the implementation</h2>
+<p>Generic behavior — gap-safe operators, duplicate <code>(id, time)</code> rejection, argument validation, PMD baseline formula, <code>reweight + controls</code> warning, direct-C++ boundary checks — is documented in the <a href="05_lp_syntax.html">syntax primer</a>. The two items below are LP-DiD-specific and worth flagging in the empirical context:</p>
 <ul>
-<li><strong>Weighting.</strong> <code>reweight = TRUE</code> implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is not yet in the C++ engine.</li>
-<li><strong>Baselines.</strong> <code>pmd = TRUE</code> replaces the <span class="math inline">\(y_{t-1}\)</span> baseline with the average of all pre-period outcomes, which reduces noise under measurement error.</li>
-<li><strong>Inference.</strong> Standard errors are CR1 cluster-robust with <span class="math inline">\(c = \tfrac{G}{G-1}\,\tfrac{N-1}{N-K}\)</span> and <span class="math inline">\(K\)</span> counting the absorbed time fixed effects, matching Stata’s <code>reghdfe ..., absorb(year) vce(cluster id)</code>.</li>
-<li><strong>Missing-value semantics.</strong> The recursive clean-control sets follow Stata’s conventions at panel boundaries: a missing treatment change counts as “no change”; a missing lagged clean-control flag counts as failing the condition. This matters for matching the original results observation-for-observation.</li>
+<li><strong>Weighting.</strong> <code>reweight = TRUE</code> implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is <strong>not</strong> in the C++ engine; the runtime warning triggered by <code>reweight = TRUE</code> with non-empty controls makes this explicit at the point of use.</li>
+<li><strong>Missing-value semantics for clean-control sets.</strong> The recursive CCS follow Stata’s conventions at panel boundaries: a missing treatment change counts as “no change” (condition OK); a missing lagged clean-control flag counts as failing the condition. This matters for reproducing the original results observation-for-observation.</li>
 </ul>
 </section>
 <section id="references" class="level2 unnumbered">
@@ -886,7 +888,7 @@ Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <spa
 <nav class="page-navigation column-page-right">
   <div class="nav-page nav-page-previous">
       <a href="./06_AlmuzaraSancibrian2024.html" class="pagination-link" aria-label="Panel Local Projections">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

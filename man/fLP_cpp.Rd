@@ -14,7 +14,8 @@ fLP_cpp(
   store_full = FALSE,
   cumulative = FALSE,
   n_threads = 0L,
-  nw_offset = 1L
+  nw_offset = 1L,
+  verbose = FALSE
 )
 }
 \arguments{

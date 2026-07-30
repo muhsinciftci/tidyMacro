@@ -41,41 +41,55 @@
 # Internal helpers
 # =======================================================================
 
-# Panel-aware lag/lead expander — like .fLP_expand_lag_terms but respects
-# unit boundaries. Creates one column per (var, k) pair on a *copy* of
-# data, replacing the l() / f() token in the formula string.
-.fLPPanel_expand_lag_terms <- function(formula_chr, data, id_var, time_var) {
+# Normalize the raw time column to an integer grid where consecutive
+# periods differ by 1. Preserves calendar gaps: missing periods become
+# missing integer values, so `l(x, 1)` at t = 5 returns NA if t = 4 is
+# unobserved. `on_grid` flags rows whose time does not sit on the grid
+# and should be dropped by the caller.
+.fLPPanel_normalize_time <- function(t_raw) {
+  if (inherits(t_raw, "Date") || inherits(t_raw, "POSIXct"))
+    t_raw <- as.numeric(t_raw)
+  if (!is.numeric(t_raw))
+    stop("fLPPanel: 'time' column must be numeric, Date, or POSIXct.",
+         call. = FALSE)
+  t_uniq <- sort(unique(t_raw))
+  if (length(t_uniq) < 2L)
+    stop("fLPPanel: 'time' has fewer than 2 unique values.", call. = FALSE)
+  step     <- min(diff(t_uniq))
+  if (!is.finite(step) || step <= 0)
+    stop("fLPPanel: could not determine positive time step.", call. = FALSE)
+  t_scaled <- (t_raw - t_uniq[1L]) / step + 1
+  on_grid  <- abs(t_scaled - round(t_scaled)) < 1e-2
+  list(t_norm = as.integer(round(t_scaled)), on_grid = on_grid)
+}
+
+
+# Panel-aware lag/lead expander — respects unit boundaries AND preserves
+# calendar-time gaps. `id_vec` and `t_norm` are the id and normalized
+# integer time aligned with data rows, so shifts look up (id, t + k)
+# rather than adjacent rows in sort order.
+.fLPPanel_expand_lag_terms <- function(formula_chr, data, id_vec, t_norm) {
 
   pattern <- "(l|f)\\(([A-Za-z_.][A-Za-z0-9_.]*),([^)]+)\\)"
 
-  # Row order for the shift: sort by (id, time)
-  ord     <- order(data[[id_var]], data[[time_var]])
-  inv_ord <- order(ord)
-  id_s    <- data[[id_var]][ord]
-  # Boundary: TRUE when the row starts a new unit
-  new_unit <- c(TRUE, id_s[-1L] != id_s[-length(id_s)])
-  # Cumulative unit index within the sorted vector: 1, 1, 1, 2, 2, ...
-  unit_id  <- cumsum(new_unit)
-  T_dat    <- nrow(data)
+  T_dat <- nrow(data)
+  if (length(id_vec) != T_dat || length(t_norm) != T_dat) {
+    stop("fLPPanel: internal error - id/time vectors misaligned with data.",
+         call. = FALSE)
+  }
+
+  # Row lookup keyed by (id, normalized time). Duplicates would collide;
+  # they are rejected upstream so match() returns a single row per key.
+  key_row <- paste(id_vec, t_norm, sep = "|")
 
   panel_lag <- function(x_raw, k, op) {
-    # x_raw is in original order; sort by (id, time), shift within unit,
-    # then invert the ordering to restore original row indexing.
-    x_s <- x_raw[ord]
-    y_s <- rep(NA_real_, T_dat)
-    if (op == "l") {
-      # y_s[i] = x_s[i - k] iff row i-k belongs to the same unit
-      if (k >= T_dat) return(rep(NA_real_, T_dat))
-      idx <- seq_len(T_dat - k) + k
-      valid <- unit_id[idx] == unit_id[idx - k]
-      y_s[idx[valid]] <- x_s[(idx - k)[valid]]
-    } else {
-      if (k >= T_dat) return(rep(NA_real_, T_dat))
-      idx <- seq_len(T_dat - k)
-      valid <- unit_id[idx] == unit_id[idx + k]
-      y_s[idx[valid]] <- x_s[(idx + k)[valid]]
-    }
-    y_s[inv_ord]
+    t_target <- if (op == "l") (t_norm - k) else (t_norm + k)
+    key_look <- paste(id_vec, t_target, sep = "|")
+    idx <- match(key_look, key_row)
+    out <- rep(NA_real_, T_dat)
+    ok  <- !is.na(idx)
+    out[ok] <- x_raw[idx[ok]]
+    out
   }
 
   repeat {
@@ -262,6 +276,29 @@ fLPPanel <- function(formula, data,
   if (!time_var %in% names(data))
     stop(sprintf("fLPPanel: time column '%s' not found in data.", time_var))
 
+  # ---- normalize time first, so gap-aware lag/lead can look up
+  #      (id, t + k) rather than (id, adjacent row). Drops off-grid rows
+  #      up-front so downstream helpers, dedup, and the C++ engine all see
+  #      the same integer time index.
+  tn      <- .fLPPanel_normalize_time(data[[time_var]])
+  if (any(!tn$on_grid)) {
+    message(sprintf(
+      "fLPPanel: dropping %d row(s) with off-grid time index.",
+      sum(!tn$on_grid)))
+    data    <- data[tn$on_grid, , drop = FALSE]
+    tn$t_norm <- tn$t_norm[tn$on_grid]
+  }
+  id_vec  <- data[[id_var]]
+  t_norm  <- tn$t_norm
+
+  # Duplicate (id, time) rows would silently corrupt gap-aware shifts and
+  # the C++ engine's per-unit time->row map — reject them explicitly.
+  dup <- duplicated(paste(id_vec, t_norm, sep = "|"))
+  if (any(dup))
+    stop(sprintf(
+      "fLPPanel: found %d duplicate (%s, %s) row(s); each unit-time pair must be unique.",
+      sum(dup), id_var, time_var), call. = FALSE)
+
   # ---- formula → string -------------------------------------------------
   formula_chr <- paste(deparse(formula), collapse = " ")
 
@@ -275,7 +312,7 @@ fLPPanel <- function(formula, data,
   fe_str   <- if (length(parts) > 1L) trimws(paste(parts[-1L], collapse = "|")) else ""
 
   # ---- panel-aware lag/lead expansion (main part only) ------------------
-  main_ex  <- .fLPPanel_expand_lag_terms(main_str, data, id_var, time_var)
+  main_ex  <- .fLPPanel_expand_lag_terms(main_str, data, id_vec, t_norm)
   main_str <- main_ex$formula_chr
   data     <- main_ex$data
 
@@ -403,42 +440,11 @@ fLPPanel <- function(formula, data,
     matrix(0L, nrow(raw), 0L)
   }
 
+  # Time was already normalized above (before formula expansion) so gaps
+  # are preserved. Rebuild the aligned integer time from the same data
+  # subset after NA-drop and off-grid drop.
   i_index <- as.integer(factor(raw[[id_var]]))
-
-  # Time index: normalize so that one unit-step = one period. This mirrors
-  # panel_LP.m and handles unbalanced panels (including globally missing
-  # periods) correctly: gaps in the observed time grid are PRESERVED, so
-  # `l(x, 1)` at t = 5 correctly returns NaN if t = 4 is unobserved.
-  # Only rank-based mapping would (wrongly) close the gap and skip over
-  # the missing period.
-  t_raw <- raw[[time_var]]
-  if (inherits(t_raw, "Date") || inherits(t_raw, "POSIXct")) {
-    t_raw <- as.numeric(t_raw)
-  }
-  if (!is.numeric(t_raw)) {
-    stop("fLPPanel: 'time' column must be numeric, Date, or POSIXct.")
-  }
-  t_uniq <- sort(unique(t_raw))
-  if (length(t_uniq) < 2L) {
-    stop("fLPPanel: 'time' has fewer than 2 unique values.")
-  }
-  t_diff  <- min(diff(t_uniq))
-  t_scaled <- (t_raw - t_uniq[1L]) / t_diff + 1
-  on_grid  <- abs(t_scaled - round(t_scaled)) < 1e-2
-  if (!all(on_grid)) {
-    message(sprintf(
-      "fLPPanel: dropping %d row(s) with off-grid time index.",
-      sum(!on_grid)))
-    raw     <- raw[on_grid, , drop = FALSE]
-    y_mat   <- y_mat[on_grid, , drop = FALSE]
-    X_mat   <- X_mat[on_grid, , drop = FALSE]
-    W_mat   <- W_mat[on_grid, , drop = FALSE]
-    s_mat   <- s_mat[on_grid, , drop = FALSE]
-    fe_mat  <- fe_mat[on_grid, , drop = FALSE]
-    i_index <- i_index[on_grid]
-    t_scaled <- t_scaled[on_grid]
-  }
-  t_index <- as.integer(round(t_scaled))
+  t_index <- .fLPPanel_normalize_time(raw[[time_var]])$t_norm
 
   # ---- call C++ engine --------------------------------------------------
   res <- fLPPanel_cpp(
@@ -453,7 +459,8 @@ fLPPanel <- function(formula, data,
     p_max        = p_max,
     small_sample = isTRUE(small_sample),
     cumulative   = isTRUE(cumulative),
-    n_threads    = n_threads
+    n_threads    = n_threads,
+    verbose      = FALSE
   )
 
   # ---- build fLP-shaped result -----------------------------------------
@@ -469,7 +476,9 @@ fLPPanel <- function(formula, data,
   rownames(res$SE)       <- as.character(h_seq)
   rownames(res$df)       <- as.character(h_seq)
 
-  # Build bands at each requested conf level using per-cell t quantiles
+  # Build bands at each requested conf level using per-cell t quantiles.
+  # C++ engine no longer computes CI90/95/99 or p-values (they were the
+  # only R-API calls inside the OpenMP loop); we rebuild them here.
   build_band <- function(cl) {
     q <- matrix(0, H + 1L, length(irf_names))
     for (i in seq_len(H + 1L))
@@ -478,6 +487,23 @@ fLPPanel <- function(formula, data,
     list(upper = res$estimate + q * res$SE,
          lower = res$estimate - q * res$SE)
   }
+  build_fixed_ci <- function(cl) {
+    b <- build_band(cl)
+    a <- array(NA_real_, c(H + 1L, length(irf_names), 2L))
+    a[, , 1L] <- b$lower
+    a[, , 2L] <- b$upper
+    a
+  }
+  CI90 <- build_fixed_ci(0.90)
+  CI95 <- build_fixed_ci(0.95)
+  CI99 <- build_fixed_ci(0.99)
+  # Two-sided p-values from |t| under t(df).
+  t_stat <- abs(res$estimate / res$SE)
+  pval   <- matrix(NA_real_, H + 1L, length(irf_names))
+  for (i in seq_len(H + 1L))
+    for (j in seq_along(irf_names))
+      pval[i, j] <- 2 * stats::pt(t_stat[i, j], df = res$df[i, j],
+                                  lower.tail = FALSE)
 
   if (length(conf) == 1L) {
     b <- build_band(conf)
@@ -506,10 +532,12 @@ fLPPanel <- function(formula, data,
     irfs_upper   = irfs_upper,
     irfs_lower   = irfs_lower,
     df           = res$df,
-    pval         = res$pval,
-    CI90         = res$CI90,   # engine-native fixed-level bands
-    CI95         = res$CI95,
-    CI99         = res$CI99,
+    pval         = pval,
+    CI90         = CI90,
+    CI95         = CI95,
+    CI99         = CI99,
+    status       = res$status,
+    converged    = res$converged,
 
     lhs_vars     = lhs_vars,
     rhs_vars     = rhs_labels,
