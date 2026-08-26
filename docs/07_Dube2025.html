@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>12&nbsp; Local Projections Difference-in-Differences – tidyMacro</title>
+<title>Local Projections Difference-in-Differences – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -98,7 +97,7 @@ div.csl-indent {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-243ff5925296cc7b34704e1102c31ac2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-4dc7a0a1c379dfe597de3776b2e979c6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -160,8 +159,10 @@ window.Quarto = {
 
 <meta property="og:title" content="tidyMacro">
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
-<meta property="og:image" content="07_Dube2025_files/figure-html/banking-plot-1.png">
+<meta property="og:image" content="https://tidymacro.netlify.app/07_Dube2025_files/figure-html/banking-plot-1.png">
 <meta property="og:site_name" content="tidyMacro">
+<meta property="og:image:height" content="768">
+<meta property="og:image:width" content="1728">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -171,10 +172,6 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
-    <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
-    </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">tidyMacro</span>
     </a>
@@ -184,16 +181,18 @@ window.Quarto = {
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
-</i> 
-<span class="menu-text">PDF</span></a>
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./faq.html"> 
+<span class="menu-text">FAQ</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-    <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -202,9 +201,12 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_Dube2025.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07_Dube2025.html">LP DID</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
     </div>
   </nav>
 </header>
@@ -212,78 +214,100 @@ window.Quarto = {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/muhsinciftci/tidyMacro" title="tidyMacro GitHub" class="quarto-navigation-tool px-1" aria-label="tidyMacro GitHub"><i class="bi bi-github"></i></a>
+    <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339" title="Paper" class="quarto-navigation-tool px-1" aria-label="Paper"><i class="bi bi-file-pdf"></i></a>
+    <a href="https://www.linkedin.com/in/muhsin-ciftci/" title="Linkedin" class="quarto-navigation-tool px-1" aria-label="Linkedin"><i class="bi bi-linkedin"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
+ <span class="menu-text">Welcome</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></span></a>
+ <span class="menu-text">Identifcation via Short-run restrictions</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./02_1_Gali1999.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Long run restrictions</span></span></a>
+ <span class="menu-text">Identifcation via Long-run restrictions</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./02_2_BeaudryPortier2014.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></span></a>
+ <span class="menu-text">Identifcation via Mixed restrictions</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+ <span class="menu-text">Identifcation via External Instruments and Weak IV</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+ <span class="menu-text">Identifcation via Noninvertible shocks</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./05_lp_syntax.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections — Common Syntax and Conventions</span></span></a>
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Internal instruments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Heteroskedasticity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_01_lp_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Primer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_2_lp_syntax_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Syntax Primer</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text">LP with Shocks and IV</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text">LP Panel</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text">LP DID</span></a>
   </div>
 </li>
     </ul>
@@ -291,19 +315,31 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-is-lp-did" id="toc-what-is-lp-did" class="nav-link active" data-scroll-target="#what-is-lp-did"><span class="header-section-number">1</span> What is LP-DID?</a></li>
+  <li><a href="#banking-deregulation-and-the-labor-share" id="toc-banking-deregulation-and-the-labor-share" class="nav-link" data-scroll-target="#banking-deregulation-and-the-labor-share"><span class="header-section-number">2</span> Banking deregulation and the labor share</a></li>
+  <li><a href="#variance-weighted-vs.-equally-weighted-att" id="toc-variance-weighted-vs.-equally-weighted-att" class="nav-link" data-scroll-target="#variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</a></li>
+  <li><a href="#democracy-and-growth-non-absorbing-treatment" id="toc-democracy-and-growth-non-absorbing-treatment" class="nav-link" data-scroll-target="#democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">4</span> Democracy and growth (non-absorbing treatment)</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/07_Dube2025.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
 <!-- main -->
-<main class="content column-page-right" id="quarto-document-content">
+<main class="content column-body" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></h1>
+<h1 class="title">Local Projections Difference-in-Differences</h1>
 <p class="subtitle lead">Replicating Dube, Girardi, Jordà and Taylor 2025</p>
 </div>
 
 
 
-<div class="quarto-title-meta column-page-right">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -315,11 +351,109 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="12.1">
-<h2 data-number="12.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">12.1</span> Overview</h2>
-<p>This chapter replicates the two empirical applications of <span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span> with <code>fLPDID()</code> and <code>fPlotLPDID()</code>. Shared conventions across the LP engines — formula grammar, <code>..macros</code>, gap-safe <code>l()</code> / <code>f()</code> / <code>d()</code>, <code>panel_id</code> handling, duplicate-row rejection, output tibble shape — are documented once in the <a href="05_lp_syntax.html">Local Projections syntax primer</a>. Below we focus on what is DiD-specific.</p>
-<p>For each horizon <span class="math inline">\(h\)</span> the long-difference regression <span class="math display">\[y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
-\;+\; \tau_t \;+\; \varepsilon_{it}\]</span> is fit on a <strong>clean-control sample</strong> (newly treated units and units that stay untreated over the relevant window). Pre-treatment horizons replace <span class="math inline">\(y_{i,t+h}\)</span> by <span class="math inline">\(y_{i,t-j}\)</span> as placebo tests, with <span class="math inline">\(\beta_{-1}=0\)</span> as the normalization.</p>
+<section id="what-is-lp-did" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="what-is-lp-did"><span class="header-section-number">1</span> What is LP-DID?</h2>
+<p>To see the main ideas and contributions of the paper, click below to expand:</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What is LP-DID?
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>With staggered treatment adoption, conventional TWFE regressions may use <strong>previously treated units as controls for newly treated units</strong>. When treatment effects are dynamic or heterogeneous, these comparisons can generate negative weights and biased estimates.</p>
+<p>A naïve application of Local Projections does not automatically solve this problem. At a given horizon (h), the control group may include:</p>
+<ul>
+<li>previously treated units that are still affected by treatment; or</li>
+<li>units that become treated between (t) and (t+h).</li>
+</ul>
+<p>Thus, the main contribution of the paper is not simply applying LPs to DiD, but defining an appropriate <strong>clean control condition</strong>.</p>
+<section id="the-lp-did-estimator" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="the-lp-did-estimator"><span class="header-section-number">1.1</span> The LP-DiD estimator</h3>
+<p>For each horizon (h), LP-DiD compares newly treated units with units that remain untreated throughout the relevant horizon. A basic specification is</p>
+<p><span class="math display">\[y_{i,t+h} - y_{i,t-1}
+=
+\delta_t^h
++
+\beta_h^{LP-DiD}\Delta D_{it}
++
+e_{it}^h.\]</span></p>
+<p>The estimation sample includes:</p>
+<ul>
+<li><strong>newly treated units</strong>, for which (D_{it}=1); and</li>
+<li><strong>clean controls</strong>, which remain untreated at least until (t+h).</li>
+</ul>
+<p>Under absorbing treatment, the clean control condition simplifies to</p>
+<p><span class="math display">\[D_{i,t+h}=0.\]</span></p>
+<p>By excluding previously treated and soon-to-be-treated observations from the control group, LP-DiD avoids the negative-weighting problem.</p>
+</section>
+<section id="identification-and-weighting" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="identification-and-weighting"><span class="header-section-number">1.2</span> Identification and weighting</h3>
+<p>Under the standard assumptions of <strong>no anticipation</strong> and <strong>parallel trends</strong>, LP-DiD estimates a convex weighted average of cohort-specific treatment effects:</p>
+<p><span class="math display">\[\beta_h^{LP-DiD}
+=
+\sum_g \omega_{g,h}\tau_{g,h}.\]</span></p>
+<p>Importantly, the weights are nonnegative. The default estimator uses variance-based weights, which depend on cohort size and treatment variation. If the researcher instead wants the conventional equally weighted ATT, the LP-DiD regression can be reweighted accordingly.</p>
+</section>
+<section id="relation-to-existing-did-estimators" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="relation-to-existing-did-estimators"><span class="header-section-number">1.3</span> Relation to existing DiD estimators</h3>
+<p>An important contribution of the paper is that several recent DiD estimators can be interpreted as special cases of the LP-DiD framework.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>LP-DiD implementation</th>
+<th>Related estimator</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline variance-weighted LP-DiD</td>
+<td>Stacked regression approach of Cengiz et al (2019).</td>
+</tr>
+<tr class="even">
+<td>Reweighted LP-DiD</td>
+<td>Callaway and Sant’Anna (2020)</td>
+</tr>
+<tr class="odd">
+<td>LP-DiD with alternative pre-treatment baseline</td>
+<td>Closely related to Borusyak, Jaravel, and Spiess (2024)</td>
+</tr>
+</tbody>
+</table>
+<p>The main differences arise from the choice of:</p>
+<ul>
+<li>comparison sample;</li>
+<li>weighting scheme; and</li>
+<li>pre-treatment base period.</li>
+</ul>
+</section>
+<section id="relation-to-standard-local-projections" class="level3" data-number="1.4">
+<h3 data-number="1.4" class="anchored" data-anchor-id="relation-to-standard-local-projections"><span class="header-section-number">1.4</span> Relation to standard Local Projections</h3>
+<p>LP-DiD is closely related to the standard Local Projections (LP) approach used in macroeconomics, but the two methods generally estimate different causal objects. The main difference concerns how they treat subsequent changes in the treatment variable.</p>
+<p>In a standard macroeconomic LP, an initial shock may generate further changes in policy or treatment in subsequent periods. The resulting impulse response therefore captures the overall dynamic response to the initial intervention, including the effects of the subsequent treatment path. In this sense, the object of interest is closer to the effect of a <strong>treatment plan</strong> rather than a single treatment event.</p>
+<p>LP-DiD instead aims to isolate the effect of a <strong>one-off treatment event</strong>. When estimating the effect at horizon (h), it conditions on future treatment status and restricts the comparison to units whose treatment does not change over the relevant horizon. This removes the effects of subsequent treatments from the estimated response.</p>
+<p>The distinction can therefore be summarized as follows:</p>
+<ul>
+<li><strong>Standard LPs:</strong> estimate the dynamic response following an initial shock, allowing subsequent treatments or policy changes to occur.</li>
+<li><strong>LP-DiD:</strong> estimates the effect of an individual treatment event by excluding comparisons contaminated by past or subsequent treatment changes.</li>
+</ul>
+<p>The two approaches are therefore complementary rather than competing. A standard LP is appropriate when the objective is to estimate the overall response observed after a shock, including the treatment path that follows. LP-DiD is more suitable when the objective is to isolate the causal effect of a particular treatment event. In principle, an overall impulse response can be constructed by combining the one-off effects estimated by LP-DiD with the relevant treatment path.</p>
+<p>The paper also notes two caveats. First, conditioning on future treatment may be problematic when future treatment assignment is endogenous. Second, when agents anticipate future treatments, a hypothetical one-off intervention may generate different responses from those observed under the usual treatment path.</p>
+<p>Thus, LP-DiD should be viewed as an adaptation of the LP framework for a different counterfactual experiment: rather than asking for the overall response to a shock and its subsequent treatment path, it asks for the effect of an individual treatment event.</p>
+</section>
+</div>
+</div>
+</div>
+<p>This chapter replicates the two empirical applications of <span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span>. For technical details refer to <a href="#0">Local Projections syntax primer</a>.</p>
 <p><strong>Estimator-specific arguments</strong> (beyond the shared list; see <code>?fLPDID</code> for the full API):</p>
 <ul>
 <li><code>post</code>, <code>pre</code> — event-time windows (<code>fLPDID()</code> uses these instead of <code>horizons</code>).</li>
@@ -339,9 +473,10 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"DemocracyGrowth"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="banking-deregulation-and-the-labor-share" class="level2" data-number="12.2">
-<h2 data-number="12.2" class="anchored" data-anchor-id="banking-deregulation-and-the-labor-share"><span class="header-section-number">12.2</span> Banking deregulation and the labor share</h2>
-<p>The first application (DGJT, Figure 3) revisits the effect of US <strong>inter-state banking deregulation</strong> on the private labor share: 46 states, 1970–1996, absorbing staggered treatment.</p>
+<section id="banking-deregulation-and-the-labor-share" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="banking-deregulation-and-the-labor-share"><span class="header-section-number">2</span> Banking deregulation and the labor share</h2>
+<p>The first application revisits <span class="citation" data-cites="leblebicioglu2020">Leblebicioğlu and Weinberger (<a href="#ref-leblebicioglu2020" role="doc-biblioref">2020</a>)</span> who study the effect of US <strong>inter-state banking deregulation</strong> on the private labor share: 46 states, 1970–1996, absorbing staggered treatment. Basically they estimate:</p>
+<p><span class="math display">\[LS_{s, t + h} - LS_{s, t - 1} = \delta^h_t + \beta_h^{LP-DID} \Delta Policy_{s, t} + \sum_{m = 1}^{M} \eta_m^h X_{s, t - m} + e_{s, t}^h\]</span></p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>bank_fe <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank,</span>
@@ -369,13 +504,15 @@ window.Quarto = {
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(<span class="st">`</span><span class="at">Only year FEs</span><span class="st">`</span>               <span class="ot">=</span> bank_fe,</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>           <span class="st">`</span><span class="at">+ lagged labor share</span><span class="st">`</span>        <span class="ot">=</span> bank_ylags,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>           <span class="st">`</span><span class="at">+ lagged share and controls</span><span class="st">`</span> <span class="ot">=</span> bank_full,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">ci =</span> <span class="st">"bars"</span>, <span class="at">scales =</span> <span class="st">"fixed"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> <span class="st">"Banking deregulation and the labor share (LP-DiD)"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab  =</span> <span class="st">"Years since deregulation"</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">ylab  =</span> <span class="st">"Labor share"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Only year FEs</span><span class="st">`</span>                <span class="ot">=</span> bank_fe,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">+ lagged labor share</span><span class="st">`</span>         <span class="ot">=</span> bank_ylags,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">+ lagged share and controls</span><span class="st">`</span>  <span class="ot">=</span> bank_full,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">ci =</span> <span class="st">"bars"</span>, <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Banking deregulation and the labor share (LP-DiD)"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab  =</span> <span class="st">"Years since deregulation"</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab  =</span> <span class="st">"Labor share"</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -384,24 +521,29 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>Across specifications the LP-DiD estimates are small and statistically indistinguishable from zero — DGJT’s point: the large negative effects found by two-way fixed-effects event studies in this setting are an artifact of forbidden comparisons, not a feature of the data. The same exercise for intra-state branching amounts to <code>fLPDID(lshare ~ branch, ..., treat = "branch")</code>.</p>
 </section>
-<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="12.3">
-<h2 data-number="12.3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">12.3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
+<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
 <p>By default the LP-DiD OLS coefficient is a <strong>variance-weighted</strong> average of clean <span class="math inline">\(2\times2\)</span> comparisons — efficient, but it overweights treatment cohorts observed when the treated share is small. Setting <code>reweight = TRUE</code> inverts the implicit weights (<span class="math inline">\(w = 1/(1-p_t)\)</span>) and recovers the <strong>equally-weighted</strong> ATT.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bank_rw <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(lshare <span class="sc">~</span> bank,</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> BankingDeregulation, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">treat =</span> <span class="st">"bank"</span>, <span class="at">post =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">reweight =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bank_rw <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data     =</span> BankingDeregulation, </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat    =</span> <span class="st">"bank"</span>, </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">post     =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">reweight =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(<span class="st">`</span><span class="at">Variance-weighted (OLS)</span><span class="st">`</span> <span class="ot">=</span> bank_fe,</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>           <span class="st">`</span><span class="at">Equally-weighted ATT</span><span class="st">`</span>    <span class="ot">=</span> bank_rw,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">ci =</span> <span class="st">"bars"</span>, <span class="at">scales =</span> <span class="st">"fixed"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> <span class="st">"Weighting and the estimand"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">xlab  =</span> <span class="st">"Years since deregulation"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">ylab  =</span> <span class="st">"Labor share"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Variance-weighted (OLS)</span><span class="st">`</span> <span class="ot">=</span> bank_fe,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Equally-weighted ATT</span><span class="st">`</span>    <span class="ot">=</span> bank_rw,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">ci =</span> <span class="st">"bars"</span>, <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Weighting and the estimand"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab  =</span> <span class="st">"Years since deregulation"</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab  =</span> <span class="st">"Labor share"</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -411,9 +553,10 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="12.4">
-<h2 data-number="12.4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">12.4</span> Democracy and growth (non-absorbing treatment)</h2>
-<p>The second application (DGJT, Figure 4) revisits <span class="citation" data-cites="acemoglu2019">Acemoglu et al. (<a href="#ref-acemoglu2019" role="doc-biblioref">2019</a>)</span> . Treatment is <strong>non-absorbing</strong> — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP (<code>l(lgdp, 1:4)</code>) and clean-control samples are built recursively over a stabilization window of <span class="math inline">\(L = 20\)</span> years.</p>
+<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">4</span> Democracy and growth (non-absorbing treatment)</h2>
+<p>The second application of <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> revisits <span class="citation" data-cites="acemoglu2019">Acemoglu et al. (<a href="#ref-acemoglu2019" role="doc-biblioref">2019</a>)</span> . Treatment is <strong>non-absorbing</strong> — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP and clean-control samples are built recursively over a stabilization window of <span class="math inline">\(L = 20\)</span> years. Specifically the estimation is:</p>
+<p><span class="math display">\[y_{ct} = \beta D_{ct} + \sum_{j = 1}^{p} \gamma_j y_{c, t - j}   + \alpha_c + \delta_t + \epsilon_{ct}\]</span></p>
 <p>Three flavors of the clean-control condition (<code>ccc</code>):</p>
 <ul>
 <li><code>ccc = 0</code> — no restriction beyond the transition definition (the original ANRR local-projection specification);</li>
@@ -421,20 +564,26 @@ window.Quarto = {
 <li><code>ccc = 2</code> — controls must additionally remain clean up to <span class="math inline">\(t+h\)</span>.</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>demo_anrr <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">0</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>demo_ccc1 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">1</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>demo_ccc2 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>demo_anrr <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">0</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>demo_ccc1 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">1</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>demo_ccc2 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">2</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
@@ -457,29 +606,27 @@ window.Quarto = {
 </div>
 <p>Democratization raises GDP per capita by roughly 15–25 log points over 25–30 years, with flat pre-trends. Restricting to clean controls (<code>ccc = 1, 2</code>) moderates the ANRR estimates, as contaminated comparisons are removed from the control group.</p>
 </section>
-<section id="notes-on-the-implementation" class="level2" data-number="12.5">
-<h2 data-number="12.5" class="anchored" data-anchor-id="notes-on-the-implementation"><span class="header-section-number">12.5</span> Notes on the implementation</h2>
-<p>Generic behavior — gap-safe operators, duplicate <code>(id, time)</code> rejection, argument validation, PMD baseline formula, <code>reweight + controls</code> warning, direct-C++ boundary checks — is documented in the <a href="05_lp_syntax.html">syntax primer</a>. The two items below are LP-DiD-specific and worth flagging in the empirical context:</p>
-<ul>
-<li><strong>Weighting.</strong> <code>reweight = TRUE</code> implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is <strong>not</strong> in the C++ engine; the runtime warning triggered by <code>reweight = TRUE</code> with non-empty controls makes this explicit at the point of use.</li>
-<li><strong>Missing-value semantics for clean-control sets.</strong> The recursive CCS follow Stata’s conventions at panel boundaries: a missing treatment change counts as “no change” (condition OK); a missing lagged clean-control flag counts as failing the condition. This matters for reproducing the original results observation-for-observation.</li>
-</ul>
-</section>
 <section id="references" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-acemoglu2019" class="csl-entry" role="listitem">
 Acemoglu, Daron, Suresh Naidu, Pascual Restrepo, and James A. Robinson. 2019. <span>“Democracy Does Cause Growth.”</span> <em>Journal of Political Economy</em> 127 (1): 47–100. <a href="https://doi.org/10.1086/700936">https://doi.org/10.1086/700936</a>.
 </div>
 <div id="ref-dube2025" class="csl-entry" role="listitem">
-Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <span>“A Local Projections Approach to Difference-in-Differences.”</span> <em>Journal of Applied Econometrics</em> 40 (7): 741–58. <a href="https://doi.org/10.1002/jae.70000">https://doi.org/10.1002/jae.70000</a>.
+Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <span>“A <span>Local Projections Approach</span> to <span class="nocase">Difference-in-Differences</span>.”</span> <em>Journal of Applied Econometrics</em> 40 (7): 741–58. <a href="https://doi.org/10.1002/jae.70000">https://doi.org/10.1002/jae.70000</a>.
 </div>
+<div id="ref-jorda2025" class="csl-entry" role="listitem">
+Jorda, Oscar, and Alan M. Taylor. 2025. <span>“Local <span>Projections</span>.”</span> <em>Journal of Economic Literature</em> 63 (1): 59–110. <a href="https://doi.org/10.1257/jel.20241521">https://doi.org/10.1257/jel.20241521</a>.
 </div>
-</section>
-
-</main> <!-- /main -->
+<div id="ref-leblebicioglu2020" class="csl-entry" role="listitem">
+Leblebicioğlu, Aslı, and Ariel Weinberger. 2020. <span>“Credit and the <span>Labour Share</span>: <span>Evidence</span> from <span>US States</span>.”</span> <em>The Economic Journal</em> 130 (630): 1782–816. <a href="https://doi.org/10.1093/ej/ueaa025">https://doi.org/10.1093/ej/ueaa025</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -553,7 +700,7 @@ Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <spa
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/tidymacro\.netlify\.app");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -885,10 +1032,10 @@ Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <spa
     }
   });
   </script>
-<nav class="page-navigation column-page-right">
+<nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./06_AlmuzaraSancibrian2024.html" class="pagination-link" aria-label="Panel Local Projections">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span>
+      <a href="./06_AlmuzaraSancibrian2024.html" class="pagination-link" aria-label="LP Panel">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">LP Panel</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
@@ -898,13 +1045,13 @@ Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <spa
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Built with <a href="https://quarto.org">Quarto</a></p>
+<p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
 </div>   
     <div class="nav-footer-center">
-<p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
-<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/07_Dube2025.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/07_Dube2025.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
-<p><a href="./index.html">tidyMacro</a></p>
+<p>This page is built with <a href="https://quarto.org">Quarto</a>.</p>
 </div>
   </div>
 </footer>

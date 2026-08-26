@@ -1,0 +1,259 @@
+---
+title: "Local Projections — Common Syntax and Conventions"
+subtitle: "One reference sheet for fLP(), fLPIV(), fLPPanel(), and fLPDID()"
+editor: visual
+bibliography: references.bib
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment  = "#>",
+    out.width = "100%"
+)
+```
+
+## Purpose of this chapter
+
+The four local-projection engines in `tidyMacro` — `fLP()`, `fLPIV()`, `fLPPanel()`, `fLPDID()` — deliberately share a single, `fixest`-inspired interface: the same formula grammar, the same lag/lead operators, the same panel-index convention, the same multi-band handling, and the same plotting entry point (`fPlotLP()` / `fPlotLPDID()`). This chapter is the **one place** where those shared conventions are documented, so the empirical replication chapters that follow (@jorda2025, @almuzara2024micro, @dube2025) can stay focused on the economics.
+
+Read this once, then treat the estimator chapters as extensions:
+
+- `fLP()` and `fLPIV()` — [Local Projections with Shocks and IV](05_JordaTaylor2025.html)
+- `fLPPanel()` — [Panel Local Projections](06_AlmuzaraSancibrian2024.html)
+- `fLPDID()` — [Local Projections Difference-in-Differences](07_Dube2025.html)
+
+------------------------------------------------------------------------
+
+## 1 · The shared formula grammar
+
+Every LP function takes a two-sided formula whose left-hand side is the outcome (or `c(y1, y2, ...)` for multi-equation `fLP()`) and whose right-hand side is exactly the set of regressors the estimator should use — **no automatic lag augmentation, no hidden intercept fiddling** beyond what the estimator demands mathematically.
+
+```{r, eval=FALSE}
+# fLP()      : y ~ shock + controls
+# fLPIV()    : y ~ D     + controls,   instruments = ~ z + l(z, 1:6)
+# fLPPanel() : y ~ shock + controls | fe1 + fe2
+# fLPDID()   : y ~ treat + controls
+```
+
+For panel estimators, terms after the pipe `|` are absorbed fixed effects (as in `fixest::feols`). `fLPDID()` does not need a pipe — time fixed effects are part of the estimator and always absorbed, and unit effects are removed by the long difference. Any `| time` you write is accepted as a redundancy check but has no effect.
+
+### 1.1 · Macro expansion (`..name`)
+
+A character vector in the calling environment can be spliced into the formula with the `..name` token, exactly as in `fixest`:
+
+```{r, eval=FALSE}
+controls <- c("ip_l1", "cpi_l1", "rate_l1")
+fLP(ip ~ mp_shock + ..controls, data = df, shock = "mp_shock", horizons = 24)
+```
+
+Macros also work **inside** the lag/lead operators (`l(..controls, 1:3)` expands to `l(ip_l1, 1:3) + l(cpi_l1, 1:3) + l(rate_l1, 1:3)`).
+
+### 1.2 · Lag, lead, and first-difference operators
+
+| Operator     | Meaning                                    | Generated column |
+|-------------|--------------------------------------------|-----------------|
+| `l(x, k)`    | lag of `x` by `k` periods                  | `x_lk`          |
+| `l(x, k1:k2)`| a lag range → several columns              | `x_lk1 … x_lk2` |
+| `f(x, k)`    | lead of `x` by `k` periods                 | `x_fk`          |
+| `d(x)`       | first difference `x - l(x, 1)` *(LP-DiD)*  | `x_d1`          |
+| `l(d(x), k)` | lags of the first difference *(LP-DiD)*    | `x_d1_lk`       |
+
+For the panel estimators, all four operators are **gap-safe on the normalized time grid**: `l(x, 1)` at $t = 5$ returns `NA` when $t = 4$ is unobserved for that unit, and never bridges the gap. `Date` and `POSIXct` time columns are supported and internally re-mapped to a unit-step integer index (see §3).
+
+### 1.3 · The intercept: don't write `1 +`
+
+Never add `1 +` (or `+ 1`) to an LP formula. Each engine handles the constant internally, but the mechanism differs:
+
+| Engine       | How the constant enters |
+|--------------|---|
+| `fLP()`      | Engine prepends its own intercept column to `X`. |
+| `fLPIV()`    | Engine prepends an intercept to the exogenous controls before FWL residualisation (`Cext = [1, C]`). |
+| `fLPDID()`   | Time fixed effects are always absorbed — the within-year demeaning implicitly removes any constant. Nothing to add. |
+| `fLPPanel()` | The constant is absorbed **only through the FE block after `\|`**. If you write no `\|` block, the wrapper drops any explicit intercept and the engine fits a **no-intercept** regression on your RHS. Almost always the correct panel LP spec has at least one FE (unit, time, or both), so this rarely matters — but if you want a plain pooled OLS with a constant, you need at least one FE column. |
+
+So: `fLP(y ~ shock + controls, ...)`, `fLPIV(y ~ D + controls, instruments = ~ z, ...)`, `fLPPanel(y ~ shock + ... | unit + tt, ...)`, `fLPDID(y ~ treat + ..., ...)` — all correct. Adding `1 +` is redundant (fLP / fLPIV / fLPDID) or silently ignored (fLPPanel).
+
+------------------------------------------------------------------------
+
+## 2 · Common arguments
+
+The four engines share more arguments than differ. The list below shows what every LP call looks like in `tidyMacro`; consult the individual `?fLP`, `?fLPIV`, `?fLPPanel`, `?fLPDID` help pages for the estimator-specific extras.
+
+| Argument       | fLP | fLPIV | fLPPanel | fLPDID | Meaning |
+|----------------|:---:|:-----:|:--------:|:------:|---------|
+| `formula`      | ✓   | ✓     | ✓        | ✓      | Formula with `..macro`, `l()`, `f()` (and `d()` for LP-DiD) |
+| `data`         | ✓   | ✓     | ✓        | ✓      | `data.frame` / `tibble` (long form for panel) |
+| `horizons`     | ✓   | ✓     | ✓        | —      | Scalar `H` or the sequence `0:H` |
+| `post`, `pre`  | —   | —     | —        | ✓      | Event-time windows (LP-DiD replaces `horizons`) |
+| `shock`        | ✓   | —     | ✓        | —      | Name of the impulse term |
+| `endog`        | —   | ✓     | —        | —      | Name of the endogenous treatment RHS term |
+| `instruments`  | —   | ✓     | —        | —      | One-sided formula, e.g. `~ l(z, 0:6)` |
+| `treat`        | —   | —     | —        | ✓      | Name of the treatment level column |
+| `panel_id`     | —   | —     | ✓        | ✓      | `c("id_col", "time_col")` |
+| `cluster`      | —   | —     | —        | ✓      | Cluster column (default = unit id) |
+| `conf`         | ✓   | ✓     | ✓        | ✓      | Scalar or vector of confidence levels |
+| `cumulative`   | ✓   | ✓     | ✓        | *implicit* | Long-difference outcome `y_{t+h} − y_{t-1}` |
+| `nw_lags`      | ✓   | *as `nw_lags_iv`* | — | — | Newey–West base bandwidth |
+| `nw_offset`    | ✓   | —     | —        | —      | NW bandwidth shift (`+1` MA&R, `0` classic Jordà) |
+| `small_sample` | —   | —     | ✓        | —      | Imbens–Kolesar small-sample refinement |
+| `p_max`        | —   | —     | ✓        | —      | Max lags of the regressand and shock added as controls |
+| `nonabsorbing` | —   | —     | —        | ✓      | Non-absorbing treatment (with `L`, `ccc`) |
+| `L`, `ccc`     | —   | —     | —        | ✓      | Clean-control window and flavor |
+| `pmd`          | —   | —     | —        | ✓      | Pre-mean-differenced baseline (Stata formula) |
+| `reweight`     | —   | —     | —        | ✓      | Equally-weighted ATT via inverse implicit weights |
+| `n_threads`    | ✓   | ✓     | ✓        | ✓      | OpenMP threads; `<= 0` uses all cores |
+
+### 2.1 · Multi-level confidence bands from one fit
+
+Every engine accepts a **vector** `conf`, e.g. `conf = c(0.68, 0.95)`, and rebuilds every band from the same raw SE in R. There is no re-estimation cost and no multiple-testing story — bands are just alternative visualizations of the same variance. `fPlotLP()` draws one ribbon per level automatically.
+
+### 2.2 · Threading and console noise
+
+All four engines parallelize the horizon loop with OpenMP. The thread rule is **uniform**: `n_threads <= 0` uses all available cores, `n_threads > 0` uses exactly that many. Thread-count print messages have been gated behind an internal `verbose` flag (default off), so the engines are silent by default.
+
+------------------------------------------------------------------------
+
+## 3 · The panel index convention
+
+For `fLPPanel()` and `fLPDID()`, the panel is described by `panel_id = c(id_col, time_col)`, plus an optional `cluster = ...` (LP-DiD).
+
+Both estimators do the following, once, up front:
+
+1. **Time normalization.** The time column can be numeric, `Date`, or `POSIXct`. Internally it is re-mapped to an integer grid where consecutive periods differ by 1 (the step is inferred as `min(diff(sort(unique(time))))`). This makes `Date` columns and monthly / quarterly / annual numeric grids behave identically.
+2. **Off-grid rows dropped.** Rows whose time cannot be placed on the inferred grid are dropped with an informative message. This eliminates a class of hard-to-debug alignment bugs.
+3. **Duplicate `(id, time)` rejected.** Any pair that appears twice would silently corrupt the internal unit-time row map used by `l()`, `f()`, `d()`, and the clean-control sets. A clear error is raised at the R boundary before any C++ call.
+4. **Gap preservation.** All shifts look up `(id, normalized_time + k)` explicitly rather than "the adjacent row after sorting". Calendar gaps stay as gaps: no lag or lead ever silently bridges a missing period.
+
+------------------------------------------------------------------------
+
+## 4 · What each engine returns
+
+The output shapes share a common core so `tidy()` and `fPlotLP()` work uniformly.
+
+### `fLP()` and `fLPIV()`
+
+An S3 object of class `"fLP"` (`fLPIV()` adds the `"fLPIV"` subclass). Core fields:
+
+| Field         | Shape                    | Description |
+|---------------|--------------------------|-------------|
+| `irfs`        | `(H+1) × n_y`            | IRF point estimates |
+| `irfs_se`     | `(H+1) × n_y`            | Raw HAC SE of the shock coefficient |
+| `irfs_upper`, `irfs_lower` | matrix, or named list of matrices | Confidence bands; a list when `conf` has multiple levels |
+| `horizons`    | `0:H`                    | Horizon index |
+| `Fstat_fs`, `rsqr_fs` | `H+1` (fLPIV only) | Per-horizon first-stage F and R² |
+
+`tidy.fLP()` returns a long data frame; single-band fits give the classic `(estimate, se, lower, upper)` columns, multi-band fits give one `lower_X` / `upper_X` pair per level.
+
+**Weak-instrument fallback for `fLPIV()`.** When the 2SLS denominator $\hat D' D_r$ is numerically zero (weak / degenerate first stage), `fLPIV()` returns `NaN` for that horizon's estimate and SE rather than a silent `0`. Downstream `tidy.fLP()` / `fPlotLP()` propagate the `NaN`s so the horizon simply doesn't render on the plot. Corresponding `Fstat_fs[h]` values become `NaN` when the residual df is non-positive.
+
+### `fLPPanel()`
+
+An S3 object of class `c("fLPPanel", "fLP")` — so it plugs into `fPlotLP()` and `tidy.fLP()` unchanged. Beyond the core fields, it exposes:
+
+| Field         | Shape           | Description |
+|---------------|-----------------|-------------|
+| `df`          | `(H+1) × n_s`   | Effective degrees of freedom (LAHR or Imbens–Kolesar) |
+| `pval`        | `(H+1) × n_s`   | Two-sided p-values built in R from `(estimate, SE, df)` |
+| `CI90/95/99`  | `(H+1) × n_s × 2` arrays | Fixed-level bands (rebuilt in R, not C++) |
+| `status`      | integer `H+1`   | `0` OK · `1` no complete rows · `2` HDFE failed |
+| `converged`   | integer `H+1`   | `1` HDFE converged · `0` did not |
+
+Non-`0` `status` values are surfaced as R warnings when they occur; the `status` / `converged` vectors let you programmatically screen individual horizons in downstream code.
+
+### `fLPDID()`
+
+A tibble of class `c("fLPDID", ...)` with columns `event_time, estimate, se, conf_low, conf_high, nobs, nclust`, and an `attr("lpdid_spec")` list capturing every argument that shaped the fit. The plot function is `fPlotLPDID()`, which accepts one result or several named results (`fPlotLPDID(\`OLS\` = m1, \`Reweighted\` = m2)`).
+
+------------------------------------------------------------------------
+
+## 5 · The estimating equations
+
+For quick reference, here are the population objects each function targets.
+
+### `fLP()` — classical Jordà LP
+
+Standard form:
+$$y_{t+h} \;=\; \alpha_h + \beta_h\, s_t + \gamma_h' w_t + u_{t+h}, \qquad h = 0, 1, \dots, H.$$
+
+Cumulative form (`cumulative = TRUE`):
+$$y_{t+h} - y_{t-1} \;=\; \alpha_h + \beta_h\, s_t + \gamma_h' w_t + u_{t+h}.$$
+
+The IRF at horizon $h$ is $\beta_h$. Standard errors use the full Newey–West sandwich `V_h = (X'X)⁻¹ X'ΩX (X'X)⁻¹` with a Bartlett kernel of bandwidth `max(nw_lags + h + nw_offset, 0)`.
+
+### `fLPIV()` — LP with an external instrument
+
+The endogenous treatment $D_t$ is identified by an external instrument matrix $Z_t$ (build any lags with `l(z, 0:k)` in the `instruments` formula). Estimation is horizon-by-horizon 2SLS via Frisch–Waugh–Lovell:
+
+1. Residualize $y_{h}$, $D$ and $Z$ on $[1, C_t]$.
+2. First stage: $\hat D_t = Z_r (Z_r' Z_r)^{-1} Z_r' D_r$.
+3. 2SLS point estimate $\hat\beta_h = (\hat D' Y_r) / (\hat D' D_r)$.
+4. Newey–West delta-method SE on the score $g_t = \hat D_t \cdot \varepsilon_t$.
+
+The first-stage F reported in `Fstat_fs` uses `df2 = Th − kc − nz`, i.e. the residual df of the *full* first-stage regression $D \sim [1, C, Z]$ under the FWL equivalence; if `df2 <= 0` the value is `NaN`.
+
+### `fLPPanel()` — panel LP à la Almuzara & Sancibrián
+
+At horizon $h$, for each interaction component $j$:
+$$y_{i, t+h} \;=\; \alpha^{(h)}_{\mathrm{FE}} + \beta_h^{(j)} (s_{it, j}\, x_t) + \gamma_h' w_{it} + \sum_{k=1}^{\min(h, p_{\max})} \delta_{hk}' v_{i,t-k} + u_{i,t+h}.$$
+
+Inference: asymptotic time-clustered (LAHR) by default; the @imbens2016 small-sample refinement is available via `small_sample = TRUE`, which reports a component-specific effective degrees of freedom.
+
+### `fLPDID()` — LP-DiD à la Dube–Girardi–Jordà–Taylor
+
+At horizon $h$:
+$$y_{i, t+h} - y_{i, t-1} \;=\; \beta_h\, \Delta D_{it} + X_{it}' \gamma_h + \tau_t + \varepsilon_{it},$$
+
+restricted to a clean-control sample. Pre-treatment horizons replace $y_{i, t+h}$ by $y_{i, t-j}$ with $\beta_{-1} = 0$ as the normalization. Standard errors are CR1 cluster-robust with the `reghdfe` correction $c = \tfrac{G}{G-1} \cdot \tfrac{N-1}{N-K}$ where $K$ counts absorbed time fixed effects.
+
+**PMD baseline (`pmd = TRUE`)** replaces $y_{i, t-1}$ by the pre-treatment mean $\bar y_{i,<t}$ computed **exactly as in the DGJT Stata replication code**:
+
+- Numerator: per-unit running sum of $y$ treating missing outcomes as $0$ (Stata's `sum()` convention).
+- Denominator: calendar time since the global sample start, `time - 1` with `time = year - start_year + 1`.
+- The baseline is defined only when the immediately preceding calendar row exists for the unit (Stata's `L.` semantics); otherwise it is `NA` and that horizon drops.
+
+This reproduces the published numbers on balanced and gap-containing panels alike.
+
+**Reweight (`reweight = TRUE`)** applies inverse implicit weights $w = 1/(1 - p_t)$ to recover the equally-weighted ATT (exogenous / absorbing case). When combined with non-empty controls, `fLPDID()` emits a runtime warning stating that this is **not** the DDCG `teffects ra` regression-adjustment estimator — the naming is deliberate so downstream interpretation is unambiguous.
+
+------------------------------------------------------------------------
+
+## 6 · Plotting
+
+Both `fPlotLP()` and `fPlotLPDID()` are the same idea: pass a fit (or several) and get a ggplot back.
+
+```{r, eval=FALSE}
+fPlotLP(lp_fit)                      # single fit → one panel per LHS
+fPlotLP(lp_fit, return_data = TRUE)  # tibble for hand-rolled ggplot
+
+fPlotLPDID(m_ols, m_rw)              # unnamed fits get generic labels
+fPlotLPDID(`OLS` = m_ols, `Reweighted` = m_rw)      # named → facet labels
+fPlotLPDID(m_ols, ci = "bars")       # DGJT coefplot style
+```
+
+Multi-band `fLP()` / `fLPIV()` / `fLPPanel()` fits automatically get one ribbon per level.
+
+------------------------------------------------------------------------
+
+## 7 · Direct C++ boundary access
+
+Advanced users may bypass the R wrapper and call the C++ engines through `tidyMacro:::fLP_cpp`, `tidyMacro:::fLPIV_cpp`, `tidyMacro:::fLPPanel_cpp`, `tidyMacro:::fLPDID_cpp`. Each of these does its own boundary validation before entering the parallel region:
+
+- Finite inputs only — `NA`, `NaN`, `Inf` are rejected up-front.
+- Row-count consistency across all matrices / vectors.
+- Non-negative scalar arguments (`H`, `pre_window`, `post_window`, etc.).
+- `ccc ∈ {0, 1, 2}` for LP-DiD; `Lwin >= 0` when `nonabsorbing` and `ccc > 0`.
+
+The R wrappers already enforce all of the above; the direct-call checks are a safety net so `.Call` from downstream packages fails cleanly.
+
+------------------------------------------------------------------------
+
+## 8 · Where to go next
+
+- **`fLP()` and `fLPIV()`** — [Local Projections with Shocks and IV](05_JordaTaylor2025.html) (Jordà & Taylor 2025 replication).
+- **`fLPPanel()`** — [Panel Local Projections](06_AlmuzaraSancibrian2024.html) (Almuzara & Sancibrián 2024 sample port).
+- **`fLPDID()`** — [Local Projections Difference-in-Differences](07_Dube2025.html) (Dube, Girardi, Jordà & Taylor 2025 replication).
+
+## References {.unnumbered}

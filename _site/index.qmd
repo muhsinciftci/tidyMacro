@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 suppressWarnings('tidyverse')
 ```
 
-***Welcome to the website of tidyMacro!**.*
+***Welcome to the website of tidyMacro!***
 
 tidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).
 
@@ -121,10 +121,9 @@ or in LaTeX:
 ```
 :::
 
-
 ## Installation
 
-```         
+```{r, eval=FALSE}         
 # install.packages("devtools")
 devtools::install_github("muhsinciftci/tidyMacro")
 ```

@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Local Projections: A Primer – tidyMacro</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./05_2_lp_syntax_primer.html" rel="next">
+<link href="./03_2_Kaenzig2021_Hetero.html" rel="prev">
+<link href="./logo.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-4dc7a0a1c379dfe597de3776b2e979c6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="tidyMacro">
+<meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
+<meta property="og:site_name" content="tidyMacro">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">tidyMacro</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./faq.html"> 
+<span class="menu-text">FAQ</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./05_01_lp_primer.html">LP Primer</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/muhsinciftci/tidyMacro" title="tidyMacro GitHub" class="quarto-navigation-tool px-1" aria-label="tidyMacro GitHub"><i class="bi bi-github"></i></a>
+    <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339" title="Paper" class="quarto-navigation-tool px-1" aria-label="Paper"><i class="bi bi-file-pdf"></i></a>
+    <a href="https://www.linkedin.com/in/muhsin-ciftci/" title="Linkedin" class="quarto-navigation-tool px-1" aria-label="Linkedin"><i class="bi bi-linkedin"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Welcome</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Short-run restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_1_Gali1999.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Long-run restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_2_BeaudryPortier2014.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Mixed restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via External Instruments and Weak IV</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Noninvertible shocks</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Internal instruments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Heteroskedasticity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_01_lp_primer.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">LP Primer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_2_lp_syntax_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Syntax Primer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP with Shocks and IV</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Panel</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP DID</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-a-local-projection-is" id="toc-what-a-local-projection-is" class="nav-link active" data-scroll-target="#what-a-local-projection-is"><span class="header-section-number">1</span> What a local projection is:</a>
+  <ul class="collapse">
+  <li><a href="#why-lps" id="toc-why-lps" class="nav-link" data-scroll-target="#why-lps"><span class="header-section-number">1.1</span> Why LPs</a></li>
+  <li><a href="#what-linearity-imposes" id="toc-what-linearity-imposes" class="nav-link" data-scroll-target="#what-linearity-imposes"><span class="header-section-number">1.2</span> What linearity imposes</a></li>
+  </ul></li>
+  <li><a href="#lag-selection" id="toc-lag-selection" class="nav-link" data-scroll-target="#lag-selection"><span class="header-section-number">2</span> Lag selection</a></li>
+  <li><a href="#lp-versus-var" id="toc-lp-versus-var" class="nav-link" data-scroll-target="#lp-versus-var"><span class="header-section-number">3</span> LP versus VAR</a></li>
+  <li><a href="#levels-or-long-differences" id="toc-levels-or-long-differences" class="nav-link" data-scroll-target="#levels-or-long-differences"><span class="header-section-number">4</span> Levels or long differences</a>
+  <ul class="collapse">
+  <li><a href="#large-sample-caveat" id="toc-large-sample-caveat" class="nav-link" data-scroll-target="#large-sample-caveat"><span class="header-section-number">4.1</span> Large-sample caveat</a></li>
+  </ul></li>
+  <li><a href="#multipliers" id="toc-multipliers" class="nav-link" data-scroll-target="#multipliers"><span class="header-section-number">5</span> Multipliers</a></li>
+  <li><a href="#pointwise-inference" id="toc-pointwise-inference" class="nav-link" data-scroll-target="#pointwise-inference"><span class="header-section-number">6</span> Pointwise inference</a>
+  <ul class="collapse">
+  <li><a href="#the-problem" id="toc-the-problem" class="nav-link" data-scroll-target="#the-problem"><span class="header-section-number">6.1</span> The problem</a></li>
+  <li><a href="#neweywest" id="toc-neweywest" class="nav-link" data-scroll-target="#neweywest"><span class="header-section-number">6.2</span> Newey–West</a></li>
+  <li><a href="#lag-augmentation-preferred" id="toc-lag-augmentation-preferred" class="nav-link" data-scroll-target="#lag-augmentation-preferred"><span class="header-section-number">6.3</span> Lag augmentation (preferred)</a></li>
+  <li><a href="#bootstrap-alternatives" id="toc-bootstrap-alternatives" class="nav-link" data-scroll-target="#bootstrap-alternatives"><span class="header-section-number">6.4</span> Bootstrap alternatives</a></li>
+  <li><a href="#identifying-assumptions-for-lp-iv" id="toc-identifying-assumptions-for-lp-iv" class="nav-link" data-scroll-target="#identifying-assumptions-for-lp-iv"><span class="header-section-number">6.5</span> Identifying assumptions for LP-IV</a></li>
+  </ul></li>
+  <li><a href="#identification" id="toc-identification" class="nav-link" data-scroll-target="#identification"><span class="header-section-number">7</span> Identification</a></li>
+  <li><a href="#smoothing" id="toc-smoothing" class="nav-link" data-scroll-target="#smoothing"><span class="header-section-number">8</span> Smoothing</a></li>
+  <li><a href="#indirect-inference" id="toc-indirect-inference" class="nav-link" data-scroll-target="#indirect-inference"><span class="header-section-number">9</span> Indirect inference</a></li>
+  <li><a href="#state-dependence" id="toc-state-dependence" class="nav-link" data-scroll-target="#state-dependence"><span class="header-section-number">10</span> State dependence</a>
+  <ul class="collapse">
+  <li><a href="#stratification" id="toc-stratification" class="nav-link" data-scroll-target="#stratification"><span class="header-section-number">10.1</span> Stratification</a></li>
+  <li><a href="#two-caveats" id="toc-two-caveats" class="nav-link" data-scroll-target="#two-caveats"><span class="header-section-number">10.2</span> Two caveats</a></li>
+  <li><a href="#continuous-heterogeneity" id="toc-continuous-heterogeneity" class="nav-link" data-scroll-target="#continuous-heterogeneity"><span class="header-section-number">10.3</span> Continuous heterogeneity</a></li>
+  <li><a href="#nonlinearity" id="toc-nonlinearity" class="nav-link" data-scroll-target="#nonlinearity"><span class="header-section-number">10.4</span> Nonlinearity</a></li>
+  </ul></li>
+  <li><a href="#panel-data-and-lp-did" id="toc-panel-data-and-lp-did" class="nav-link" data-scroll-target="#panel-data-and-lp-did"><span class="header-section-number">11</span> Panel data and LP-DiD</a>
+  <ul class="collapse">
+  <li><a href="#inference-in-panels" id="toc-inference-in-panels" class="nav-link" data-scroll-target="#inference-in-panels"><span class="header-section-number">11.1</span> Inference in panels</a></li>
+  <li><a href="#lp-did" id="toc-lp-did" class="nav-link" data-scroll-target="#lp-did"><span class="header-section-number">11.2</span> LP-DiD</a></li>
+  </ul></li>
+  <li><a href="#practice-checklist" id="toc-practice-checklist" class="nav-link" data-scroll-target="#practice-checklist"><span class="header-section-number">12</span> Practice checklist</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">13</span> References</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/05_01_lp_primer.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Local Projections: A Primer</h1>
+</div>
+
+
+
+<div class="quarto-title-meta column-body">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="what-a-local-projection-is" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> What a local projection is:</h1>
+<p>A local projection (LP) is a sequence of regressions. The outcome, dated at increasingly distant horizons, is regressed on the intervention. The intervention enters directly if randomly assigned, or is instrumented if not. Controls include lags of both the outcome and the intervention, plus other exogenous or predetermined variables.</p>
+<p>The impulse response is a counterfactual difference in conditional means:</p>
+<p><span class="math display">\[\mathcal{R}_{s\to y}(h,\delta) = \mathbb{E}[y_{t+h}\mid s_t = s_0+\delta;\, x_t]
+- \mathbb{E}[y_{t+h}\mid s_t = s_0;\, x_t].\]</span></p>
+<p>The baseline is one regression per horizon <span class="citation" data-cites="jorda2005">(<a href="#ref-jorda2005" role="doc-biblioref">Jordà 2005</a>)</span>:</p>
+<p><span class="math display">\[y_{t+h} = \alpha_h + \beta_h s_t + \gamma_h' x_t + v_{t+h}, \qquad h = 0,1,\dots,H,\]</span></p>
+<p>with <span class="math inline">\(\mathcal{R}_{s\to y}(h) = \beta_h\)</span>. OLS identifies <span class="math inline">\(\beta_h\)</span> when <span class="math inline">\(s_t\)</span> is exogenous conditional on <span class="math inline">\(x_t\)</span>. With instruments <span class="math inline">\(z_t\)</span>, 2SLS on the same equation gives <strong>LP-IV,</strong> <span class="citation" data-cites="jorda2015">Jordà et al. (<a href="#ref-jorda2015" role="doc-biblioref">2015</a>)</span>.</p>
+<p>The baseline is a <em>semiparametric</em> approximation: a separate linear model at each horizon rather than one global dynamic model.</p>
+<section id="why-lps" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="why-lps"><span class="header-section-number">1.1</span> Why LPs</h2>
+<ul>
+<li>Single-equation. Useful when specifying the full system is inconvenient — data limitations, model complexity.</li>
+<li>Natural home for nonlinearity and state dependence.</li>
+<li>Convenient for cumulative responses and multipliers.</li>
+<li>Encompassing framework for panel data, difference-in-differences, and staggered event studies with heterogeneous treatment effects.</li>
+</ul>
+<p>The cost is efficiency. Inference can be less efficient with LPs than with a VAR <span class="citation" data-cites="jorda2025">(<a href="#ref-jorda2025" role="doc-biblioref">Jorda and Taylor 2025</a>)</span>.</p>
+</section>
+<section id="what-linearity-imposes" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="what-linearity-imposes"><span class="header-section-number">1.2</span> What linearity imposes</h2>
+<p>Three restrictions, each economically strong:</p>
+<ol type="1">
+<li><strong>Symmetry.</strong> Rate increases reduce inflation by as much as rate decreases boost it.</li>
+<li><strong>History-independence.</strong> A hike in a recession has the same effect as a hike in an expansion.</li>
+<li><strong>Proportionality.</strong> Doubling the intervention doubles the response.</li>
+</ol>
+<p>The impulse response can also be defined for other moments — e.g.&nbsp;the probability of default at some future date given a rate increase today, estimated by logit or probit. Under nonlinear functional forms the baseline level <span class="math inline">\(s_0\)</span> matters: a one-point rate rise from a high level need not act like the same rise from a low level.</p>
+<hr>
+</section>
+</section>
+<section id="lag-selection" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Lag selection</h1>
+<p>There is no well-established method for choosing LP lag length. Information criteria are the natural default, <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span>.</p>
+<hr>
+</section>
+<section id="lp-versus-var" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> LP versus VAR</h1>
+<p>For a stationary VAR(1) in differences, the Wold form is <span class="math inline">\(\Delta w_t = u_t + \Phi u_{t-1} + \Phi^2 u_{t-2} + \cdots\)</span>, so the horizon-<span class="math inline">\(h\)</span> response is <span class="math inline">\(\Phi^h\)</span>. The response in levels is the cumulative sum of the responses in differences, since <span class="math inline">\(w_{t+h} - w_{t-1} = \Delta w_{t+h} + \cdots + \Delta w_t\)</span>.</p>
+<p>The same coefficient is recoverable from an LP. Impulse response estimates from the two methods are asymptotically equivalent, though not in small samples <span class="citation" data-cites="plagborg-møller2021">(<a href="#ref-plagborg-møller2021" role="doc-biblioref">Plagborg-Møller and Wolf 2021</a>)</span>.</p>
+<p>Three results favor LPs in finite samples:</p>
+<ul>
+<li>LPs impose no cross-horizon smoothness restrictions. This lowers bias at the cost of noisier responses and possibly less precision — the usual bias–efficiency trade-off from imposing fewer restrictions, <span class="citation" data-cites="li2024a">Li et al. (<a href="#ref-li2024a" role="doc-biblioref">2024</a>)</span> . See also <span class="citation" data-cites="olea2025">Montiel Olea et al. (<a href="#ref-olea2025" role="doc-biblioref">2025</a>)</span> on how steep the variance cost is, and why it is worth paying.</li>
+<li>Under infinite-order processes, LPs have lower bias than VARs at horizons beyond the optimal truncation lag. The LP coefficient is estimated directly, so small misspecification errors do not compound as they do in a VAR, <span class="citation" data-cites="jorda2026">Jordà et al. (<a href="#ref-jorda2026" role="doc-biblioref">2026</a>)</span> .</li>
+<li>VAR confidence intervals substantially undercover under misspecification too small to detect statistically. LP intervals are <strong>doubly robust</strong>: lower bias <em>and</em> correct coverage even under misspecification detectable with probability approaching one <span class="citation" data-cites="montielolea2024">Montiel Olea et al. (<a href="#ref-montielolea2024" role="doc-biblioref">2024</a>)</span> .</li>
+</ul>
+<hr>
+</section>
+<section id="levels-or-long-differences" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Levels or long differences</h1>
+<p>Two specifications for a persistent DGP:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Specification</th>
+<th>Regression</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Levels</td>
+<td><span class="math inline">\(y_{t+h}\)</span> on <span class="math inline">\(s_t\)</span> and <span class="math inline">\(y_{t-1}\)</span></td>
+</tr>
+<tr class="even">
+<td>Long difference</td>
+<td><span class="math inline">\(y_{t+h}-y_{t-1}\)</span> on <span class="math inline">\(s_t\)</span> and <span class="math inline">\(\Delta y_{t-1}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Both are consistent and asymptotically equivalent. They differ in small samples. Serial correlation generates estimation bias, and long differencing considerably reduces it, <span class="citation" data-cites="piger2025">Piger and Stockwell (<a href="#ref-piger2025" role="doc-biblioref">2025</a>)</span>. Under a near-unit root the bias is attenuated, not eliminated.</p>
+<p><strong>Default to the long-difference specification</strong>, especially for persistent macro series. <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> call it their preferred tool.</p>
+<section id="large-sample-caveat" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="large-sample-caveat"><span class="header-section-number">4.1</span> Large-sample caveat</h2>
+<p>As <span class="math inline">\(T \to \infty\)</span> for fixed <span class="math inline">\(h\)</span>, both specifications are consistent and asymptotically normal. Problems arise when <span class="math inline">\(h\)</span> grows in proportion to <span class="math inline">\(T\)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="multipliers" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Multipliers</h1>
+<p>The multiplier is the ratio of the cumulative outcome response to the cumulative intervention response. It is roughly an average effect per unit of intervention. It matters because the same response path carries different meanings depending on the underlying process:</p>
+<ul>
+<li><strong>Persistent interventions</strong> (“treatment plans”). The multiplier collapses to the impact response.</li>
+<li><strong>Internal propagation.</strong> A one-off intervention hitting a process with its own dynamics. Same response path, very different multiplier.</li>
+</ul>
+<p>So report the multiplier when the “treatment plan versus one-off shock” distinction is economically meaningful — fiscal policy above all (Mountford &amp; Uhlig 2009; Uhlig 2010; Ramey 2016), as in <span class="citation" data-cites="rameyzubairy2018">Ramey and Zubairy (<a href="#ref-rameyzubairy2018" role="doc-biblioref">2018</a>)</span>.</p>
+<p>Estimate it directly rather than by dividing two separately estimated cumulative IRFs, which complicates standard errors and is unstable as the denominator approaches zero. Define <span class="math inline">\(w^{c}_{t,h} = w_t + \cdots + w_{t+h}\)</span> for <span class="math inline">\(w = y, s\)</span> and run</p>
+<p><span class="math display">\[y^{c}_{t,h} = m(h)\, s^{c}_{t,h} + \varepsilon_{t+h},\]</span></p>
+<p>using <span class="math inline">\(z_t\)</span> as an instrument for <span class="math inline">\(s^{c}_{t,h}\)</span>. Multiplying through by <span class="math inline">\(z_t\)</span> and taking covariances recovers the ratio exactly, but far more stably.</p>
+<hr>
+</section>
+<section id="pointwise-inference" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Pointwise inference</h1>
+<section id="the-problem" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="the-problem"><span class="header-section-number">6.1</span> The problem</h2>
+<p>Iterating an AR(1) forward gives residuals that are an MA(<span class="math inline">\(h\)</span>) process. LP residuals are therefore serially correlated by construction.</p>
+</section>
+<section id="neweywest" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="neweywest"><span class="header-section-number">6.2</span> Newey–West</h2>
+<p>The original prescription <span class="citation" data-cites="jorda2005">(<a href="#ref-jorda2005" role="doc-biblioref">Jordà 2005</a>)</span> is a HAC covariance estimator such as Newey–West (Newey &amp; West 1987). In panels the analogue is Driscoll–Kraay (Driscoll &amp; Kraay 1998).</p>
+</section>
+<section id="lag-augmentation-preferred" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="lag-augmentation-preferred"><span class="header-section-number">6.3</span> Lag augmentation (preferred)</h2>
+<p>Add <span class="math inline">\(w_{t-1}\)</span> as an extra regressor <span class="citation" data-cites="montielolea2021a">(<a href="#ref-montielolea2021a" role="doc-biblioref">Montiel Olea and Plagborg-Møller 2021</a>)</span>:</p>
+<p><span class="math display">\[w_{t+h} = \beta(\phi,h)\,u_t + \beta(\phi,h+1)\,w_{t-1} + \xi_t(\phi,h).\]</span></p>
+<p>The purpose is to make the effective regressor of interest stationary even if <span class="math inline">\(w_t\)</span> has a unit root. Two benefits:</p>
+<ol type="1">
+<li><span class="math inline">\(\hat\beta(h)\)</span> is <strong>uniformly</strong> asymptotically normal for <span class="math inline">\(\phi \in [-1,1]\)</span>, by the same logic as lag augmentation in AR inference <span class="citation" data-cites="sims1990">(<a href="#ref-sims1990" role="doc-biblioref">Sims et al. 1990</a>)</span>, and as in Toda &amp; Yamamoto (1995), Dolado &amp; Lütkepohl (1996), and Inoue &amp; Kilian (2002, 2020).</li>
+<li>Standard errors simplify. Heteroskedasticity-robust White errors suffice — HC3 in practice. No HAC bandwidth choice is required.</li>
+</ol>
+<p>This combination gives correct uniform coverage across stationarity, near-unit roots, and nonstationarity, and holds at long horizons.</p>
+</section>
+<section id="bootstrap-alternatives" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="bootstrap-alternatives"><span class="header-section-number">6.4</span> Bootstrap alternatives</h2>
+<p>Standard LP bootstraps assume the DGP is a finite-order VAR, typically the one implied by the horizon-1 projection. That approximation degrades beyond the lag length. <span class="citation" data-cites="gadea2025">Gadea and Jordà (<a href="#ref-gadea2025" role="doc-biblioref">2025</a>)</span> build bootstrap procedures off the moving-average representation instead, accommodating infinite-order processes.</p>
+<hr>
+</section>
+<section id="identifying-assumptions-for-lp-iv" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="identifying-assumptions-for-lp-iv"><span class="header-section-number">6.5</span> Identifying assumptions for LP-IV</h2>
+<p>Following Stock &amp; Watson (2018):</p>
+<ul>
+<li><strong>Relevance.</strong> The instrument is correlated with the intervention.</li>
+<li><strong>Lead-lag exogeneity.</strong> The instrument is uncorrelated with the residual vector at <em>all</em> leads and lags — stronger than static-IV exogeneity.</li>
+</ul>
+</section>
+</section>
+<section id="identification" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Identification</h1>
+<p>LPs do not solve identification. They host standard strategies.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 64%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>LP implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Selection on observables</td>
+<td>Include <span class="math inline">\(x_t\)</span> as controls.</td>
+</tr>
+<tr class="even">
+<td>Recursive / Cholesky</td>
+<td>Add contemporaneous values of variables ordered <em>before</em> <span class="math inline">\(s_t\)</span> in the causal chain, alongside lags of all system variables. Asymptotically equivalent to a Cholesky VAR <span class="citation" data-cites="plagborg-møller2021">(<a href="#ref-plagborg-møller2021" role="doc-biblioref">Plagborg-Møller and Wolf 2021</a>)</span>.</td>
+</tr>
+<tr class="odd">
+<td>Inverse propensity weighting</td>
+<td>Reweight by <span class="math inline">\(\hat p_t = \Pr(s_t = 1 \mid x_t)\)</span> from a logit/probit first stage. Adding regression adjustment gives a doubly robust estimator.</td>
+</tr>
+<tr class="even">
+<td>Long-run restrictions</td>
+<td>Two steps <span class="citation" data-cites="plagborg-møller2021">(<a href="#ref-plagborg-møller2021" role="doc-biblioref">Plagborg-Møller and Wolf 2021</a>)</span>, in the <span class="citation" data-cites="blanchard1989">Blanchard and Quah (<a href="#ref-blanchard1989" role="doc-biblioref">1989</a>)</span> setup. First, regress the long difference <span class="math inline">\(y_{t+H}-y_{t-1}\)</span> on <span class="math inline">\(\Delta y_t\)</span> and <span class="math inline">\(U_t\)</span> (plus lags) for large <span class="math inline">\(H\)</span>; the supply shock is the fitted linear combination <span class="math inline">\(s_t = \beta^y_H \Delta y_t + \beta^U_H U_t\)</span>. Second, run the LP using <span class="math inline">\(s_t\)</span> as the impulse.</td>
+</tr>
+<tr class="odd">
+<td>Sign restrictions</td>
+<td>Feasible but only set-identified; inference is more involved.</td>
+</tr>
+<tr class="even">
+<td>LP-IV</td>
+<td>2SLS with <span class="math inline">\(z_t\)</span> satisfying relevance and lead-lag exogeneity.</td>
+</tr>
+</tbody>
+</table>
+<p>A general weakness of the traditional schemes is that identifying assumptions cannot be tested.</p>
+<p><strong>Non-invertibility.</strong> LP-IV identifies even when structural shocks cannot be recovered from current and lagged system variables — for example, news shocks about future technology <span class="citation" data-cites="beaudry2014">(<a href="#ref-beaudry2014" role="doc-biblioref">Beaudry and Portier 2014</a>)</span>, where the system is driven by more shocks than it has variables. VAR identification based on the reduced-form residual covariance fails here (Fernández-Villaverde et al.&nbsp;2007; Stock &amp; Watson 2018; Plagborg-Møller &amp; Wolf 2022). This is a substantive advantage of LP-IV over VARs. For external-instrument SVAR procedures that remain valid under non-invertibility see <span class="citation" data-cites="forni2022">Forni et al. (<a href="#ref-forni2022" role="doc-biblioref">2022</a>)</span>; for identification in non-invertible VARs see Chahrour &amp; Jurado (2022).</p>
+<hr>
+</section>
+<section id="smoothing" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Smoothing</h1>
+<p>Raw LP responses look choppy because no cross-horizon smoothness is imposed. Two basis-function remedies, both estimated by minimum distance against the LP point estimates and their covariance:</p>
+<ul>
+<li><strong>B-splines</strong> (Barnichon &amp; Brownlees 2019). Flexible, penalised least squares. Standard error theory for the tuning parameter is incomplete.</li>
+<li><strong>Gaussian basis functions</strong> (Barnichon &amp; Matthes 2018). Three interpretable parameters: peak height, peak timing, half-life. Good for single-humped responses; multi-modal shapes need several terms, at which point splines are preferable.</li>
+</ul>
+<p>When the basis has fewer parameters than horizons, the over-identifying restrictions give a <span class="math inline">\(\chi^2\)</span> goodness-of-fit test.</p>
+<hr>
+</section>
+<section id="indirect-inference" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Indirect inference</h1>
+<p><strong>Projection minimum distance</strong> (Jordà &amp; Kozicki 2011). Estimate structural parameters by minimum distance against nonparametrically estimated LP responses, avoiding numerical likelihood maximisation.</p>
+<p><strong>Optimal policy evaluation</strong> (Barnichon &amp; Mesters 2023). For a quadratic-loss policymaker, the first-order conditions imply a minimum-distance estimator of the gap between actual and optimal policy, testable against a <span class="math inline">\(\chi^2\)</span> null. The policy rule never has to be specified — only the impulse responses and the deviation from target.</p>
+<p><strong>Counterfactual paths.</strong> Stacked responses are jointly normal, so a counterfactual policy path implies a conditional outcome path by standard multivariate-normal conditioning. Whether the counterfactual is “modest” enough to escape the Lucas critique is checked by a Mahalanobis distance against a <span class="math inline">\(\chi^2_H\)</span> reference (Leeper &amp; Zha 2003).</p>
+<hr>
+</section>
+<section id="state-dependence" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> State dependence</h1>
+<p>LPs are well suited to responses that vary across regimes.</p>
+<section id="stratification" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="stratification"><span class="header-section-number">10.1</span> Stratification</h2>
+<p>Split on a state indicator determined <em>before</em> the intervention and run separate long-difference LPs:</p>
+<p><span class="math display">\[y_{t+h}-y_{t-1} = \alpha^j_h + \beta^j_h \Delta s_t + \gamma^{j\prime}_h \Delta x_t + v_{t+h}, \qquad j = 0,1.\]</span></p>
+<p>Conditioning on past information without conditioning on the state mixes state-specific responses into a single average. The correct approach is to condition on the state.</p>
+<p>Applications: monetary shocks over the cycle (Tenreyro &amp; Thwaites 2016; Angrist, Jordà &amp; Kuersteiner 2018; Jordà, Singh &amp; Taylor 2024); fiscal shocks over the cycle (Auerbach &amp; Gorodnichenko 2013; Jordà &amp; Taylor 2016), and <span class="citation" data-cites="rameyzubairy2018">Ramey and Zubairy (<a href="#ref-rameyzubairy2018" role="doc-biblioref">2018</a>)</span>.</p>
+</section>
+<section id="two-caveats" class="level2" data-number="10.2">
+<h2 data-number="10.2" class="anchored" data-anchor-id="two-caveats"><span class="header-section-number">10.2</span> Two caveats</h2>
+<p><strong>The state must not be endogenous to the intervention.</strong> Rates are set low in slumps and high in booms, so naive stratification can confound weak monetary responses. Fiscal policy is safer because it reacts with a lag. Ideally both intervention and state are exogenously determined, which may require instruments for both. Relatedly, Gonçalves et al.&nbsp;(2024) show large interventions are unlikely to represent the true population response; the conservative reading treats estimated responses as derivatives — the effect of an infinitesimal intervention.</p>
+<p><strong>Interpretation differs from a state-dependent VAR.</strong> Deriving the response from state-specific VAR parameters implicitly assumes the economy stays in that state forever. It will not. The correct state-conditional response generally requires simulating and averaging over future trajectories in which the state switches.</p>
+</section>
+<section id="continuous-heterogeneity" class="level2" data-number="10.3">
+<h2 data-number="10.3" class="anchored" data-anchor-id="continuous-heterogeneity"><span class="header-section-number">10.3</span> Continuous heterogeneity</h2>
+<p>Cloyne, Jordà &amp; Taylor (2023) generalise beyond binary states with an interaction term:</p>
+<p><span class="math display">\[y_{t+h} = \delta^h_0 + \beta_h(s_t - s_0) + \gamma_h(x_t - x_0) + \theta_h(s_t-s_0)(x_t-x_0) + v_{t+h}.\]</span></p>
+<ul>
+<li><span class="math inline">\(\beta_h\)</span> scaled by the dose is the <strong>direct effect</strong> — the usual impulse response.</li>
+<li><span class="math inline">\(\theta_h\)</span> scaled by the dose and the state shift is the <strong>indirect effect</strong> — how the intervention shifts the way covariates act on the outcome. Its sign determines amplification or attenuation.</li>
+</ul>
+<p>The decomposition makes a point stratification hides: identification requires exogenous variation in <span class="math inline">\(x_t\)</span> too, not just in <span class="math inline">\(s_t\)</span>, since the state is generally related to the policy variable. Because time variation is tied to observed <span class="math inline">\(x_t\)</span> rather than a latent random-walk parameter, this is a computationally simple alternative to TVP-VARs. It is linear in parameters, so estimation stays easy.</p>
+</section>
+<section id="nonlinearity" class="level2" data-number="10.4">
+<h2 data-number="10.4" class="anchored" data-anchor-id="nonlinearity"><span class="header-section-number">10.4</span> Nonlinearity</h2>
+<p>Specifications that are nonlinear in variables but linear in parameters (squares, interactions) remain OLS-estimable. Applications include quantile LPs (Linnemann &amp; Winkler 2016; Adrian et al.&nbsp;2022; Jordà et al.&nbsp;2022) and binary outcomes (Drehmann, Patton &amp; Sorensen 2007; Barattieri &amp; Cacciatore 2023). For the general nonparametric framing see Rambachan &amp; Shephard (2019).</p>
+<p><strong>IV caveat</strong> (Newey 1990). Never instrument a nonlinear transform of <span class="math inline">\(s_t\)</span> by first-stage-regressing <span class="math inline">\(s_t\)</span> on <span class="math inline">\(z_t\)</span> — Jensen’s inequality breaks it. Instrument the transforms directly with <span class="math inline">\(z_t\)</span>, <span class="math inline">\(z_t^2\)</span>, <span class="math inline">\(z_t x_t\)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="panel-data-and-lp-did" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> Panel data and LP-DiD</h1>
+<section id="inference-in-panels" class="level2" data-number="11.1">
+<h2 data-number="11.1" class="anchored" data-anchor-id="inference-in-panels"><span class="header-section-number">11.1</span> Inference in panels</h2>
+<p>Which correction applies depends on <span class="math inline">\(N\)</span> and <span class="math inline">\(T\)</span>:</p>
+<ul>
+<li><span class="math inline">\(T \to \infty\)</span>, <span class="math inline">\(N\)</span> fixed or slow-growing: Driscoll–Kraay (Driscoll &amp; Kraay 1998), the panel analogue of Newey–West.</li>
+<li><span class="math inline">\(N \to \infty\)</span>, <span class="math inline">\(T\)</span> fixed: cluster-robust standard errors.</li>
+<li><span class="math inline">\(T\)</span> small: wild cluster bootstrap (Cameron, Gelbach &amp; Miller 2008; Canay, Santos &amp; Shaikh 2021; Roodman et al.&nbsp;2019).</li>
+</ul>
+<p>With <span class="math inline">\(N\)</span> large relative to <span class="math inline">\(T\)</span>, the asymptotic distribution is dominated by the cross-section. Near-unit-root distortions largely disappear.</p>
+</section>
+<section id="lp-did" class="level2" data-number="11.2">
+<h2 data-number="11.2" class="anchored" data-anchor-id="lp-did"><span class="header-section-number">11.2</span> LP-DiD</h2>
+<p>Difference-in-differences identifies the average treatment effect on the treated under no anticipation and parallel trends. The literature has moved beyond the two-period, two-group case to staggered adoption, heterogeneous effects across cohorts, and dynamic effects <span class="citation" data-cites="roth2023 dechaisemartin2023">(<a href="#ref-roth2023" role="doc-biblioref">Roth et al. 2023</a>; <a href="#ref-dechaisemartin2023" role="doc-biblioref"><span class="nocase">de&nbsp;Chaisemartin and D’Haultfœuille</span> 2023</a>)</span>.</p>
+<p><span class="citation" data-cites="dube2025">Dube et al. (<a href="#ref-dube2025" role="doc-biblioref">2025</a>)</span> show these settings fit a single LP regression:</p>
+<p><span class="math display">\[y_{i,t+h} - y_{i,t-1} = \delta^h_t + \beta_h \Delta s_{it} + \sum_{j=1}^{p} \rho^h_j \Delta y_{i,t-j} + \gamma_h' x_{it} + v_{i,t+h},\]</span></p>
+<p>with <strong>the estimation sample restricted to clean controls</strong>: observations with either <span class="math inline">\(\Delta s_{it} = 1\)</span> (newly treated) or <span class="math inline">\(s_{i,t+h} = 0\)</span> (not yet treated). This rules out comparisons between newly treated and already-treated units.</p>
+<p>Two structural points:</p>
+<ul>
+<li>Individual fixed effects are absorbed by the long differencing; time fixed effects <span class="math inline">\(\delta^h_t\)</span> remain.</li>
+<li>The clean-control condition, which the DiD literature enforces through bespoke pairwise-comparison machinery, here reduces to a sample filter. LPs are already forward-looking, so it comes for free.</li>
+</ul>
+<p><span class="math inline">\(\hat\beta_h\)</span> recovers a variance-weighted average of heterogeneous effects, where algorithmic DiD estimators typically target an equally-weighted average. Another bias–variance trade-off, with the shoe now on the other foot relative to the LP-versus-VAR case.</p>
+<hr>
+</section>
+</section>
+<section id="practice-checklist" class="level1" data-number="12">
+<h1 data-number="12"><span class="header-section-number">12</span> Practice checklist</h1>
+<ol type="1">
+<li>Prefer the long-difference specification over levels, especially for persistent series.</li>
+<li>Use lag-augmented LPs with HC/White standard errors rather than plain Newey–West. Uniform validity, no bandwidth choice.</li>
+<li>Report joint bands alongside pointwise ones, and consider significance bands as a null-based complement.</li>
+<li>Report multipliers whenever the treatment-plan versus one-off distinction matters.</li>
+<li>For state dependence, verify the state is genuinely predetermined. Prefer the interaction specification over sample splitting to avoid omitting other relevant states.</li>
+<li>In staggered, absorbing-treatment panels, use LP-DiD’s clean-control restriction.</li>
+<li>Never instrument nonlinear transforms of the shock through a linear first stage.</li>
+</ol>
+</section>
+<section id="references" class="level1" data-number="13">
+<h1 data-number="13"><span class="header-section-number">13</span> References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-beaudry2014" class="csl-entry" role="listitem">
+Beaudry, Paul, and Franck Portier. 2014. <span>“News-Driven Business Cycles: Insights and Challenges.”</span> <em>Journal of Economic Literature</em> 52 (4): 993–1074. <a href="https://doi.org/10.1257/jel.52.4.993">https://doi.org/10.1257/jel.52.4.993</a>.
+</div>
+<div id="ref-blanchard1989" class="csl-entry" role="listitem">
+Blanchard, Olivier Jean, and Danny Quah. 1989. <span>“The Dynamic Effects of Aggregate Demand and Supply Disturbances.”</span> <em>The American Economic Review</em> 79 (4): 655–73. <a href="https://www.jstor.org/stable/1827924">https://www.jstor.org/stable/1827924</a>.
+</div>
+<div id="ref-dechaisemartin2023" class="csl-entry" role="listitem">
+<span class="nocase">de&nbsp;Chaisemartin, Clément, and Xavier D’Haultfœuille</span>. 2023. <span>“Two-Way Fixed Effects and Differences-in-Differences with Heterogeneous Treatment Effects: A Survey.”</span> <em>The Econometrics Journal</em> 26 (3): C1–30. <a href="https://doi.org/10.1093/ectj/utac017">https://doi.org/10.1093/ectj/utac017</a>.
+</div>
+<div id="ref-dube2025" class="csl-entry" role="listitem">
+Dube, Arindrajit, Daniele Girardi, Òscar Jordà, and Alan M. Taylor. 2025. <span>“A <span>Local Projections Approach</span> to <span class="nocase">Difference-in-Differences</span>.”</span> <em>Journal of Applied Econometrics</em> 40 (7): 741–58. <a href="https://doi.org/10.1002/jae.70000">https://doi.org/10.1002/jae.70000</a>.
+</div>
+<div id="ref-forni2022" class="csl-entry" role="listitem">
+Forni, Mario, Luca Gambetti, and Giovanni Ricco. 2022. <em>External Instrument SVAR Analysis for Noninvertible Shocks</em>. <a href="https://warwick.ac.uk/fac/soc/economics/research/workingpapers/2022/twerp_1444_-_ricco.pdf">https://warwick.ac.uk/fac/soc/economics/research/workingpapers/2022/twerp_1444_-_ricco.pdf</a>.
+</div>
+<div id="ref-gadea2025" class="csl-entry" role="listitem">
+Gadea, María Dolores, and Òscar Jordà. 2025. <em>Local Projections Bootstrap Inference</em>. arXiv:2509.17949. arXiv. <a href="https://doi.org/10.48550/arXiv.2509.17949">https://doi.org/10.48550/arXiv.2509.17949</a>.
+</div>
+<div id="ref-jorda2025" class="csl-entry" role="listitem">
+Jorda, Oscar, and Alan M. Taylor. 2025. <span>“Local <span>Projections</span>.”</span> <em>Journal of Economic Literature</em> 63 (1): 59–110. <a href="https://doi.org/10.1257/jel.20241521">https://doi.org/10.1257/jel.20241521</a>.
+</div>
+<div id="ref-jorda2005" class="csl-entry" role="listitem">
+Jordà, Òscar. 2005. <span>“Estimation and Inference of Impulse Responses by Local Projections.”</span> <em>American Economic Review</em> 95 (1): 161–82. <a href="https://doi.org/10.1257/0002828053828518">https://doi.org/10.1257/0002828053828518</a>.
+</div>
+<div id="ref-jorda2015" class="csl-entry" role="listitem">
+Jordà, Òscar, Moritz Schularick, and Alan M. Taylor. 2015. <span>“Betting the House.”</span> <em>Journal of International Economics</em>, 37th <span>Annual NBER International Seminar</span> on <span>Macroeconomics</span>, vol. 96 (July): S2–18. <a href="https://doi.org/10.1016/j.jinteco.2014.12.011">https://doi.org/10.1016/j.jinteco.2014.12.011</a>.
+</div>
+<div id="ref-jorda2026" class="csl-entry" role="listitem">
+Jordà, Òscar, Sanjay R. Singh, and Alan M. Taylor. 2026. <span>“The <span>Long-Run Effects</span> of <span>Monetary Policy</span>.”</span> <em>The Review of Economics and Statistics</em>, July, 1–21. <a href="https://doi.org/10.1162/rest_a_01527">https://doi.org/10.1162/rest_a_01527</a>.
+</div>
+<div id="ref-li2024a" class="csl-entry" role="listitem">
+Li, Dake, Mikkel Plagborg-Møller, and Christian K. Wolf. 2024. <span>“Local Projections Vs. <span>VARs</span>: <span>Lessons</span> from Thousands of <span>DGPs</span>.”</span> <em>Journal of Econometrics</em> 244 (2): 105722. <a href="https://doi.org/10.1016/j.jeconom.2024.105722">https://doi.org/10.1016/j.jeconom.2024.105722</a>.
+</div>
+<div id="ref-montielolea2021a" class="csl-entry" role="listitem">
+Montiel Olea, José Luis, and Mikkel Plagborg-Møller. 2021. <span>“Local Projection Inference Is Simpler and More Robust Than You Think.”</span> <em>Econometrica</em> 89 (4): 1789–823. <a href="https://doi.org/10.3982/ECTA18756">https://doi.org/10.3982/ECTA18756</a>.
+</div>
+<div id="ref-montielolea2024" class="csl-entry" role="listitem">
+Montiel Olea, José Luis, Mikkel Plagborg-Møller, Eric Qian, and Christian K. Wolf. 2024. <em>Double <span>Robustness</span> of <span>Local Projections</span> and <span>Some Unpleasant VARithmetic</span></em>. Working {{Paper}} No. 32495. Working <span>Paper Series</span>. National Bureau of Economic Research. <a href="https://doi.org/10.3386/w32495">https://doi.org/10.3386/w32495</a>.
+</div>
+<div id="ref-olea2025" class="csl-entry" role="listitem">
+Montiel Olea, José Luis, Mikkel Plagborg-Møller, Eric Qian, and Christian K. Wolf. 2025. <em>Local Projections or <span>VARs</span>? A Primer for Macroeconomists</em>. arXiv:2503.17144. arXiv. <a href="https://doi.org/10.48550/arXiv.2503.17144">https://doi.org/10.48550/arXiv.2503.17144</a>.
+</div>
+<div id="ref-piger2025" class="csl-entry" role="listitem">
+Piger, Jeremy, and Thomas Stockwell. 2025. <span>“Differences <span>From Differencing</span>: <span>Should Local Projections With Observed Shocks Be Estimated</span> in <span>Levels</span> or <span>Differences</span>?”</span> <em>Journal of Applied Econometrics</em> 40 (7): 759–87. <a href="https://doi.org/10.1002/jae.70003">https://doi.org/10.1002/jae.70003</a>.
+</div>
+<div id="ref-plagborg-møller2021" class="csl-entry" role="listitem">
+Plagborg-Møller, Mikkel, and Christian K. Wolf. 2021. <span>“Local Projections and VARs Estimate the Same Impulse Responses.”</span> <em>Econometrica</em> 89 (2): 955–80. <a href="https://doi.org/10.3982/ECTA17813">https://doi.org/10.3982/ECTA17813</a>.
+</div>
+<div id="ref-rameyzubairy2018" class="csl-entry" role="listitem">
+Ramey, Valerie A., and Sarah Zubairy. 2018. <span>“Government Spending Multipliers in Good Times and in Bad: Evidence from <span>US</span> Historical Data.”</span> <em>Journal of Political Economy</em> 126 (2): 850–901. <a href="https://doi.org/10.1086/696277">https://doi.org/10.1086/696277</a>.
+</div>
+<div id="ref-roth2023" class="csl-entry" role="listitem">
+Roth, Jonathan, Pedro H. C. Sant’Anna, Alyssa Bilinski, and John Poe. 2023. <span>“What’s Trending in Difference-in-Differences? <span>A</span> Synthesis of the Recent Econometrics Literature.”</span> <em>Journal of Econometrics</em> 235 (2): 2218–44. <a href="https://doi.org/10.1016/j.jeconom.2023.03.008">https://doi.org/10.1016/j.jeconom.2023.03.008</a>.
+</div>
+<div id="ref-sims1990" class="csl-entry" role="listitem">
+Sims, Christopher A., James H. Stock, and Mark W. Watson. 1990. <span>“Inference in Linear Time Series Models with Some Unit Roots.”</span> <em>Econometrica</em> 58 (1): 113–44. <a href="https://doi.org/10.2307/2938337">https://doi.org/10.2307/2938337</a>.
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled" title="Further works cited">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Further works cited
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Named in the text above but not held in <code>references.bib</code>. Full details are in the bibliography of <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span>; replication code for the survey is at <a href="https://github.com/ojorda/JEL-Code" class="uri">https://github.com/ojorda/JEL-Code</a>.</p>
+<ul>
+<li>Barnichon, R. and Brownlees, C. (2019). “Impulse Response Estimation by Smooth Local Projections.” <em>Review of Economics and Statistics</em>, 101(3), 522–530.</li>
+<li>Barnichon, R. and Matthes, C. (2018). “Functional Approximation of Impulse Responses.” <em>Journal of Monetary Economics</em>, 99, 41–55.</li>
+<li>Barnichon, R. and Mesters, G. (2023). “A Sufficient Statistics Approach for Macro Policy.” <em>American Economic Review</em>, 113(11), 2809–2845.</li>
+<li>Cloyne, J., Jordà, Ò., and Taylor, A.M. (2023). “State-Dependent Local Projections: Understanding Impulse Response Heterogeneity.” NBER WP
+<ol start="30971" type="1">
+<li></li>
+</ol></li>
+<li>Driscoll, J.C. and Kraay, A.C. (1998). “Consistent Covariance Matrix Estimation with Spatially Dependent Panel Data.” <em>Review of Economics and Statistics</em>, 80(4), 549–560.</li>
+<li>Jordà, Ò. (2009). “Simultaneous Confidence Regions for Impulse Responses.” <em>Review of Economics and Statistics</em>, 91(3), 629–647.</li>
+<li>Jordà, Ò. and Kozicki, S. (2011). “Estimation and Inference by the Method of Projection Minimum Distance.” <em>International Economic Review</em>, 52(2), 461–487.</li>
+<li>Jordà, Ò., Schularick, M., and Taylor, A.M. (2015). “Betting the House.” <em>Journal of International Economics</em>, 96, S2–S18.</li>
+<li>Jordà, Ò., Singh, S.R., and Taylor, A.M. (2024). “The Long-Run Effects of Monetary Policy.” NBER WP 26666.</li>
+<li>Li, D., Plagborg-Møller, M., and Wolf, C.K. (2024). “Local Projections vs.&nbsp;VARs: Lessons from Thousands of DGPs.” <em>Journal of Econometrics</em>, 244(2), 105722.</li>
+<li>Montiel Olea, J.L. and Plagborg-Møller, M. (2019). “Simultaneous Confidence Bands: Theory, Implementation, and an Application to SVARs.” <em>Journal of Applied Econometrics</em>, 34(1), 1–17.</li>
+<li>Montiel Olea, J.L., Plagborg-Møller, M., Qian, E., and Wolf, C.K. (2024). “Double Robustness of Local Projections and Some Unpleasant VARithmetic.” NBER WP 32495.</li>
+<li>Newey, W.K. and West, K.D. (1987). “A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix.” <em>Econometrica</em>, 55(3), 703–708.</li>
+<li>Piger, J. and Stockwell, T. (2023). “Differences from Differencing: Should Local Projections with Observed Shocks be Estimated in Levels or Differences?” SSRN.</li>
+<li>Plagborg-Møller, M. and Wolf, C.K. (2022). “Instrumental Variable Identification of Dynamic Variance Decompositions.” <em>Journal of Political Economy</em>, 130(8), 2164–2202.</li>
+<li>Rambachan, A. and Shephard, N. (2019). “A Nonparametric Dynamic Causal Model for Macroeconometrics.” Working paper.</li>
+<li>Ramey, V.A. (2016). “Macroeconomic Shocks and Their Propagation.” In <em>Handbook of Macroeconomics</em>, vol.&nbsp;2, 71–162.</li>
+<li>Stock, J.H. and Watson, M.W. (2018). “Identification and HAC Standard Errors for Efficient Estimation of Instrumental Variables Regressions.” <em>Economic Journal</em>, 128(610), 917–948.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tidymacro\.netlify\.app");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="./03_2_Kaenzig2021_Hetero.html" class="pagination-link" aria-label="Identifcation via Heteroskedasticity">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Identifcation via Heteroskedasticity</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./05_2_lp_syntax_primer.html" class="pagination-link" aria-label="LP Syntax Primer">
+        <span class="nav-page-text">LP Syntax Primer</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/05_01_lp_primer.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>This page is built with <a href="https://quarto.org">Quarto</a>.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

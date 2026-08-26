@@ -1,40 +1,7 @@
 project:
-  type: book
+  type: website
   output-dir: ../docs
-
-page-layout: full
-
-book:
-  title: "tidyMacro"
-  subtitle: "High-Performance Vector Autoregressions and Local Projections in R"
-  description: "Replication gallery and documentation for the tidyMacro R package"
-  author:
-    - name: Muhsin Ciftci
-      #url: https://mciftci.netlify.app
-      affiliation: Goethe University Frankfurt
-  date: today
-  favicon: logo.png
-  cover-image: logo.png
-
-  navbar:
-    background: "#33302E"
-    foreground: "#FFF1E5"
-    logo: logo.png
-    logo-alt: "tidyMacro"
-    title: "tidyMacro"
-    pinned: true
-    right:
-      - text: "PDF"
-        icon: file-pdf
-        href: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339
-        aria-label: "Download PDF"
-
-  sidebar:
-    style: docked
-    background: "#FAF4ED"
-    collapse-level: 1
-
-  chapters:
+  render:
     - index.qmd
     - 01_Bloom2009.qmd
     - 02_1_Gali1999.qmd
@@ -43,32 +10,103 @@ book:
     - 03_3_Kaenzig2021_InternalIV.qmd
     - 03_2_Kaenzig2021_Hetero.qmd
     - 04_ForniGambettiRicco.qmd
-    - 05_lp_syntax.qmd
+    - 05_01_lp_primer.qmd
+    - 05_2_lp_syntax_primer.qmd
     - 05_JordaTaylor2025.qmd
     - 06_AlmuzaraSancibrian2024.qmd
     - 07_Dube2025.qmd
-  page-footer:
-    left: "Built with [Quarto](https://quarto.org)"
-    center: "© 2025 Muhsin Ciftci · Goethe University Frankfurt"
-    right: "[tidyMacro](index.qmd)"
-    background: "#33302E"
-    foreground: "#FFF1E5"
+    - faq.qmd
 
+page-layout: full
+
+website:
   page-navigation: true
   back-to-top-navigation: true
-
+  title: "tidyMacro"
+  site-url: "https://tidymacro.netlify.app"
   repo-url: https://github.com/muhsinciftci/tidyMacro
+  repo-subdir: _site
   repo-actions: [edit, issue]
+  favicon: logo.png
 
   open-graph:
     title: "tidyMacro"
     description: "High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R"
 
+  page-footer:
+    right: "This page is built with [Quarto](https://quarto.org)."
+    left: "&copy; 2025 Muhsin Ciftci · Goethe University Frankfurt"
+
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: faq.qmd
+        text: FAQ
+
+  sidebar:
+    logo: "logo.png"
+    pinned: true
+    align: center
+    tools:
+      - icon: github
+        href: https://github.com/muhsinciftci/tidyMacro
+        text: "tidyMacro GitHub"
+      - icon: file-pdf
+        href: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339
+        text: "Paper"
+      - icon: linkedin
+        href: https://www.linkedin.com/in/muhsin-ciftci/
+        text: Linkedin
+    style: "docked"
+    search: true
+    collapse-level: 1
+    contents:
+      - href: index.qmd
+        text: Welcome
+        
+      - href: 01_Bloom2009.qmd
+        text: Identifcation via Short-run restrictions
+        
+      - href: 02_1_Gali1999.qmd
+        text: Identifcation via Long-run restrictions
+        
+      - href: 02_2_BeaudryPortier2014.qmd
+        text: Identifcation via Mixed restrictions
+        
+      - href: 03_1_Kaenzig2021_ExternalIV.qmd
+        text: Identifcation via External Instruments and Weak IV
+        
+      - href: 04_ForniGambettiRicco.qmd
+        text: Identifcation via Noninvertible shocks
+        
+      - href: 03_3_Kaenzig2021_InternalIV.qmd
+        text: Identifcation via Internal instruments
+        
+      - href: 03_2_Kaenzig2021_Hetero.qmd
+        text: Identifcation via Heteroskedasticity
+        
+      - href: 05_01_lp_primer.qmd
+        text: LP Primer
+
+      - href: 05_2_lp_syntax_primer.qmd
+        text: LP Syntax Primer
+        
+      - href: 05_JordaTaylor2025.qmd
+        text: LP with Shocks and IV
+        
+      - href: 06_AlmuzaraSancibrian2024.qmd
+        text: LP Panel
+        
+      - href: 07_Dube2025.qmd
+        text: LP DID
+
 format:
   html:
-    #theme: [cosmo, styles.scss]
-    theme: [cosmo]
-    toc: false
+    theme: cosmo
+    code-copy: true
+    code-overflow: wrap
+    toc: true
     toc-expand: true
     toc-depth: 3
     code-fold: false

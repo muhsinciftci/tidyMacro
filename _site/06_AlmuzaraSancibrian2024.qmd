@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This chapter demonstrates `fLPPanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro. Shared conventions (formula grammar, `..macros`, `l()`/`f()`, `panel_id`, output shapes, multi-band `conf`) are documented in the [Local Projections syntax primer](05_lp_syntax.html); this chapter focuses on the panel-specific estimator and replicates the reference R port on a synthetic unbalanced panel.
+This chapter demonstrates `fLPPanel()` — `tidyMacro`'s panel local-projection estimator, a C++/OpenMP port of `panel_LP.m` from @almuzara2024micro. Shared conventions (formula grammar, `..macros`, `l()`/`f()`, `panel_id`, output shapes, multi-band `conf`) are documented in the [Local Projections syntax primer](05_2_lp_syntax_primer.html); this chapter focuses on the panel-specific estimator and replicates the reference R port on a synthetic unbalanced panel.
 
 The estimated equation at horizon $h$ (per $j$-th interaction component of $s_{it}\,x_t$) is
 $$y_{i,t+h} = \alpha^{(h)}_{\mathrm{FE}}
@@ -32,7 +32,7 @@ $$y_{i,t+h} = \alpha^{(h)}_{\mathrm{FE}}
 - `p_max` caps the number of lags of the regressand and the shock interaction added as controls (at horizon $h$ the effective number is $\min(h, p_\max)$).
 - `cumulative = TRUE` projects $\sum_{r=0}^{h} y_{i,t+r}$ instead of $y_{i,t+h}$.
 
-Output-side, `fLPPanel()` additionally exposes per-horizon `status` and `converged` vectors that flag no-complete-rows or HDFE non-convergence at individual horizons — the syntax primer's [output section](05_lp_syntax.html#what-each-engine-returns) explains the encoding.
+Output-side, `fLPPanel()` additionally exposes per-horizon `status` and `converged` vectors that flag no-complete-rows or HDFE non-convergence at individual horizons — the syntax primer's [output section](05_2_lp_syntax_primer.html#what-each-engine-returns) explains the encoding.
 
 ------------------------------------------------------------------------
 
@@ -266,6 +266,6 @@ fPlotLP(lp_pkg) +
 
 ## Other supported specifications
 
-Alternative shapes — bare shock, no interaction, no fixed effects, panel-aware lags with macros — follow the shared formula grammar and are demonstrated in the [Local Projections syntax primer](05_lp_syntax.html). Everything documented there works with `fLPPanel()` unchanged.
+Alternative shapes — bare shock, no interaction, no fixed effects, panel-aware lags with macros — follow the shared formula grammar and are demonstrated in the [Local Projections syntax primer](05_2_lp_syntax_primer.html). Everything documented there works with `fLPPanel()` unchanged.
 
 ## References {.unnumbered}

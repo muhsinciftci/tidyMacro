@@ -3,6 +3,8 @@ title: "Proxy SVAR (External Instruments) and Weak-IV Robust Inference"
 subtitle: "The Macroeconomic Effects of Oil Supply News: Evidence from OPEC Announcements"
 editor: visual
 bibliography: references.bib
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include=FALSE}
@@ -125,6 +127,7 @@ fPlotIRFIV(
     scale      = 10,
     facet_ncol = 3
 ) +
+  xlim(0, 50) +
   labs(x = NULL, y = NULL)
 ```
 
@@ -153,8 +156,7 @@ tibble(
 ) |>
   gt() |>
   fmt_number(columns = 2:3, decimals = 3) |>
-  tab_header(title = "First-Stage Instrument Strength") |>
-  tab_footnote("Rule of thumb: F-stat > 10 indicates a strong instrument.")
+  tab_header(title = "First-Stage Instrument Strength")
 ```
 
 ## IV Identification (Manual Two-Stage)

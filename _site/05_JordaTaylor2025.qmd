@@ -15,9 +15,17 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Overview
+## What are local projections (LP)?
 
-This chapter is a **replication** of @jorda2025 with `fLP()` and `fLPIV()`. Syntax conventions common to all four local-projection engines — formulas, `..macros`, `l()`/`f()`, multi-band `conf`, thread rules, output shapes — live in the [Local Projections syntax primer](05_lp_syntax.html); this chapter focuses on the empirical exercise.
+To see the main ideas and contributions of the paper, **click** below to expand:
+
+::: {.callout-tip collapse="true"}
+## What are local projections (LP)?
+
+here...
+:::
+
+This chapter is a **replication** of @jorda2025 with `fLP()` and `fLPIV()`. Syntax conventions common to all four local-projection engines — formulas, `..macros`, `l()`/`f()`, multi-band `conf`, thread rules, output shapes — live in the [Local Projections syntax primer](05_2_lp_syntax_primer.html); this chapter focuses on the empirical exercise.
 
 The empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences `CPI_{t+h} - CPI_{t-1}` and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls. Two features specific to reproducing @jorda2025 in MATLAB (`LPmodel.m`) matter here:
 
@@ -323,7 +331,7 @@ tibble::tibble(horizon = 0:48, F = as.numeric(lp_iv$Fstat_fs)) |>
          title = "First-stage F across horizons")
 ```
 
-The `Fstat_fs` and `rsqr_fs` fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising. The df convention (`Th - kc - nz`) is documented in the [syntax primer](05_lp_syntax.html#the-estimating-equations).
+The `Fstat_fs` and `rsqr_fs` fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising. The df convention (`Th - kc - nz`) is documented in the [syntax primer](05_2_lp_syntax_primer.html#the-estimating-equations).
 
 ------------------------------------------------------------------------
 
@@ -351,6 +359,6 @@ tidy.fLP(lp_iv) |> head(6)
 ## Summary
 
 - `nw_offset = 0` (classic Jordà `= h` rule) and `nw_lags_iv = 6` reproduce the @jorda2025 MATLAB / Stata standard errors.
-- Both `fLP()` and `fLPIV()` handle multi-band `conf` and, for `fLP()`, multi-equation LHS in a single fit — see the [syntax primer](05_lp_syntax.html) for the shared conventions.
+- Both `fLP()` and `fLPIV()` handle multi-band `conf` and, for `fLP()`, multi-equation LHS in a single fit — see the [syntax primer](05_2_lp_syntax_primer.html) for the shared conventions.
 
 ## References {.unnumbered}

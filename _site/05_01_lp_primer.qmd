@@ -1,0 +1,292 @@
+---
+title: "Local Projections: A Primer"
+editor: visual
+bibliography: references.bib
+editor_options:
+  chunk_output_type: console
+---
+
+# What a local projection is:
+
+A local projection (LP) is a sequence of regressions. The outcome, dated at increasingly distant horizons, is regressed on the intervention. The intervention enters directly if randomly assigned, or is instrumented if not. Controls include lags of both the outcome and the intervention, plus other exogenous or predetermined variables.
+
+The impulse response is a counterfactual difference in conditional means:
+
+$$\mathcal{R}_{s\to y}(h,\delta) = \mathbb{E}[y_{t+h}\mid s_t = s_0+\delta;\, x_t]
+ - \mathbb{E}[y_{t+h}\mid s_t = s_0;\, x_t].$$
+
+The baseline is one regression per horizon [@jorda2005]:
+
+$$y_{t+h} = \alpha_h + \beta_h s_t + \gamma_h' x_t + v_{t+h}, \qquad h = 0,1,\dots,H,$$
+
+with $\mathcal{R}_{s\to y}(h) = \beta_h$. OLS identifies $\beta_h$ when $s_t$ is exogenous conditional on $x_t$. With instruments $z_t$, 2SLS on the same equation gives **LP-IV,** @jorda2015.
+
+The baseline is a *semiparametric* approximation: a separate linear model at each horizon rather than one global dynamic model.
+
+## Why LPs
+
+- Single-equation. Useful when specifying the full system is inconvenient — data limitations, model complexity.
+- Natural home for nonlinearity and state dependence.
+- Convenient for cumulative responses and multipliers.
+- Encompassing framework for panel data, difference-in-differences, and staggered event studies with heterogeneous treatment effects.
+
+The cost is efficiency. Inference can be less efficient with LPs than with a VAR [@jorda2025].
+
+## What linearity imposes
+
+Three restrictions, each economically strong:
+
+1.  **Symmetry.** Rate increases reduce inflation by as much as rate decreases boost it.
+2.  **History-independence.** A hike in a recession has the same effect as a hike in an expansion.
+3.  **Proportionality.** Doubling the intervention doubles the response.
+
+The impulse response can also be defined for other moments — e.g. the probability of default at some future date given a rate increase today, estimated by logit or probit. Under nonlinear functional forms the baseline level $s_0$ matters: a one-point rate rise from a high level need not act like the same rise from a low level.
+
+------------------------------------------------------------------------
+
+# Lag selection
+
+There is no well-established method for choosing LP lag length. Information criteria are the natural default, @jorda2025.
+
+------------------------------------------------------------------------
+
+# LP versus VAR
+
+For a stationary VAR(1) in differences, the Wold form is $\Delta w_t = u_t + \Phi u_{t-1} + \Phi^2 u_{t-2} + \cdots$, so the horizon-$h$ response is $\Phi^h$. The response in levels is the cumulative sum of the responses in differences, since $w_{t+h} - w_{t-1} = \Delta w_{t+h} + \cdots + \Delta w_t$.
+
+The same coefficient is recoverable from an LP. Impulse response estimates from the two methods are asymptotically equivalent, though not in small samples [@plagborg-møller2021].
+
+Three results favor LPs in finite samples:
+
+- LPs impose no cross-horizon smoothness restrictions. This lowers bias at the cost of noisier responses and possibly less precision — the usual bias–efficiency trade-off from imposing fewer restrictions, @li2024a . See also @olea2025 on how steep the variance cost is, and why it is worth paying.
+- Under infinite-order processes, LPs have lower bias than VARs at horizons beyond the optimal truncation lag. The LP coefficient is estimated directly, so small misspecification errors do not compound as they do in a VAR, @jorda2026 .
+- VAR confidence intervals substantially undercover under misspecification too small to detect statistically. LP intervals are **doubly robust**: lower bias *and* correct coverage even under misspecification detectable with probability approaching one @montielolea2024 .
+
+------------------------------------------------------------------------
+
+# Levels or long differences
+
+Two specifications for a persistent DGP:
+
+| Specification   | Regression                                      |
+|-----------------|-------------------------------------------------|
+| Levels          | $y_{t+h}$ on $s_t$ and $y_{t-1}$                |
+| Long difference | $y_{t+h}-y_{t-1}$ on $s_t$ and $\Delta y_{t-1}$ |
+
+Both are consistent and asymptotically equivalent. They differ in small samples. Serial correlation generates estimation bias, and long differencing considerably reduces it, @piger2025. Under a near-unit root the bias is attenuated, not eliminated.
+
+**Default to the long-difference specification**, especially for persistent macro series. @jorda2025 call it their preferred tool.
+
+## Large-sample caveat
+
+As $T \to \infty$ for fixed $h$, both specifications are consistent and asymptotically normal. Problems arise when $h$ grows in proportion to $T$.
+
+------------------------------------------------------------------------
+
+# Multipliers
+
+The multiplier is the ratio of the cumulative outcome response to the cumulative intervention response. It is roughly an average effect per unit of intervention. It matters because the same response path carries different meanings depending on the underlying process:
+
+- **Persistent interventions** ("treatment plans"). The multiplier collapses to the impact response.
+- **Internal propagation.** A one-off intervention hitting a process with its own dynamics. Same response path, very different multiplier.
+
+So report the multiplier when the "treatment plan versus one-off shock" distinction is economically meaningful — fiscal policy above all (Mountford & Uhlig 2009; Uhlig 2010; Ramey 2016), as in @rameyzubairy2018.
+
+Estimate it directly rather than by dividing two separately estimated cumulative IRFs, which complicates standard errors and is unstable as the denominator approaches zero. Define $w^{c}_{t,h} = w_t + \cdots + w_{t+h}$ for $w = y, s$ and run
+
+$$y^{c}_{t,h} = m(h)\, s^{c}_{t,h} + \varepsilon_{t+h},$$
+
+using $z_t$ as an instrument for $s^{c}_{t,h}$. Multiplying through by $z_t$ and taking covariances recovers the ratio exactly, but far more stably.
+
+------------------------------------------------------------------------
+
+# Pointwise inference
+
+## The problem
+
+Iterating an AR(1) forward gives residuals that are an MA($h$) process. LP residuals are therefore serially correlated by construction.
+
+## Newey–West
+
+The original prescription [@jorda2005] is a HAC covariance estimator such as Newey–West (Newey & West 1987). In panels the analogue is Driscoll–Kraay (Driscoll & Kraay 1998).
+
+## Lag augmentation (preferred)
+
+Add $w_{t-1}$ as an extra regressor [@montielolea2021a]:
+
+$$w_{t+h} = \beta(\phi,h)\,u_t + \beta(\phi,h+1)\,w_{t-1} + \xi_t(\phi,h).$$
+
+The purpose is to make the effective regressor of interest stationary even if $w_t$ has a unit root. Two benefits:
+
+1.  $\hat\beta(h)$ is **uniformly** asymptotically normal for $\phi \in [-1,1]$, by the same logic as lag augmentation in AR inference [@sims1990], and as in Toda & Yamamoto (1995), Dolado & Lütkepohl (1996), and Inoue & Kilian (2002, 2020).
+2.  Standard errors simplify. Heteroskedasticity-robust White errors suffice — HC3 in practice. No HAC bandwidth choice is required.
+
+This combination gives correct uniform coverage across stationarity, near-unit roots, and nonstationarity, and holds at long horizons.
+
+## Bootstrap alternatives
+
+Standard LP bootstraps assume the DGP is a finite-order VAR, typically the one implied by the horizon-1 projection. That approximation degrades beyond the lag length. @gadea2025 build bootstrap procedures off the moving-average representation instead, accommodating infinite-order processes.
+
+------------------------------------------------------------------------
+
+## Identifying assumptions for LP-IV
+
+Following Stock & Watson (2018):
+
+- **Relevance.** The instrument is correlated with the intervention.
+- **Lead-lag exogeneity.** The instrument is uncorrelated with the residual vector at *all* leads and lags — stronger than static-IV exogeneity.
+
+# Identification
+
+LPs do not solve identification. They host standard strategies.
+
+| Strategy | LP implementation |
+|-------------------------|----------------------------------------------|
+| Selection on observables | Include $x_t$ as controls. |
+| Recursive / Cholesky | Add contemporaneous values of variables ordered *before* $s_t$ in the causal chain, alongside lags of all system variables. Asymptotically equivalent to a Cholesky VAR [@plagborg-møller2021]. |
+| Inverse propensity weighting | Reweight by $\hat p_t = \Pr(s_t = 1 \mid x_t)$ from a logit/probit first stage. Adding regression adjustment gives a doubly robust estimator. |
+| Long-run restrictions | Two steps [@plagborg-møller2021], in the @blanchard1989 setup. First, regress the long difference $y_{t+H}-y_{t-1}$ on $\Delta y_t$ and $U_t$ (plus lags) for large $H$; the supply shock is the fitted linear combination $s_t = \beta^y_H \Delta y_t + \beta^U_H U_t$. Second, run the LP using $s_t$ as the impulse. |
+| Sign restrictions | Feasible but only set-identified; inference is more involved. |
+| LP-IV | 2SLS with $z_t$ satisfying relevance and lead-lag exogeneity. |
+
+A general weakness of the traditional schemes is that identifying assumptions cannot be tested.
+
+**Non-invertibility.** LP-IV identifies even when structural shocks cannot be recovered from current and lagged system variables — for example, news shocks about future technology [@beaudry2014], where the system is driven by more shocks than it has variables. VAR identification based on the reduced-form residual covariance fails here (Fernández-Villaverde et al. 2007; Stock & Watson 2018; Plagborg-Møller & Wolf 2022). This is a substantive advantage of LP-IV over VARs. For external-instrument SVAR procedures that remain valid under non-invertibility see @forni2022; for identification in non-invertible VARs see Chahrour & Jurado (2022).
+
+------------------------------------------------------------------------
+
+# Smoothing
+
+Raw LP responses look choppy because no cross-horizon smoothness is imposed. Two basis-function remedies, both estimated by minimum distance against the LP point estimates and their covariance:
+
+- **B-splines** (Barnichon & Brownlees 2019). Flexible, penalised least squares. Standard error theory for the tuning parameter is incomplete.
+- **Gaussian basis functions** (Barnichon & Matthes 2018). Three interpretable parameters: peak height, peak timing, half-life. Good for single-humped responses; multi-modal shapes need several terms, at which point splines are preferable.
+
+When the basis has fewer parameters than horizons, the over-identifying restrictions give a $\chi^2$ goodness-of-fit test.
+
+------------------------------------------------------------------------
+
+# Indirect inference
+
+**Projection minimum distance** (Jordà & Kozicki 2011). Estimate structural parameters by minimum distance against nonparametrically estimated LP responses, avoiding numerical likelihood maximisation.
+
+**Optimal policy evaluation** (Barnichon & Mesters 2023). For a quadratic-loss policymaker, the first-order conditions imply a minimum-distance estimator of the gap between actual and optimal policy, testable against a $\chi^2$ null. The policy rule never has to be specified — only the impulse responses and the deviation from target.
+
+**Counterfactual paths.** Stacked responses are jointly normal, so a counterfactual policy path implies a conditional outcome path by standard multivariate-normal conditioning. Whether the counterfactual is "modest" enough to escape the Lucas critique is checked by a Mahalanobis distance against a $\chi^2_H$ reference (Leeper & Zha 2003).
+
+------------------------------------------------------------------------
+
+# State dependence
+
+LPs are well suited to responses that vary across regimes.
+
+## Stratification
+
+Split on a state indicator determined *before* the intervention and run separate long-difference LPs:
+
+$$y_{t+h}-y_{t-1} = \alpha^j_h + \beta^j_h \Delta s_t + \gamma^{j\prime}_h \Delta x_t + v_{t+h}, \qquad j = 0,1.$$
+
+Conditioning on past information without conditioning on the state mixes state-specific responses into a single average. The correct approach is to condition on the state.
+
+Applications: monetary shocks over the cycle (Tenreyro & Thwaites 2016; Angrist, Jordà & Kuersteiner 2018; Jordà, Singh & Taylor 2024); fiscal shocks over the cycle (Auerbach & Gorodnichenko 2013; Jordà & Taylor 2016), and @rameyzubairy2018.
+
+## Two caveats
+
+**The state must not be endogenous to the intervention.** Rates are set low in slumps and high in booms, so naive stratification can confound weak monetary responses. Fiscal policy is safer because it reacts with a lag. Ideally both intervention and state are exogenously determined, which may require instruments for both. Relatedly, Gonçalves et al. (2024) show large interventions are unlikely to represent the true population response; the conservative reading treats estimated responses as derivatives — the effect of an infinitesimal intervention.
+
+**Interpretation differs from a state-dependent VAR.** Deriving the response from state-specific VAR parameters implicitly assumes the economy stays in that state forever. It will not. The correct state-conditional response generally requires simulating and averaging over future trajectories in which the state switches.
+
+## Continuous heterogeneity
+
+Cloyne, Jordà & Taylor (2023) generalise beyond binary states with an interaction term:
+
+$$y_{t+h} = \delta^h_0 + \beta_h(s_t - s_0) + \gamma_h(x_t - x_0) + \theta_h(s_t-s_0)(x_t-x_0) + v_{t+h}.$$
+
+- $\beta_h$ scaled by the dose is the **direct effect** — the usual impulse response.
+- $\theta_h$ scaled by the dose and the state shift is the **indirect effect** — how the intervention shifts the way covariates act on the outcome. Its sign determines amplification or attenuation.
+
+The decomposition makes a point stratification hides: identification requires exogenous variation in $x_t$ too, not just in $s_t$, since the state is generally related to the policy variable. Because time variation is tied to observed $x_t$ rather than a latent random-walk parameter, this is a computationally simple alternative to TVP-VARs. It is linear in parameters, so estimation stays easy.
+
+## Nonlinearity
+
+Specifications that are nonlinear in variables but linear in parameters (squares, interactions) remain OLS-estimable. Applications include quantile LPs (Linnemann & Winkler 2016; Adrian et al. 2022; Jordà et al. 2022) and binary outcomes (Drehmann, Patton & Sorensen 2007; Barattieri & Cacciatore 2023). For the general nonparametric framing see Rambachan & Shephard (2019).
+
+**IV caveat** (Newey 1990). Never instrument a nonlinear transform of $s_t$ by first-stage-regressing $s_t$ on $z_t$ — Jensen's inequality breaks it. Instrument the transforms directly with $z_t$, $z_t^2$, $z_t x_t$.
+
+------------------------------------------------------------------------
+
+# Panel data and LP-DiD
+
+## Inference in panels
+
+Which correction applies depends on $N$ and $T$:
+
+- $T \to \infty$, $N$ fixed or slow-growing: Driscoll–Kraay (Driscoll & Kraay 1998), the panel analogue of Newey–West.
+- $N \to \infty$, $T$ fixed: cluster-robust standard errors.
+- $T$ small: wild cluster bootstrap (Cameron, Gelbach & Miller 2008; Canay, Santos & Shaikh 2021; Roodman et al. 2019).
+
+With $N$ large relative to $T$, the asymptotic distribution is dominated by the cross-section. Near-unit-root distortions largely disappear.
+
+## LP-DiD
+
+Difference-in-differences identifies the average treatment effect on the treated under no anticipation and parallel trends. The literature has moved beyond the two-period, two-group case to staggered adoption, heterogeneous effects across cohorts, and dynamic effects [@roth2023; @dechaisemartin2023].
+
+@dube2025 show these settings fit a single LP regression:
+
+$$y_{i,t+h} - y_{i,t-1} = \delta^h_t + \beta_h \Delta s_{it} + \sum_{j=1}^{p} \rho^h_j \Delta y_{i,t-j} + \gamma_h' x_{it} + v_{i,t+h},$$
+
+with **the estimation sample restricted to clean controls**: observations with either $\Delta s_{it} = 1$ (newly treated) or $s_{i,t+h} = 0$ (not yet treated). This rules out comparisons between newly treated and already-treated units.
+
+Two structural points:
+
+- Individual fixed effects are absorbed by the long differencing; time fixed effects $\delta^h_t$ remain.
+- The clean-control condition, which the DiD literature enforces through bespoke pairwise-comparison machinery, here reduces to a sample filter. LPs are already forward-looking, so it comes for free.
+
+$\hat\beta_h$ recovers a variance-weighted average of heterogeneous effects, where algorithmic DiD estimators typically target an equally-weighted average. Another bias–variance trade-off, with the shoe now on the other foot relative to the LP-versus-VAR case.
+
+------------------------------------------------------------------------
+
+# Practice checklist
+
+1.  Prefer the long-difference specification over levels, especially for persistent series.
+2.  Use lag-augmented LPs with HC/White standard errors rather than plain Newey–West. Uniform validity, no bandwidth choice.
+3.  Report joint bands alongside pointwise ones, and consider significance bands as a null-based complement.
+4.  Report multipliers whenever the treatment-plan versus one-off distinction matters.
+5.  For state dependence, verify the state is genuinely predetermined. Prefer the interaction specification over sample splitting to avoid omitting other relevant states.
+6.  In staggered, absorbing-treatment panels, use LP-DiD's clean-control restriction.
+7.  Never instrument nonlinear transforms of the shock through a linear first stage.
+
+
+# References
+
+::: {#refs}
+:::
+
+
+::: {.callout-important collapse="true" title="Further works cited"}
+
+Named in the text above but not held in `references.bib`. Full details are in the bibliography of @jorda2025; replication code for the survey is at <https://github.com/ojorda/JEL-Code>.
+
+- Barnichon, R. and Brownlees, C. (2019). "Impulse Response Estimation by Smooth Local Projections." *Review of Economics and Statistics*, 101(3), 522–530.
+- Barnichon, R. and Matthes, C. (2018). "Functional Approximation of Impulse Responses." *Journal of Monetary Economics*, 99, 41–55.
+- Barnichon, R. and Mesters, G. (2023). "A Sufficient Statistics Approach for Macro Policy." *American Economic Review*, 113(11), 2809–2845.
+- Cloyne, J., Jordà, Ò., and Taylor, A.M. (2023). "State-Dependent Local Projections: Understanding Impulse Response Heterogeneity." NBER WP
+  30971. 
+- Driscoll, J.C. and Kraay, A.C. (1998). "Consistent Covariance Matrix Estimation with Spatially Dependent Panel Data." *Review of Economics and Statistics*, 80(4), 549–560.
+- Jordà, Ò. (2009). "Simultaneous Confidence Regions for Impulse Responses." *Review of Economics and Statistics*, 91(3), 629–647.
+- Jordà, Ò. and Kozicki, S. (2011). "Estimation and Inference by the Method of Projection Minimum Distance." *International Economic Review*, 52(2), 461–487.
+- Jordà, Ò., Schularick, M., and Taylor, A.M. (2015). "Betting the House." *Journal of International Economics*, 96, S2–S18.
+- Jordà, Ò., Singh, S.R., and Taylor, A.M. (2024). "The Long-Run Effects of Monetary Policy." NBER WP 26666.
+- Li, D., Plagborg-Møller, M., and Wolf, C.K. (2024). "Local Projections vs. VARs: Lessons from Thousands of DGPs." *Journal of Econometrics*, 244(2), 105722.
+- Montiel Olea, J.L. and Plagborg-Møller, M. (2019). "Simultaneous Confidence Bands: Theory, Implementation, and an Application to SVARs." *Journal of Applied Econometrics*, 34(1), 1–17.
+- Montiel Olea, J.L., Plagborg-Møller, M., Qian, E., and Wolf, C.K. (2024). "Double Robustness of Local Projections and Some Unpleasant VARithmetic." NBER WP 32495.
+- Newey, W.K. and West, K.D. (1987). "A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix." *Econometrica*, 55(3), 703–708.
+- Piger, J. and Stockwell, T. (2023). "Differences from Differencing: Should Local Projections with Observed Shocks be Estimated in Levels or Differences?" SSRN.
+- Plagborg-Møller, M. and Wolf, C.K. (2022). "Instrumental Variable Identification of Dynamic Variance Decompositions." *Journal of Political Economy*, 130(8), 2164–2202.
+- Rambachan, A. and Shephard, N. (2019). "A Nonparametric Dynamic Causal Model for Macroeconometrics." Working paper.
+- Ramey, V.A. (2016). "Macroeconomic Shocks and Their Propagation." In *Handbook of Macroeconomics*, vol. 2, 71–162.
+- Stock, J.H. and Watson, M.W. (2018). "Identification and HAC Standard Errors for Efficient Estimation of Instrumental Variables Regressions." *Economic Journal*, 128(610), 917–948.
+
+:::
+
+

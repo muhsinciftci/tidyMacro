@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Replication gallery and documentation for the tidyMacro R package">
 
-<title>2&nbsp; Short run restrictions – tidyMacro</title>
+<title>Short run restrictions – tidyMacro</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -99,7 +98,7 @@ div.csl-indent {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-243ff5925296cc7b34704e1102c31ac2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-4dc7a0a1c379dfe597de3776b2e979c6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -161,8 +160,10 @@ window.Quarto = {
 
 <meta property="og:title" content="tidyMacro">
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
-<meta property="og:image" content="01_Bloom2009_files/figure-html/fig-irf-standard-1.png">
+<meta property="og:image" content="https://tidymacro.netlify.app/01_Bloom2009_files/figure-html/fig-irf-standard-1.png">
 <meta property="og:site_name" content="tidyMacro">
+<meta property="og:image:height" content="2304">
+<meta property="og:image:width" content="3072">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -172,10 +173,6 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./logo.png" alt="tidyMacro" class="navbar-logo light-content">
-    <img src="./logo.png" alt="tidyMacro" class="navbar-logo dark-content">
-    </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">tidyMacro</span>
     </a>
@@ -185,16 +182,18 @@ window.Quarto = {
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339"> <i class="bi bi-file-pdf" role="img" aria-label="Download PDF">
-</i> 
-<span class="menu-text">PDF</span></a>
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./faq.html"> 
+<span class="menu-text">FAQ</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-    <a href="https://github.com/muhsinciftci/tidyMacro" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -203,9 +202,12 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Bloom2009.html">Identifcation via Short-run restrictions</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
     </div>
   </nav>
 </header>
@@ -213,78 +215,100 @@ window.Quarto = {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/muhsinciftci/tidyMacro" title="tidyMacro GitHub" class="quarto-navigation-tool px-1" aria-label="tidyMacro GitHub"><i class="bi bi-github"></i></a>
+    <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339" title="Paper" class="quarto-navigation-tool px-1" aria-label="Paper"><i class="bi bi-file-pdf"></i></a>
+    <a href="https://www.linkedin.com/in/muhsin-ciftci/" title="Linkedin" class="quarto-navigation-tool px-1" aria-label="Linkedin"><i class="bi bi-linkedin"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span></a>
+ <span class="menu-text">Welcome</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></span></a>
+ <span class="menu-text">Identifcation via Short-run restrictions</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./02_1_Gali1999.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Long run restrictions</span></span></a>
+ <span class="menu-text">Identifcation via Long-run restrictions</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./02_2_BeaudryPortier2014.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mixed restrictions</span></span></a>
+ <span class="menu-text">Identifcation via Mixed restrictions</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Proxy SVAR (External Instruments) and Weak-IV Robust Inference</span></span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Internal Instruments: Cholesky on Augmented VAR</span></span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Identification via Heteroskedasticity</span></span></a>
+ <span class="menu-text">Identifcation via External Instruments and Weak IV</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">External instrument SVAR analysis for noninvertible shocks</span></span></a>
+ <span class="menu-text">Identifcation via Noninvertible shocks</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./05_lp_syntax.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Local Projections — Common Syntax and Conventions</span></span></a>
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Internal instruments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Heteroskedasticity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_01_lp_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Primer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_2_lp_syntax_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Syntax Primer</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Local Projections with Shocks and IV</span></span></a>
+ <span class="menu-text">LP with Shocks and IV</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Panel Local Projections</span></span></a>
+ <span class="menu-text">LP Panel</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Local Projections Difference-in-Differences</span></span></a>
+ <span class="menu-text">LP DID</span></a>
   </div>
 </li>
     </ul>
@@ -292,19 +316,44 @@ window.Quarto = {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
+  <li><a href="#model-and-identification" id="toc-model-and-identification" class="nav-link" data-scroll-target="#model-and-identification"><span class="header-section-number">2</span> Model and Identification</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup"><span class="header-section-number">3</span> Setup</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data"><span class="header-section-number">4</span> Data</a></li>
+  <li><a href="#var-estimation" id="toc-var-estimation" class="nav-link" data-scroll-target="#var-estimation"><span class="header-section-number">5</span> VAR Estimation</a></li>
+  <li><a href="#bootstrap-confidence-bands" id="toc-bootstrap-confidence-bands" class="nav-link" data-scroll-target="#bootstrap-confidence-bands"><span class="header-section-number">6</span> Bootstrap Confidence Bands</a>
+  <ul class="collapse">
+  <li><a href="#standard-bootstrap" id="toc-standard-bootstrap" class="nav-link" data-scroll-target="#standard-bootstrap"><span class="header-section-number">6.1</span> Standard Bootstrap</a></li>
+  <li><a href="#bias-corrected-bootstrap" id="toc-bias-corrected-bootstrap" class="nav-link" data-scroll-target="#bias-corrected-bootstrap"><span class="header-section-number">6.2</span> Bias-Corrected Bootstrap</a></li>
+  </ul></li>
+  <li><a href="#impulse-response-functions" id="toc-impulse-response-functions" class="nav-link" data-scroll-target="#impulse-response-functions"><span class="header-section-number">7</span> Impulse Response Functions</a>
+  <ul class="collapse">
+  <li><a href="#standard-bootstrap-1" id="toc-standard-bootstrap-1" class="nav-link" data-scroll-target="#standard-bootstrap-1"><span class="header-section-number">7.1</span> Standard Bootstrap</a></li>
+  <li><a href="#bias-corrected-bootstrap-1" id="toc-bias-corrected-bootstrap-1" class="nav-link" data-scroll-target="#bias-corrected-bootstrap-1"><span class="header-section-number">7.2</span> Bias-Corrected Bootstrap</a></li>
+  </ul></li>
+  <li><a href="#forecast-error-variance-decomposition" id="toc-forecast-error-variance-decomposition" class="nav-link" data-scroll-target="#forecast-error-variance-decomposition"><span class="header-section-number">8</span> Forecast Error Variance Decomposition</a></li>
+  <li><a href="#historical-decomposition" id="toc-historical-decomposition" class="nav-link" data-scroll-target="#historical-decomposition"><span class="header-section-number">9</span> Historical Decomposition</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/01_Bloom2009.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
 <!-- main -->
-<main class="content column-page-right" id="quarto-document-content">
+<main class="content column-body" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Short run restrictions</span></h1>
+<h1 class="title">Short run restrictions</h1>
 <p class="subtitle lead">The Impact of Uncertainty Shocks</p>
 </div>
 
 
 
-<div class="quarto-title-meta column-page-right">
+<div class="quarto-title-meta column-body">
 
     
   
@@ -316,12 +365,12 @@ window.Quarto = {
 </header>
 
 
-<section id="overview" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">2.1</span> Overview</h2>
+<section id="overview" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> Overview</h2>
 <p>This document replicates the main empirical results of <span class="citation" data-cites="bloom2009">Bloom (<a href="#ref-bloom2009" role="doc-biblioref">2009</a>)</span>, which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is <span class="math inline">\(log(x) * 100\)</span></p>
 </section>
-<section id="model-and-identification" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="model-and-identification"><span class="header-section-number">2.2</span> Model and Identification</h2>
+<section id="model-and-identification" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="model-and-identification"><span class="header-section-number">2</span> Model and Identification</h2>
 <p>Reduced-form VAR(<span class="math inline">\(p\)</span>):</p>
 <p><span class="math display">\[y_t = c + A_1 y_{t-1} + \cdots + A_p y_{t-p} + u_t, \qquad u_t \sim (0, \Sigma)\]</span></p>
 <p>Structural shocks: <span class="math inline">\(u_t = B_0 \varepsilon_t\)</span> with <span class="math inline">\(\varepsilon_t \sim (0, I_K)\)</span>, so the data only pin down</p>
@@ -331,8 +380,8 @@ window.Quarto = {
 <p>Structural IRFs from the Wold coefficients <span class="math inline">\(\Phi_h\)</span>:</p>
 <p><span class="math display">\[\Theta_h = \Phi_h B_0, \qquad h = 0, 1, \dots, H.\]</span></p>
 </section>
-<section id="setup" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="setup"><span class="header-section-number">2.3</span> Setup</h2>
+<section id="setup" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="setup"><span class="header-section-number">3</span> Setup</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
@@ -342,8 +391,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="data" class="level2" data-number="2.4">
-<h2 data-number="2.4" class="anchored" data-anchor-id="data"><span class="header-section-number">2.4</span> Data</h2>
+<section id="data" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="data"><span class="header-section-number">4</span> Data</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"Bloom2009"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -372,8 +421,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="var-estimation" class="level2" data-number="2.5">
-<h2 data-number="2.5" class="anchored" data-anchor-id="var-estimation"><span class="header-section-number">2.5</span> VAR Estimation</h2>
+<section id="var-estimation" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="var-estimation"><span class="header-section-number">5</span> VAR Estimation</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">12</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="dv">1</span></span>
@@ -391,10 +440,10 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="bootstrap-confidence-bands" class="level2" data-number="2.6">
-<h2 data-number="2.6" class="anchored" data-anchor-id="bootstrap-confidence-bands"><span class="header-section-number">2.6</span> Bootstrap Confidence Bands</h2>
-<section id="standard-bootstrap" class="level3" data-number="2.6.1">
-<h3 data-number="2.6.1" class="anchored" data-anchor-id="standard-bootstrap"><span class="header-section-number">2.6.1</span> Standard Bootstrap</h3>
+<section id="bootstrap-confidence-bands" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="bootstrap-confidence-bands"><span class="header-section-number">6</span> Bootstrap Confidence Bands</h2>
+<section id="standard-bootstrap" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="standard-bootstrap"><span class="header-section-number">6.1</span> Standard Bootstrap</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>bloom_chol <span class="ot">&lt;-</span> <span class="fu">fBootstrapChol</span>(</span>
@@ -406,11 +455,11 @@ window.Quarto = {
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_threads  =</span> <span class="dv">3</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2.47 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2.148 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="bias-corrected-bootstrap" class="level3" data-number="2.6.2">
-<h3 data-number="2.6.2" class="anchored" data-anchor-id="bias-corrected-bootstrap"><span class="header-section-number">2.6.2</span> Bias-Corrected Bootstrap</h3>
+<section id="bias-corrected-bootstrap" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="bias-corrected-bootstrap"><span class="header-section-number">6.2</span> Bias-Corrected Bootstrap</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tic</span>()</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>bloom_corrected <span class="ot">&lt;-</span> <span class="fu">fBootstrapCholCorrected</span>(</span>
@@ -423,15 +472,15 @@ window.Quarto = {
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_threads  =</span> <span class="dv">3</span></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4.536 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4.287 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
 </section>
-<section id="impulse-response-functions" class="level2" data-number="2.7">
-<h2 data-number="2.7" class="anchored" data-anchor-id="impulse-response-functions"><span class="header-section-number">2.7</span> Impulse Response Functions</h2>
-<section id="standard-bootstrap-1" class="level3" data-number="2.7.1">
-<h3 data-number="2.7.1" class="anchored" data-anchor-id="standard-bootstrap-1"><span class="header-section-number">2.7.1</span> Standard Bootstrap</h3>
+<section id="impulse-response-functions" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="impulse-response-functions"><span class="header-section-number">7</span> Impulse Response Functions</h2>
+<section id="standard-bootstrap-1" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="standard-bootstrap-1"><span class="header-section-number">7.1</span> Standard Bootstrap</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFChol</span>(</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">point       =</span> point_irf,</span>
@@ -448,15 +497,15 @@ window.Quarto = {
 <img src="01_Bloom2009_files/figure-html/fig-irf-standard-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-standard-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.1: IRFs to uncertainty shock — standard bootstrap (68% and 90% confidence bands)
+Figure&nbsp;1: IRFs to uncertainty shock — standard bootstrap (68% and 90% confidence bands)
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="bias-corrected-bootstrap-1" class="level3" data-number="2.7.2">
-<h3 data-number="2.7.2" class="anchored" data-anchor-id="bias-corrected-bootstrap-1"><span class="header-section-number">2.7.2</span> Bias-Corrected Bootstrap</h3>
+<section id="bias-corrected-bootstrap-1" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="bias-corrected-bootstrap-1"><span class="header-section-number">7.2</span> Bias-Corrected Bootstrap</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFChol</span>(</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">point       =</span> point_irf,</span>
@@ -473,7 +522,7 @@ Figure&nbsp;2.1: IRFs to uncertainty shock — standard bootstrap (68% and 90% c
 <img src="01_Bloom2009_files/figure-html/fig-irf-corrected-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-irf-corrected-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.2: IRFs to uncertainty shock — bias-corrected bootstrap (68% and 90% confidence bands)
+Figure&nbsp;2: IRFs to uncertainty shock — bias-corrected bootstrap (68% and 90% confidence bands)
 </figcaption>
 </figure>
 </div>
@@ -482,8 +531,8 @@ Figure&nbsp;2.2: IRFs to uncertainty shock — bias-corrected bootstrap (68% and
 <hr>
 </section>
 </section>
-<section id="forecast-error-variance-decomposition" class="level2" data-number="2.8">
-<h2 data-number="2.8" class="anchored" data-anchor-id="forecast-error-variance-decomposition"><span class="header-section-number">2.8</span> Forecast Error Variance Decomposition</h2>
+<section id="forecast-error-variance-decomposition" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="forecast-error-variance-decomposition"><span class="header-section-number">8</span> Forecast Error Variance Decomposition</h2>
 <p>Share of the <span class="math inline">\(h\)</span>-step forecast error variance of variable <span class="math inline">\(k\)</span> due to shock <span class="math inline">\(j\)</span>:</p>
 <p><span class="math display">\[\mathrm{FEVD}_{k,j}(h) = \frac{\sum_{s=0}^{h-1} (\Theta_s)_{kj}^2}{\sum_{s=0}^{h-1} \sum_{\ell=1}^{K} (\Theta_s)_{k\ell}^2}.\]</span></p>
 <div class="cell">
@@ -502,7 +551,7 @@ Figure&nbsp;2.2: IRFs to uncertainty shock — bias-corrected bootstrap (68% and
 <img src="01_Bloom2009_files/figure-html/fig-fevd-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fevd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.3: Forecast error variance decomposition: share explained by uncertainty shock
+Figure&nbsp;3: Forecast error variance decomposition: share explained by uncertainty shock
 </figcaption>
 </figure>
 </div>
@@ -510,8 +559,8 @@ Figure&nbsp;2.3: Forecast error variance decomposition: share explained by uncer
 </div>
 <hr>
 </section>
-<section id="historical-decomposition" class="level2" data-number="2.9">
-<h2 data-number="2.9" class="anchored" data-anchor-id="historical-decomposition"><span class="header-section-number">2.9</span> Historical Decomposition</h2>
+<section id="historical-decomposition" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="historical-decomposition"><span class="header-section-number">9</span> Historical Decomposition</h2>
 <p>Each observation decomposes into deterministic components plus cumulated shock contributions (companion form for <span class="math inline">\(p &gt; 1\)</span>):</p>
 <p><span class="math display">\[y_t = \sum_{s=0}^{t-1} \Phi^s c + \Phi^t y_0 + \sum_{s=0}^{t-1} \Theta_s \varepsilon_{t-s},
 \qquad
@@ -541,7 +590,7 @@ HD_{k,t}^{(j)} = \sum_{s=0}^{t-1} (\Theta_s)_{kj}\, \varepsilon_{j,t-s}.\]</span
 <img src="01_Bloom2009_files/figure-html/fig-histdec-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-histdec-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.4: Historical decomposition: contribution of uncertainty shock
+Figure&nbsp;4: Historical decomposition: contribution of uncertainty shock
 </figcaption>
 </figure>
 </div>
@@ -549,17 +598,17 @@ Figure&nbsp;2.4: Historical decomposition: contribution of uncertainty shock
 </div>
 </section>
 <section id="references" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-bloom2009" class="csl-entry" role="listitem">
 Bloom, Nicholas. 2009. <span>“The Impact of Uncertainty Shocks.”</span> <em>Econometrica</em> 77 (3): 623–85. <a href="https://doi.org/10.3982/ECTA6248">https://doi.org/10.3982/ECTA6248</a>.
 </div>
-</div>
-</section>
-
-</main> <!-- /main -->
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -633,7 +682,7 @@ Bloom, Nicholas. 2009. <span>“The Impact of Uncertainty Shocks.”</span> <em>
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/tidymacro\.netlify\.app");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -965,15 +1014,15 @@ Bloom, Nicholas. 2009. <span>“The Impact of Uncertainty Shocks.”</span> <em>
     }
   });
   </script>
-<nav class="page-navigation column-page-right">
+<nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link" aria-label="Home">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Home</span></span>
+      <a href="./index.html" class="pagination-link" aria-label="Welcome">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Welcome</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./02_1_Gali1999.html" class="pagination-link" aria-label="Long run restrictions">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Long run restrictions</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./02_1_Gali1999.html" class="pagination-link" aria-label="Identifcation via Long-run restrictions">
+        <span class="nav-page-text">Identifcation via Long-run restrictions</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
@@ -981,13 +1030,13 @@ Bloom, Nicholas. 2009. <span>“The Impact of Uncertainty Shocks.”</span> <em>
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Built with <a href="https://quarto.org">Quarto</a></p>
+<p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
 </div>   
     <div class="nav-footer-center">
-<p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
-<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/01_Bloom2009.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/01_Bloom2009.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
-<p><a href="./index.html">tidyMacro</a></p>
+<p>This page is built with <a href="https://quarto.org">Quarto</a>.</p>
 </div>
   </div>
 </footer>

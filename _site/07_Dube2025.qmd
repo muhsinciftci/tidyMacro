@@ -15,14 +15,92 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Overview
+## What is LP-DID?
 
-This chapter replicates the two empirical applications of @dube2025 with `fLPDID()` and `fPlotLPDID()`. Shared conventions across the LP engines — formula grammar, `..macros`, gap-safe `l()` / `f()` / `d()`, `panel_id` handling, duplicate-row rejection, output tibble shape — are documented once in the [Local Projections syntax primer](05_lp_syntax.html). Below we focus on what is DiD-specific.
+To see the main ideas and contributions of the paper, click below to expand:
 
-For each horizon $h$ the long-difference regression
-$$y_{i,t+h} - y_{i,t-1} \;=\; \beta_h \,\Delta D_{it} \;+\; X_{it}'\gamma_h
-\;+\; \tau_t \;+\; \varepsilon_{it}$$
-is fit on a **clean-control sample** (newly treated units and units that stay untreated over the relevant window). Pre-treatment horizons replace $y_{i,t+h}$ by $y_{i,t-j}$ as placebo tests, with $\beta_{-1}=0$ as the normalization.
+::: {.callout-tip collapse="true"}
+## What is LP-DID?
+
+With staggered treatment adoption, conventional TWFE regressions may use **previously treated units as controls for newly treated units**. When treatment effects are dynamic or heterogeneous, these comparisons can generate negative weights and biased estimates.
+
+A naïve application of Local Projections does not automatically solve this problem. At a given horizon (h), the control group may include:
+
+- previously treated units that are still affected by treatment; or
+- units that become treated between (t) and (t+h).
+
+Thus, the main contribution of the paper is not simply applying LPs to DiD, but defining an appropriate **clean control condition**.
+
+### The LP-DiD estimator
+
+For each horizon (h), LP-DiD compares newly treated units with units that remain untreated throughout the relevant horizon. A basic specification is
+
+$$y_{i,t+h} - y_{i,t-1}
+=
+\delta_t^h
++
+\beta_h^{LP-DiD}\Delta D_{it}
++
+e_{it}^h.$$
+
+The estimation sample includes:
+
+- **newly treated units**, for which (\Delta D\_{it}=1); and
+- **clean controls**, which remain untreated at least until (t+h).
+
+Under absorbing treatment, the clean control condition simplifies to
+
+$$D_{i,t+h}=0.$$
+
+By excluding previously treated and soon-to-be-treated observations from the control group, LP-DiD avoids the negative-weighting problem.
+
+### Identification and weighting
+
+Under the standard assumptions of **no anticipation** and **parallel trends**, LP-DiD estimates a convex weighted average of cohort-specific treatment effects:
+
+$$\beta_h^{LP-DiD}
+=
+\sum_g \omega_{g,h}\tau_{g,h}.$$
+
+Importantly, the weights are nonnegative. The default estimator uses variance-based weights, which depend on cohort size and treatment variation. If the researcher instead wants the conventional equally weighted ATT, the LP-DiD regression can be reweighted accordingly.
+
+### Relation to existing DiD estimators
+
+An important contribution of the paper is that several recent DiD estimators can be interpreted as special cases of the LP-DiD framework.
+
+| LP-DiD implementation | Related estimator |
+|------------------------------------|------------------------------------|
+| Baseline variance-weighted LP-DiD | Stacked regression approach of Cengiz et al (2019). |
+| Reweighted LP-DiD | Callaway and Sant'Anna (2020) |
+| LP-DiD with alternative pre-treatment baseline | Closely related to Borusyak, Jaravel, and Spiess (2024) |
+
+The main differences arise from the choice of:
+
+- comparison sample;
+- weighting scheme; and
+- pre-treatment base period.
+
+### Relation to standard Local Projections
+
+LP-DiD is closely related to the standard Local Projections (LP) approach used in macroeconomics, but the two methods generally estimate different causal objects. The main difference concerns how they treat subsequent changes in the treatment variable.
+
+In a standard macroeconomic LP, an initial shock may generate further changes in policy or treatment in subsequent periods. The resulting impulse response therefore captures the overall dynamic response to the initial intervention, including the effects of the subsequent treatment path. In this sense, the object of interest is closer to the effect of a **treatment plan** rather than a single treatment event.
+
+LP-DiD instead aims to isolate the effect of a **one-off treatment event**. When estimating the effect at horizon (h), it conditions on future treatment status and restricts the comparison to units whose treatment does not change over the relevant horizon. This removes the effects of subsequent treatments from the estimated response.
+
+The distinction can therefore be summarized as follows:
+
+- **Standard LPs:** estimate the dynamic response following an initial shock, allowing subsequent treatments or policy changes to occur.
+- **LP-DiD:** estimates the effect of an individual treatment event by excluding comparisons contaminated by past or subsequent treatment changes.
+
+The two approaches are therefore complementary rather than competing. A standard LP is appropriate when the objective is to estimate the overall response observed after a shock, including the treatment path that follows. LP-DiD is more suitable when the objective is to isolate the causal effect of a particular treatment event. In principle, an overall impulse response can be constructed by combining the one-off effects estimated by LP-DiD with the relevant treatment path.
+
+The paper also notes two caveats. First, conditioning on future treatment may be problematic when future treatment assignment is endogenous. Second, when agents anticipate future treatments, a hypothetical one-off intervention may generate different responses from those observed under the usual treatment path.
+
+Thus, LP-DiD should be viewed as an adaptation of the LP framework for a different counterfactual experiment: rather than asking for the overall response to a shock and its subsequent treatment path, it asks for the effect of an individual treatment event.
+:::
+
+This chapter replicates the two empirical applications of @dube2025. For technical details refer to [Local Projections syntax primer](#0).
 
 **Estimator-specific arguments** (beyond the shared list; see `?fLPDID` for the full API):
 
@@ -45,7 +123,9 @@ data("DemocracyGrowth")
 
 ## Banking deregulation and the labor share
 
-The first application (DGJT, Figure 3) revisits the effect of US **inter-state banking deregulation** on the private labor share: 46 states, 1970–1996, absorbing staggered treatment.
+The first application revisits @leblebicioglu2020 who study the effect of US **inter-state banking deregulation** on the private labor share: 46 states, 1970–1996, absorbing staggered treatment. Basically they estimate:
+
+$$LS_{s, t + h} - LS_{s, t - 1} = \delta^h_t + \beta_h^{LP-DID} \Delta Policy_{s, t} + \sum_{m = 1}^{M} \eta_m^h X_{s, t - m} + e_{s, t}^h$$
 
 ```{r banking}
 bank_fe <- fLPDID(
@@ -75,40 +155,48 @@ bank_full <- fLPDID(
 ```
 
 ```{r banking-plot, fig.width=9, fig.height=4}
-fPlotLPDID(`Only year FEs`               = bank_fe,
-           `+ lagged labor share`        = bank_ylags,
-           `+ lagged share and controls` = bank_full,
-           ncol  = 3, ci = "bars", scales = "fixed",
-           title = "Banking deregulation and the labor share (LP-DiD)",
-           xlab  = "Years since deregulation",
-           ylab  = "Labor share")
+fPlotLPDID(
+    `Only year FEs`                = bank_fe,
+    `+ lagged labor share`         = bank_ylags,
+    `+ lagged share and controls`  = bank_full,
+    ncol  = 3, ci = "bars", scales = "free",
+    title = "Banking deregulation and the labor share (LP-DiD)",
+    xlab  = "Years since deregulation",
+    ylab  = "Labor share"
+)
 ```
-
-Across specifications the LP-DiD estimates are small and statistically indistinguishable from zero — DGJT's point: the large negative effects found by two-way fixed-effects event studies in this setting are an artifact of forbidden comparisons, not a feature of the data. The same exercise for intra-state branching amounts to `fLPDID(lshare ~ branch, ..., treat = "branch")`.
 
 ## Variance-weighted vs. equally-weighted ATT
 
 By default the LP-DiD OLS coefficient is a **variance-weighted** average of clean $2\times2$ comparisons — efficient, but it overweights treatment cohorts observed when the treated share is small. Setting `reweight = TRUE` inverts the implicit weights ($w = 1/(1-p_t)$) and recovers the **equally-weighted** ATT.
 
 ```{r banking-reweight}
-bank_rw <- fLPDID(lshare ~ bank,
-                  data = BankingDeregulation, panel_id = c("id", "year"),
-                  treat = "bank", post = 9, pre = 9,
-                  reweight = TRUE)
+bank_rw <- fLPDID(
+    lshare ~ bank,
+    data     = BankingDeregulation, 
+    panel_id = c("id", "year"),
+    treat    = "bank", 
+    post     = 9, pre = 9,
+    reweight = TRUE
+)
 ```
 
-```{r banking-reweight-plot, fig.width=8, fig.height=3.8}
-fPlotLPDID(`Variance-weighted (OLS)` = bank_fe,
-           `Equally-weighted ATT`    = bank_rw,
-           ncol  = 3, ci = "bars", scales = "fixed",
-           title = "Weighting and the estimand",
-           xlab  = "Years since deregulation",
-           ylab  = "Labor share")
+```{r banking-reweight-plot, fig.width=9, fig.height=4}
+fPlotLPDID(
+    `Variance-weighted (OLS)` = bank_fe,
+    `Equally-weighted ATT`    = bank_rw,
+    ncol  = 3, ci = "bars", scales = "free",
+    title = "Weighting and the estimand",
+    xlab  = "Years since deregulation",
+    ylab  = "Labor share"
+)
 ```
 
 ## Democracy and growth (non-absorbing treatment)
 
-The second application (DGJT, Figure 4) revisits @acemoglu2019 . Treatment is **non-absorbing** — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP (`l(lgdp, 1:4)`) and clean-control samples are built recursively over a stabilization window of $L = 20$ years.
+The second application of @jorda2025 revisits @acemoglu2019 . Treatment is **non-absorbing** — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP and clean-control samples are built recursively over a stabilization window of $L = 20$ years. Specifically the estimation is:
+
+$$y_{ct} = \beta D_{ct} + \sum_{j = 1}^{p} \gamma_j y_{c, t - j}   + \alpha_c + \delta_t + \epsilon_{ct}$$
 
 Three flavors of the clean-control condition (`ccc`):
 
@@ -117,20 +205,26 @@ Three flavors of the clean-control condition (`ccc`):
 - `ccc = 2` — controls must additionally remain clean up to $t+h$.
 
 ```{r democracy}
-demo_anrr <- fLPDID(lgdp ~ dem + l(lgdp, 1:4),
-                    data = DemocracyGrowth, panel_id = c("id", "year"),
-                    treat = "dem", post = 30, pre = 20,
-                    nonabsorbing = TRUE, L = 20, ccc = 0)
+demo_anrr <- fLPDID(
+    lgdp ~ dem + l(lgdp, 1:4),
+    data = DemocracyGrowth, panel_id = c("id", "year"),
+    treat = "dem", post = 30, pre = 20,
+    nonabsorbing = TRUE, L = 20, ccc = 0
+)
 
-demo_ccc1 <- fLPDID(lgdp ~ dem + l(lgdp, 1:4),
-                    data = DemocracyGrowth, panel_id = c("id", "year"),
-                    treat = "dem", post = 30, pre = 20,
-                    nonabsorbing = TRUE, L = 20, ccc = 1)
+demo_ccc1 <- fLPDID(
+    lgdp ~ dem + l(lgdp, 1:4),
+    data = DemocracyGrowth, panel_id = c("id", "year"),
+    treat = "dem", post = 30, pre = 20,
+    nonabsorbing = TRUE, L = 20, ccc = 1
+)
 
-demo_ccc2 <- fLPDID(lgdp ~ dem + l(lgdp, 1:4),
-                    data = DemocracyGrowth, panel_id = c("id", "year"),
-                    treat = "dem", post = 30, pre = 20,
-                    nonabsorbing = TRUE, L = 20, ccc = 2)
+demo_ccc2 <- fLPDID(
+    lgdp ~ dem + l(lgdp, 1:4),
+    data = DemocracyGrowth, panel_id = c("id", "year"),
+    treat = "dem", post = 30, pre = 20,
+    nonabsorbing = TRUE, L = 20, ccc = 2
+)
 ```
 
 ```{r democracy-plot, fig.width=9, fig.height=4}
@@ -147,12 +241,5 @@ fPlotLPDID(
 ```
 
 Democratization raises GDP per capita by roughly 15–25 log points over 25–30 years, with flat pre-trends. Restricting to clean controls (`ccc = 1, 2`) moderates the ANRR estimates, as contaminated comparisons are removed from the control group.
-
-## Notes on the implementation
-
-Generic behavior — gap-safe operators, duplicate `(id, time)` rejection, argument validation, PMD baseline formula, `reweight + controls` warning, direct-C++ boundary checks — is documented in the [syntax primer](05_lp_syntax.html). The two items below are LP-DiD-specific and worth flagging in the empirical context:
-
-- **Weighting.** `reweight = TRUE` implements the inverse implicit weights of the exogenous/absorbing case. The regression-adjustment (ATET) reweighting DGJT use in the non-absorbing case is **not** in the C++ engine; the runtime warning triggered by `reweight = TRUE` with non-empty controls makes this explicit at the point of use.
-- **Missing-value semantics for clean-control sets.** The recursive CCS follow Stata's conventions at panel boundaries: a missing treatment change counts as "no change" (condition OK); a missing lagged clean-control flag counts as failing the condition. This matters for reproducing the original results observation-for-observation.
 
 ## References {.unnumbered}
