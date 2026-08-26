@@ -141,7 +141,7 @@ Following Stock & Watson (2018):
 LPs do not solve identification. They host standard strategies.
 
 | Strategy | LP implementation |
-|-------------------------|----------------------------------------------|
+|--------------------------|----------------------------------------------|
 | Selection on observables | Include $x_t$ as controls. |
 | Recursive / Cholesky | Add contemporaneous values of variables ordered *before* $s_t$ in the causal chain, alongside lags of all system variables. Asymptotically equivalent to a Cholesky VAR [@plagborg-møller2021]. |
 | Inverse propensity weighting | Reweight by $\hat p_t = \Pr(s_t = 1 \mid x_t)$ from a logit/probit first stage. Adding regression adjustment gives a doubly robust estimator. |
@@ -244,49 +244,9 @@ Two structural points:
 
 $\hat\beta_h$ recovers a variance-weighted average of heterogeneous effects, where algorithmic DiD estimators typically target an equally-weighted average. Another bias–variance trade-off, with the shoe now on the other foot relative to the LP-versus-VAR case.
 
-------------------------------------------------------------------------
-
-# Practice checklist
-
-1.  Prefer the long-difference specification over levels, especially for persistent series.
-2.  Use lag-augmented LPs with HC/White standard errors rather than plain Newey–West. Uniform validity, no bandwidth choice.
-3.  Report joint bands alongside pointwise ones, and consider significance bands as a null-based complement.
-4.  Report multipliers whenever the treatment-plan versus one-off distinction matters.
-5.  For state dependence, verify the state is genuinely predetermined. Prefer the interaction specification over sample splitting to avoid omitting other relevant states.
-6.  In staggered, absorbing-treatment panels, use LP-DiD's clean-control restriction.
-7.  Never instrument nonlinear transforms of the shock through a linear first stage.
-
 
 # References
 
 ::: {#refs}
 :::
-
-
-::: {.callout-important collapse="true" title="Further works cited"}
-
-Named in the text above but not held in `references.bib`. Full details are in the bibliography of @jorda2025; replication code for the survey is at <https://github.com/ojorda/JEL-Code>.
-
-- Barnichon, R. and Brownlees, C. (2019). "Impulse Response Estimation by Smooth Local Projections." *Review of Economics and Statistics*, 101(3), 522–530.
-- Barnichon, R. and Matthes, C. (2018). "Functional Approximation of Impulse Responses." *Journal of Monetary Economics*, 99, 41–55.
-- Barnichon, R. and Mesters, G. (2023). "A Sufficient Statistics Approach for Macro Policy." *American Economic Review*, 113(11), 2809–2845.
-- Cloyne, J., Jordà, Ò., and Taylor, A.M. (2023). "State-Dependent Local Projections: Understanding Impulse Response Heterogeneity." NBER WP
-  30971. 
-- Driscoll, J.C. and Kraay, A.C. (1998). "Consistent Covariance Matrix Estimation with Spatially Dependent Panel Data." *Review of Economics and Statistics*, 80(4), 549–560.
-- Jordà, Ò. (2009). "Simultaneous Confidence Regions for Impulse Responses." *Review of Economics and Statistics*, 91(3), 629–647.
-- Jordà, Ò. and Kozicki, S. (2011). "Estimation and Inference by the Method of Projection Minimum Distance." *International Economic Review*, 52(2), 461–487.
-- Jordà, Ò., Schularick, M., and Taylor, A.M. (2015). "Betting the House." *Journal of International Economics*, 96, S2–S18.
-- Jordà, Ò., Singh, S.R., and Taylor, A.M. (2024). "The Long-Run Effects of Monetary Policy." NBER WP 26666.
-- Li, D., Plagborg-Møller, M., and Wolf, C.K. (2024). "Local Projections vs. VARs: Lessons from Thousands of DGPs." *Journal of Econometrics*, 244(2), 105722.
-- Montiel Olea, J.L. and Plagborg-Møller, M. (2019). "Simultaneous Confidence Bands: Theory, Implementation, and an Application to SVARs." *Journal of Applied Econometrics*, 34(1), 1–17.
-- Montiel Olea, J.L., Plagborg-Møller, M., Qian, E., and Wolf, C.K. (2024). "Double Robustness of Local Projections and Some Unpleasant VARithmetic." NBER WP 32495.
-- Newey, W.K. and West, K.D. (1987). "A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix." *Econometrica*, 55(3), 703–708.
-- Piger, J. and Stockwell, T. (2023). "Differences from Differencing: Should Local Projections with Observed Shocks be Estimated in Levels or Differences?" SSRN.
-- Plagborg-Møller, M. and Wolf, C.K. (2022). "Instrumental Variable Identification of Dynamic Variance Decompositions." *Journal of Political Economy*, 130(8), 2164–2202.
-- Rambachan, A. and Shephard, N. (2019). "A Nonparametric Dynamic Causal Model for Macroeconometrics." Working paper.
-- Ramey, V.A. (2016). "Macroeconomic Shocks and Their Propagation." In *Handbook of Macroeconomics*, vol. 2, 71–162.
-- Stock, J.H. and Watson, M.W. (2018). "Identification and HAC Standard Errors for Efficient Estimation of Instrumental Variables Regressions." *Economic Journal*, 128(610), 917–948.
-
-:::
-
 

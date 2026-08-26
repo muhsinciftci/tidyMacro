@@ -318,8 +318,7 @@ window.Quarto = {
   <li><a href="#inference-in-panels" id="toc-inference-in-panels" class="nav-link" data-scroll-target="#inference-in-panels"><span class="header-section-number">11.1</span> Inference in panels</a></li>
   <li><a href="#lp-did" id="toc-lp-did" class="nav-link" data-scroll-target="#lp-did"><span class="header-section-number">11.2</span> LP-DiD</a></li>
   </ul></li>
-  <li><a href="#practice-checklist" id="toc-practice-checklist" class="nav-link" data-scroll-target="#practice-checklist"><span class="header-section-number">12</span> Practice checklist</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">13</span> References</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">12</span> References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/05_01_lp_primer.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -476,8 +475,8 @@ window.Quarto = {
 <p>LPs do not solve identification. They host standard strategies.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 35%">
-<col style="width: 64%">
+<col style="width: 36%">
+<col style="width: 63%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -589,23 +588,10 @@ window.Quarto = {
 <li>The clean-control condition, which the DiD literature enforces through bespoke pairwise-comparison machinery, here reduces to a sample filter. LPs are already forward-looking, so it comes for free.</li>
 </ul>
 <p><span class="math inline">\(\hat\beta_h\)</span> recovers a variance-weighted average of heterogeneous effects, where algorithmic DiD estimators typically target an equally-weighted average. Another bias–variance trade-off, with the shoe now on the other foot relative to the LP-versus-VAR case.</p>
-<hr>
 </section>
 </section>
-<section id="practice-checklist" class="level1" data-number="12">
-<h1 data-number="12"><span class="header-section-number">12</span> Practice checklist</h1>
-<ol type="1">
-<li>Prefer the long-difference specification over levels, especially for persistent series.</li>
-<li>Use lag-augmented LPs with HC/White standard errors rather than plain Newey–West. Uniform validity, no bandwidth choice.</li>
-<li>Report joint bands alongside pointwise ones, and consider significance bands as a null-based complement.</li>
-<li>Report multipliers whenever the treatment-plan versus one-off distinction matters.</li>
-<li>For state dependence, verify the state is genuinely predetermined. Prefer the interaction specification over sample splitting to avoid omitting other relevant states.</li>
-<li>In staggered, absorbing-treatment panels, use LP-DiD’s clean-control restriction.</li>
-<li>Never instrument nonlinear transforms of the shock through a linear first stage.</li>
-</ol>
-</section>
-<section id="references" class="level1" data-number="13">
-<h1 data-number="13"><span class="header-section-number">13</span> References</h1>
+<section id="references" class="level1" data-number="12">
+<h1 data-number="12"><span class="header-section-number">12</span> References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-beaudry2014" class="csl-entry" role="listitem">
 Beaudry, Paul, and Franck Portier. 2014. <span>“News-Driven Business Cycles: Insights and Challenges.”</span> <em>Journal of Economic Literature</em> 52 (4): 993–1074. <a href="https://doi.org/10.1257/jel.52.4.993">https://doi.org/10.1257/jel.52.4.993</a>.
@@ -663,45 +649,6 @@ Roth, Jonathan, Pedro H. C. Sant’Anna, Alyssa Bilinski, and John Poe. 2023. <s
 </div>
 <div id="ref-sims1990" class="csl-entry" role="listitem">
 Sims, Christopher A., James H. Stock, and Mark W. Watson. 1990. <span>“Inference in Linear Time Series Models with Some Unit Roots.”</span> <em>Econometrica</em> 58 (1): 113–44. <a href="https://doi.org/10.2307/2938337">https://doi.org/10.2307/2938337</a>.
-</div>
-</div>
-<div class="callout callout-style-default callout-important callout-titled" title="Further works cited">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Further works cited
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>Named in the text above but not held in <code>references.bib</code>. Full details are in the bibliography of <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span>; replication code for the survey is at <a href="https://github.com/ojorda/JEL-Code" class="uri">https://github.com/ojorda/JEL-Code</a>.</p>
-<ul>
-<li>Barnichon, R. and Brownlees, C. (2019). “Impulse Response Estimation by Smooth Local Projections.” <em>Review of Economics and Statistics</em>, 101(3), 522–530.</li>
-<li>Barnichon, R. and Matthes, C. (2018). “Functional Approximation of Impulse Responses.” <em>Journal of Monetary Economics</em>, 99, 41–55.</li>
-<li>Barnichon, R. and Mesters, G. (2023). “A Sufficient Statistics Approach for Macro Policy.” <em>American Economic Review</em>, 113(11), 2809–2845.</li>
-<li>Cloyne, J., Jordà, Ò., and Taylor, A.M. (2023). “State-Dependent Local Projections: Understanding Impulse Response Heterogeneity.” NBER WP
-<ol start="30971" type="1">
-<li></li>
-</ol></li>
-<li>Driscoll, J.C. and Kraay, A.C. (1998). “Consistent Covariance Matrix Estimation with Spatially Dependent Panel Data.” <em>Review of Economics and Statistics</em>, 80(4), 549–560.</li>
-<li>Jordà, Ò. (2009). “Simultaneous Confidence Regions for Impulse Responses.” <em>Review of Economics and Statistics</em>, 91(3), 629–647.</li>
-<li>Jordà, Ò. and Kozicki, S. (2011). “Estimation and Inference by the Method of Projection Minimum Distance.” <em>International Economic Review</em>, 52(2), 461–487.</li>
-<li>Jordà, Ò., Schularick, M., and Taylor, A.M. (2015). “Betting the House.” <em>Journal of International Economics</em>, 96, S2–S18.</li>
-<li>Jordà, Ò., Singh, S.R., and Taylor, A.M. (2024). “The Long-Run Effects of Monetary Policy.” NBER WP 26666.</li>
-<li>Li, D., Plagborg-Møller, M., and Wolf, C.K. (2024). “Local Projections vs.&nbsp;VARs: Lessons from Thousands of DGPs.” <em>Journal of Econometrics</em>, 244(2), 105722.</li>
-<li>Montiel Olea, J.L. and Plagborg-Møller, M. (2019). “Simultaneous Confidence Bands: Theory, Implementation, and an Application to SVARs.” <em>Journal of Applied Econometrics</em>, 34(1), 1–17.</li>
-<li>Montiel Olea, J.L., Plagborg-Møller, M., Qian, E., and Wolf, C.K. (2024). “Double Robustness of Local Projections and Some Unpleasant VARithmetic.” NBER WP 32495.</li>
-<li>Newey, W.K. and West, K.D. (1987). “A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix.” <em>Econometrica</em>, 55(3), 703–708.</li>
-<li>Piger, J. and Stockwell, T. (2023). “Differences from Differencing: Should Local Projections with Observed Shocks be Estimated in Levels or Differences?” SSRN.</li>
-<li>Plagborg-Møller, M. and Wolf, C.K. (2022). “Instrumental Variable Identification of Dynamic Variance Decompositions.” <em>Journal of Political Economy</em>, 130(8), 2164–2202.</li>
-<li>Rambachan, A. and Shephard, N. (2019). “A Nonparametric Dynamic Causal Model for Macroeconometrics.” Working paper.</li>
-<li>Ramey, V.A. (2016). “Macroeconomic Shocks and Their Propagation.” In <em>Handbook of Macroeconomics</em>, vol.&nbsp;2, 71–162.</li>
-<li>Stock, J.H. and Watson, M.W. (2018). “Identification and HAC Standard Errors for Efficient Estimation of Instrumental Variables Regressions.” <em>Economic Journal</em>, 128(610), 917–948.</li>
-</ul>
-</div>
 </div>
 </div>
 
