@@ -475,8 +475,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fLP_cpp
-Rcpp::List fLP_cpp(const arma::mat& Y, const arma::mat& X, int H, int shock_col, double conf_level, int nw_lags_base, bool store_full, bool cumulative, int n_threads, int nw_offset, bool verbose);
-RcppExport SEXP _tidyMacro_fLP_cpp(SEXP YSEXP, SEXP XSEXP, SEXP HSEXP, SEXP shock_colSEXP, SEXP conf_levelSEXP, SEXP nw_lags_baseSEXP, SEXP store_fullSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP nw_offsetSEXP, SEXP verboseSEXP) {
+Rcpp::List fLP_cpp(const arma::mat& Y, const arma::mat& X, int H, int shock_col, double conf_level, int nw_lags_base, bool store_full, bool cumulative, int n_threads, int nw_offset, bool verbose, Rcpp::Nullable<arma::mat> Y_pre);
+RcppExport SEXP _tidyMacro_fLP_cpp(SEXP YSEXP, SEXP XSEXP, SEXP HSEXP, SEXP shock_colSEXP, SEXP conf_levelSEXP, SEXP nw_lags_baseSEXP, SEXP store_fullSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP nw_offsetSEXP, SEXP verboseSEXP, SEXP Y_preSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -491,7 +491,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< int >::type nw_offset(nw_offsetSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(fLP_cpp(Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset, verbose));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<arma::mat> >::type Y_pre(Y_preSEXP);
+    rcpp_result_gen = Rcpp::wrap(fLP_cpp(Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset, verbose, Y_pre));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -521,8 +522,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fLPIV_cpp
-Rcpp::List fLPIV_cpp(const arma::mat& Y, const arma::vec& D, const arma::mat& Z, const arma::mat& C, int H, double conf_level, int nw_lags_iv, bool cumulative, int n_threads, bool verbose);
-RcppExport SEXP _tidyMacro_fLPIV_cpp(SEXP YSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP CSEXP, SEXP HSEXP, SEXP conf_levelSEXP, SEXP nw_lags_ivSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP) {
+Rcpp::List fLPIV_cpp(const arma::mat& Y, const arma::vec& D, const arma::mat& Z, const arma::mat& C, int H, double conf_level, int nw_lags_iv, bool cumulative, int n_threads, bool verbose, Rcpp::Nullable<arma::mat> Y_pre);
+RcppExport SEXP _tidyMacro_fLPIV_cpp(SEXP YSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP CSEXP, SEXP HSEXP, SEXP conf_levelSEXP, SEXP nw_lags_ivSEXP, SEXP cumulativeSEXP, SEXP n_threadsSEXP, SEXP verboseSEXP, SEXP Y_preSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -536,7 +537,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type cumulative(cumulativeSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(fLPIV_cpp(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads, verbose));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<arma::mat> >::type Y_pre(Y_preSEXP);
+    rcpp_result_gen = Rcpp::wrap(fLPIV_cpp(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads, verbose, Y_pre));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -781,9 +783,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tidyMacro_fHeteroIRF", (DL_FUNC) &_tidyMacro_fHeteroIRF, 7},
     {"_tidyMacro_fBootstrapHetero", (DL_FUNC) &_tidyMacro_fBootstrapHetero, 13},
     {"_tidyMacro_fHistDec", (DL_FUNC) &_tidyMacro_fHistDec, 4},
-    {"_tidyMacro_fLP_cpp", (DL_FUNC) &_tidyMacro_fLP_cpp, 11},
+    {"_tidyMacro_fLP_cpp", (DL_FUNC) &_tidyMacro_fLP_cpp, 12},
     {"_tidyMacro_fLPDID_cpp", (DL_FUNC) &_tidyMacro_fLPDID_cpp, 15},
-    {"_tidyMacro_fLPIV_cpp", (DL_FUNC) &_tidyMacro_fLPIV_cpp, 10},
+    {"_tidyMacro_fLPIV_cpp", (DL_FUNC) &_tidyMacro_fLPIV_cpp, 11},
     {"_tidyMacro_fLPPanel_cpp", (DL_FUNC) &_tidyMacro_fLPPanel_cpp, 13},
     {"_tidyMacro_fLagMakerMatrix", (DL_FUNC) &_tidyMacro_fLagMakerMatrix, 2},
     {"_tidyMacro_fMBBVAR", (DL_FUNC) &_tidyMacro_fMBBVAR, 4},

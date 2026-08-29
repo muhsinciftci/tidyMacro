@@ -19,7 +19,8 @@ Imports:
     rlang
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    readxl
 VignetteBuilder: knitr
 LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)

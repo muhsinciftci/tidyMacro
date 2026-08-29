@@ -44,7 +44,8 @@ LPIVResult fLPIV_internal(
     int              nw_lags_iv,
     bool             cumulative,
     int              n_threads,
-    bool             verbose
+    bool             verbose,
+    const arma::mat& Y_pre
 ) {
   const int T   = static_cast<int>(Y.n_rows);
   const int ny  = static_cast<int>(Y.n_cols);
@@ -52,11 +53,19 @@ LPIVResult fLPIV_internal(
   const int nc  = static_cast<int>(C.n_cols);
   const int kc  = nc + 1;                     // controls + intercept
 
-  const int offset = cumulative ? 1 : 0;
+  // Cumulative long-difference base — see fLPIV.h. With a 1 x n_y Y_pre every
+  // row of Y is an estimable LHS date (t0 = 0); without it row 0 of Y is spent
+  // as the base (t0 = 1) and one observation is lost.
+  if (cumulative && Y_pre.n_rows > 0 &&
+      (Y_pre.n_rows != 1 || static_cast<int>(Y_pre.n_cols) != ny)) {
+    Rcpp::stop("fLPIV: Y_pre must be a 1 x ncol(Y) matrix, or empty.");
+  }
+  const bool has_pre = cumulative && (Y_pre.n_rows == 1);
+  const int  t0      = (cumulative && !has_pre) ? 1 : 0;
 
   // Alignment with the R wrapper's min_obs guard: need at least
   // kc + nz + a couple of df at the largest horizon.
-  if (T <= H + offset || T - H - offset <= kc + nz) {
+  if (T <= H + t0 || T - H - t0 <= kc + nz) {
     Rcpp::stop("fLPIV: not enough observations for the largest horizon (need > kc + nz rows).");
   }
   if (D.n_rows != Y.n_rows || Z.n_rows != Y.n_rows ||
@@ -76,6 +85,22 @@ LPIVResult fLPIV_internal(
   out.irfs_se    = arma::mat(H + 1, ny, arma::fill::zeros);
   out.Fstat_fs   = arma::vec(H + 1, arma::fill::zeros);
   out.rsqr_fs    = arma::vec(H + 1, arma::fill::zeros);
+
+  // Lagged outcome for the cumulative base (horizon-invariant). Row 0 comes
+  // from Y_pre when supplied; otherwise it is never read (t0 = 1).
+  arma::mat Ylag;
+  if (cumulative) {
+    Ylag.set_size(T, ny);
+    if (has_pre) Ylag.row(0) = Y_pre.row(0);
+    else         Ylag.row(0).zeros();
+    if (T > 1) Ylag.rows(1, T - 1) = Y.rows(0, T - 2);
+  }
+
+  // Per-horizon rank flags (see LPIVResult). Each thread writes only its own
+  // element, so no synchronisation is needed; Rcpp::stop() must not be called
+  // from inside an OpenMP region, so the caller raises the diagnostic.
+  std::vector<char> rank_ok_c(H + 1, 1);   // controls [1, C_h]
+  std::vector<char> rank_ok_z(H + 1, 1);   // instruments Z_r
 
   int actual_threads = 1;
 #ifdef _OPENMP
@@ -102,19 +127,16 @@ LPIVResult fLPIV_internal(
     arma::mat Yh;
     arma::vec Dh;
     arma::mat Zh;
-    arma::mat Ch;
 
+    // Estimable rows are t = t0, ..., T - 1 - h  →  T - h - t0 rows.
+    const int t_last = T - 1 - h;
     if (cumulative) {
-      Yh = Y.rows(h + 1, T - 1) - Y.rows(0, T - h - 2);
-      Dh = D.subvec(1, T - h - 1);
-      Zh = Z.rows(1, T - h - 1);
-      if (nc > 0) Ch = C.rows(1, T - h - 1);
+      Yh = Y.rows(t0 + h, T - 1) - Ylag.rows(t0, t_last);
     } else {
       Yh = Y.rows(h, T - 1);
-      Dh = D.subvec(0, T - h - 1);
-      Zh = Z.rows(0, T - h - 1);
-      if (nc > 0) Ch = C.rows(0, T - h - 1);
     }
+    Dh = D.subvec(t0, t_last);
+    Zh = Z.rows(t0, t_last);
     const int Th = static_cast<int>(Yh.n_rows);
 
     // ---- FWL residuals ------------------------------------------------
@@ -129,32 +151,76 @@ LPIVResult fLPIV_internal(
       Zr = Zh.each_row() - arma::mean(Zh, 0);
       Dr = Dh - arma::mean(Dh);
     } else {
+      // C's horizon block goes straight into Cext; slicing it into a
+      // separate Ch first would copy the same Th x nc block twice.
       arma::mat Cext(Th, kc);
-      Cext.col(0) = arma::ones<arma::vec>(Th);
-      Cext.cols(1, kc - 1) = Ch;
-      const arma::mat CtC = Cext.t() * Cext;
-      arma::mat CtC_inv;
-      if (!arma::inv_sympd(CtC_inv, CtC)) CtC_inv = arma::pinv(CtC);
-      Yr = fwl_residuals(Yh, Cext, CtC_inv);
-      Zr = fwl_residuals(Zh, Cext, CtC_inv);
-      Dr = fwl_residuals(arma::mat(Dh), Cext, CtC_inv);
+      Cext.col(0).ones();
+      Cext.cols(1, kc - 1) = C.rows(t0, t_last);
+
+      // FWL via QR of [1, C_h], mirroring LPmodel.m's backslash
+      // (r_y_h = Y - C_h*(C_h\Y)): MATLAB's mldivide on an overdetermined
+      // system is a QR least-squares solve, so C'C is never formed. With
+      // [1, C_h] = Q R the residual maker is simply I - Q Q', which needs
+      // no inverse at all.
+      arma::mat Qc, Rc;
+      bool ok_c = arma::qr_econ(Qc, Rc, Cext);
+      if (ok_c) {
+        const arma::vec rd = arma::abs(Rc.diag());
+        const double    rm = rd.max();
+        ok_c = (rm > 0.0) &&
+               (rd.min() > rm * std::max(Th, kc) * arma::datum::eps);
+      }
+      if (ok_c) {
+        Yr = Yh - Qc * (Qc.t() * Yh);
+        Zr = Zh - Qc * (Qc.t() * Zh);
+        Dr = Dh - Qc * (Qc.t() * Dh);
+      } else {
+        rank_ok_c[h] = 0;
+        const arma::mat CtC_inv = arma::pinv(Cext.t() * Cext);
+        Yr = fwl_residuals(Yh, Cext, CtC_inv);
+        Zr = fwl_residuals(Zh, Cext, CtC_inv);
+        Dr = fwl_residuals(arma::mat(Dh), Cext, CtC_inv);
+      }
     }
 
-    // ---- first stage: D_hat = Zr (Zr' Zr)^{-1} Zr' Dr -----------------
-    const arma::mat ZrtZr = Zr.t() * Zr;
-    arma::mat ZrtZr_inv;
-    if (!arma::inv_sympd(ZrtZr_inv, ZrtZr)) {
-      ZrtZr_inv = arma::pinv(ZrtZr);
+    // ---- first stage: project D_r onto the instrument space ------------
+    // LPmodel.m writes this as D_hat_h = R_Z_h*(R_Z_h\r_d_h), again a QR
+    // least-squares solve. With Z_r = Q_z R_z the fitted value is Q_z Q_z' D_r,
+    // so Z_r'Z_r — whose condition number is the square of Z_r's — is never
+    // formed. This matters most here: weak/collinear instrument sets are
+    // exactly where the normal equations lose the most digits.
+    arma::mat Qz, Rz;
+    bool ok_z = arma::qr_econ(Qz, Rz, Zr);
+    if (ok_z) {
+      const arma::vec rd = arma::abs(Rz.diag());
+      const double    rm = rd.max();
+      ok_z = (rm > 0.0) &&
+             (rd.min() > rm * std::max(Th, nz) * arma::datum::eps);
     }
-    const arma::vec gamma_hat = ZrtZr_inv * (Zr.t() * Dr);   // nz x 1
-    const arma::vec Dhat      = Zr * gamma_hat;              // Th x 1
-    const arma::vec eps_fs    = Dr - Dhat;                    // first-stage resid
+    arma::vec Dhat;
+    if (ok_z) {
+      Dhat = Qz * (Qz.t() * Dr);                             // Th x 1
+    } else {
+      rank_ok_z[h] = 0;
+      Dhat = Zr * (arma::pinv(Zr.t() * Zr) * (Zr.t() * Dr));
+    }
+    const arma::vec eps_fs = Dr - Dhat;                       // first-stage resid
 
     // First-stage F-stat and R^2. Dr and Zr are FWL-residualised on
     // [1, C_h] (kc columns), so under H0 the correct residual degrees
     // of freedom for the full regression D ~ [1, C, Z] is Th - kc - nz,
     // NOT Th - nz. Using the latter overstates the denominator df and
     // inflates F, materially when nc is large.
+    //
+    // NOTE: this is a deliberate divergence from LPmodel.m, which reports
+    // ((RSS_res-RSS_unr)/k_z) / (RSS_unr/(n_h - k_z)) — i.e. it ignores the
+    // df consumed by the residualised controls. The value below is the
+    // textbook exclusion F for D ~ [1, C, Z]; it will not equal the toolbox's
+    // reported Fstat_fs. Point estimates, SEs and bands are unaffected.
+    //
+    // kc and nz are the true ranks here because the caller stops on any
+    // rank_ok_* flag, so df2 never overstates the available degrees of
+    // freedom in a result that is actually returned.
     const double rss_res = arma::dot(Dr, Dr);          // total SS of Dr
     const double rss_unr = arma::dot(eps_fs, eps_fs);  // resid SS after Zr
     const double kz  = static_cast<double>(nz);
@@ -218,6 +284,16 @@ LPIVResult fLPIV_internal(
 
   } // end horizon loop
 
+  // Raise the rank diagnostic outside the parallel region (see rank_ok_*).
+  for (int h = 0; h <= H; h++) {
+    if (!rank_ok_c[h] || !rank_ok_z[h]) {
+      out.rank_deficient  = true;
+      out.rank_fail_h     = h;
+      out.rank_fail_is_iv = (rank_ok_z[h] == 0);
+      break;
+    }
+  }
+
   return out;
 }
 
@@ -243,11 +319,20 @@ LPIVResult fLPIV_internal(
 //'   \code{== 0}: horizon-varying bandwidth = h (just-identified LP rule).
 //' @param cumulative Logical. \code{TRUE} regresses \eqn{y_{t+h} - y_{t-1}};
 //'   \code{FALSE} regresses the level \eqn{y_{t+h}}.
-//' @param n_threads Integer. OpenMP threads. \code{0} = all cores minus one.
+//' @param n_threads Integer. OpenMP threads. \code{0} = all available cores.
+//' @param verbose Logical. Print the thread count. Default \code{FALSE}.
+//' @param Y_pre Numeric matrix (1 x n_y) or \code{NULL}. Cumulative LP only:
+//'   the outcome at the date immediately BEFORE row 1 of \code{Y}, used as the
+//'   long-difference base for the first estimable date. Supplying it keeps
+//'   every row of \code{Y} estimable and matches the \code{endo_lag1}
+//'   alignment of Cesa-Bianchi's \code{LPmodel.m}. With \code{NULL} (default)
+//'   row 1 of \code{Y} is consumed as the base and one observation is lost.
 //'
 //' @return A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
 //'   \code{irfs_se}, \code{Fstat_fs} (first-stage F per horizon) and
-//'   \code{rsqr_fs} (first-stage R^2 per horizon).
+//'   \code{rsqr_fs} (first-stage R^2 per horizon). \code{Fstat_fs} uses
+//'   \eqn{T_h - k_c - n_z} residual degrees of freedom, which differs by
+//'   construction from the value reported by \code{LPmodel.m}.
 //'
 //' @keywords internal
 // [[Rcpp::export]]
@@ -261,7 +346,8 @@ Rcpp::List fLPIV_cpp(
     int       nw_lags_iv,
     bool      cumulative = false,
     int       n_threads  = 0,
-    bool      verbose    = false
+    bool      verbose    = false,
+    Rcpp::Nullable<arma::mat> Y_pre = R_NilValue
 ) {
   if (Y.n_rows == 0) Rcpp::stop("fLPIV_cpp: Y is empty.");
   if (H < 0) Rcpp::stop("fLPIV_cpp: H must be non-negative.");
@@ -275,8 +361,26 @@ Rcpp::List fLPIV_cpp(
       (C.n_elem > 0 && !C.is_finite()))
     Rcpp::stop("fLPIV_cpp: Y, D, Z, C must be finite (no NA/NaN/Inf).");
 
+  arma::mat Y_pre_mat;
+  if (Y_pre.isNotNull()) {
+    Y_pre_mat = Rcpp::as<arma::mat>(Y_pre.get());
+    if (!Y_pre_mat.is_finite())
+      Rcpp::stop("fLPIV_cpp: Y_pre must be finite (no NA/NaN/Inf).");
+  }
+
   LPIVResult res = fLPIV_internal(Y, D, Z, C, H, conf_level, nw_lags_iv,
-                                  cumulative, n_threads, verbose);
+                                  cumulative, n_threads, verbose, Y_pre_mat);
+
+  if (res.rank_deficient) {
+    Rcpp::stop(
+      "fLPIV_cpp: the %s are rank deficient at horizon %d. The 2SLS "
+      "coefficient is not identified and the first-stage F degrees of freedom "
+      "are undefined. Drop the collinear columns from %s.",
+      res.rank_fail_is_iv ? "instruments Z" : "controls [1, C]",
+      res.rank_fail_h,
+      res.rank_fail_is_iv ? "Z (check for duplicated instrument lags)"
+                          : "C (check for duplicated lags or a constant column)");
+  }
 
   return Rcpp::List::create(
     Rcpp::Named("irfs")       = res.irfs,

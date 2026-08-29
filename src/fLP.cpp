@@ -53,7 +53,8 @@ LPResult fLP_internal(
     bool             cumulative,
     int              n_threads,
     int              nw_offset,
-    bool             verbose
+    bool             verbose,
+    const arma::mat& Y_pre
 ) {
   // ---------- dimensions -----------------------------------------------
   const int T  = static_cast<int>(Y.n_rows);
@@ -62,9 +63,20 @@ LPResult fLP_internal(
   const int kr = k + 1;                          // +1 for constant (prepended)
   const int sc = shock_col + 1;                  // column index in X_reg (0 = const)
 
-  const int offset = cumulative ? 1 : 0;         // cumulative needs y_{t-1}
+  // ---------- cumulative long-difference base ---------------------------
+  // Cumulative LP regresses y_{t+h} - y_{t-1}. When Y_pre supplies the
+  // outcome at the date immediately before row 0 of Y, every row of Y is an
+  // estimable LHS date (t0 = 0) and the first usable observation survives —
+  // the alignment used by Cesa-Bianchi's LPmodel.m. Without it, row 0 of Y
+  // must be spent as the base and estimation starts at row 1 (t0 = 1).
+  if (cumulative && Y_pre.n_rows > 0 &&
+      (Y_pre.n_rows != 1 || static_cast<int>(Y_pre.n_cols) != ny)) {
+    Rcpp::stop("fLP: Y_pre must be a 1 x ncol(Y) matrix, or empty.");
+  }
+  const bool has_pre = cumulative && (Y_pre.n_rows == 1);
+  const int  t0      = (cumulative && !has_pre) ? 1 : 0;  // first estimable row
 
-  if (T <= H + offset || T - H - offset <= kr) {
+  if (T <= H + t0 || T - H - t0 <= kr) {
     Rcpp::stop("fLP: not enough observations for the largest horizon.");
   }
   if (shock_col < 0 || shock_col >= k) {
@@ -84,6 +96,22 @@ LPResult fLP_internal(
     out.betas.resize(H + 1);
     out.ses.resize(H + 1);
   }
+
+  // ---------- lagged outcome for the cumulative base (horizon-invariant) --
+  // Ylag.row(t) holds the outcome one period before Y.row(t). Row 0 comes
+  // from Y_pre when supplied; otherwise it is never read (t0 = 1).
+  arma::mat Ylag;
+  if (cumulative) {
+    Ylag.set_size(T, ny);
+    if (has_pre) Ylag.row(0) = Y_pre.row(0);
+    else         Ylag.row(0).zeros();
+    if (T > 1) Ylag.rows(1, T - 1) = Y.rows(0, T - 2);
+  }
+
+  // Per-horizon rank flag. Each thread writes only its own element, so no
+  // synchronisation is needed; Rcpp::stop() must not be called from inside
+  // an OpenMP region, so the diagnostic is raised by the caller afterwards.
+  std::vector<char> rank_ok(H + 1, 1);
 
   // ---------- threading setup ------------------------------------------
   // Unified rule across LP engines: n_threads <= 0 → use all available cores.
@@ -110,43 +138,54 @@ LPResult fLP_internal(
   for (int h = 0; h <= H; h++) {
 
     // ---- align data: y_{t+h} (or y_{t+h} - y_{t-1}) vs X_t -----------
+    // Estimable rows are t = t0, ..., T - 1 - h  →  T - h - t0 rows.
+    const int t_last = T - 1 - h;
     arma::mat Yh;
-    arma::mat Xh;
     if (cumulative) {
-      // t = 1, ..., T - h - 1  →  T - h - 1 rows
-      Yh = Y.rows(h + 1, T - 1) - Y.rows(0, T - h - 2);
-      Xh = X.rows(1, T - h - 1);
+      Yh = Y.rows(t0 + h, T - 1) - Ylag.rows(t0, t_last);
     } else {
-      // t = 0, ..., T - h - 1  →  T - h rows
       Yh = Y.rows(h, T - 1);
-      Xh = X.rows(0, T - h - 1);
     }
     const int Th = static_cast<int>(Yh.n_rows);
 
-    // ---- cross-products with implicit intercept -----------------------
-    arma::mat XpX(kr, kr, arma::fill::zeros);
-    XpX(0, 0) = static_cast<double>(Th);
-    if (k > 0) {
-      const arma::rowvec x_sum = arma::sum(Xh, 0);
-      XpX.submat(0, 1, 0, kr - 1) = x_sum;
-      XpX.submat(1, 0, kr - 1, 0) = x_sum.t();
-      XpX.submat(1, 1, kr - 1, kr - 1) = Xh.t() * Xh;
-    }
+    // ---- design matrix with explicit intercept ------------------------
+    // X's horizon block is written straight into Xreg's storage. Slicing it
+    // into a separate Xh first would copy the same Th x k block twice, and
+    // since the QR path below consumes only Xreg, Xh has no other use.
+    arma::mat Xreg(Th, kr);
+    Xreg.col(0).ones();
+    if (k > 0) Xreg.cols(1, kr - 1) = X.rows(t0, t_last);
 
-    arma::mat XpY(kr, ny, arma::fill::zeros);
-    XpY.row(0) = arma::sum(Yh, 0);
-    if (k > 0) {
-      XpY.rows(1, kr - 1) = Xh.t() * Yh;
+    // ---- OLS via QR — all equations simultaneously --------------------
+    // Mirrors OLSmodel.m ("Compute (X'X)^{-1} via QR for numerical
+    // stability", OLSmodel.m:69-70). X'X is never formed: its condition
+    // number is the square of the design's. With [1, X_h] = Q R,
+    //   beta      = R^{-1} Q' Y                    (triangular solve)
+    //   (X'X)^{-1} = R^{-1} R^{-T}                 (R'R = X'X exactly)
+    // so one triangular inverse yields both, and the HAC sandwich below is
+    // unchanged. Rank deficiency shows up as a vanishing diagonal entry of
+    // R, which is a sharper detector than a failed Cholesky on X'X.
+    arma::mat Qx, Rx, invXpX, Beta;
+    bool ok = arma::qr_econ(Qx, Rx, Xreg);
+    if (ok) {
+      const arma::vec rdiag = arma::abs(Rx.diag());
+      const double    rmax  = rdiag.max();
+      ok = (rmax > 0.0) &&
+           (rdiag.min() > rmax * std::max(Th, kr) * arma::datum::eps);
     }
-
-    arma::mat invXpX;
-    const bool inv_ok = arma::inv_sympd(invXpX, XpX);
-    if (!inv_ok || !invXpX.is_finite()) {
-      invXpX = arma::pinv(XpX);
+    if (ok) {
+      const arma::mat Rinv = arma::inv(arma::trimatu(Rx));
+      invXpX = Rinv * Rinv.t();
+      Beta   = Rinv * (Qx.t() * Yh);                 // kr x ny
+    } else {
+      // [1, X_h] is numerically rank deficient at this horizon. Fall back to
+      // the pseudo-inverse so the loop completes, but flag it: the resulting
+      // coefficient is a min-norm solution and its HAC standard error has no
+      // usual interpretation, so the caller stops instead of reporting it.
+      rank_ok[h] = 0;
+      invXpX = arma::pinv(Xreg.t() * Xreg);
+      Beta   = invXpX * (Xreg.t() * Yh);
     }
-
-    // ---- OLS — all equations simultaneously --------------------------
-    const arma::mat Beta = invXpX * XpY;             // kr x ny
 
     // ---- NW bandwidth: nwLags = nw_lags_base + h + nw_offset ---------
     //  nw_offset = +1 (default): Miranda-Agrippino & Ricco rule.
@@ -161,19 +200,23 @@ LPResult fLP_internal(
       Se_h.set_size(kr, ny);
     }
 
-    // ---- regressor matrix with explicit intercept column (shared
-    //      across equations) --------------------------------------------
-    const arma::mat Xreg = arma::join_rows(arma::ones<arma::vec>(Th), Xh);  // Th x kr
-
     // Row `sc` of invXpX; needed for both the full-sandwich and the
     // shock-only (fast) branches. Computing it once per horizon avoids
     // redoing the extraction inside the equation loop.
     const arma::rowvec invXpX_sc = invXpX.row(sc);
 
+    // The fast path needs only the projection of X_reg onto row `sc` of
+    // (X'X)^{-1}:  a_t = u_t * (X_reg_t . invXpX_sc). The bracketed factor
+    // does not depend on the equation, so it is built once per horizon and
+    // the equation loop reduces to an elementwise product — no Th x kr score
+    // matrices are ever materialised.
+    arma::vec proj_sc;   // Th x 1 — fast path only
+    if (!store_full) proj_sc = Xreg * invXpX_sc.t();
+
     // ---- loop over equations (each LHS variable) ----------------------
     for (int eq = 0; eq < ny; eq++) {
 
-      arma::vec u = Yh.col(eq) - Beta(0, eq) - Xh * Beta.submat(1, eq, kr - 1, eq);
+      arma::vec u = Yh.col(eq) - Xreg * Beta.col(eq);
 
       // ------------------------------------------------------------------
       // Full Newey-West HAC sandwich (matches Cesa-Bianchi's VAR Toolbox
@@ -186,13 +229,13 @@ LPResult fLP_internal(
       //   w_a     = (nwL + 1 - a) / (nwL + 1)                (Bartlett)
       //   V_h     = (X'X)^{-1} * G * (X'X)^{-1}
       // ------------------------------------------------------------------
-      arma::mat XU = Xreg;      // Th x kr
-      XU.each_col() %= u;       // row t scaled by u(t)
-      const arma::mat S = XU.t();  // kr x Th, S.col(t) = X_reg_t * u_t
-
       double var_sc;
       if (store_full) {
         // Need every diagonal element of V, so form the full sandwich.
+        arma::mat XU = Xreg;      // Th x kr
+        XU.each_col() %= u;       // row t scaled by u(t)
+        const arma::mat S = XU.t();  // kr x Th, S.col(t) = X_reg_t * u_t
+
         arma::mat G(kr, kr, arma::fill::zeros);
         for (int a = 0; a <= nwL; a++) {
           const double w = static_cast<double>(nwL + 1 - a) /
@@ -209,9 +252,9 @@ LPResult fLP_internal(
       } else {
         // Fast path: we only need V(sc, sc) = invXpX(sc, :) * G * invXpX(:, sc).
         // Rewrite as sum_a w_a * (invXpX_sc * Gamma_a * invXpX_sc') using
-        // a = S' invXpX_sc'  (Th x 1) so invXpX_sc * Gamma_a * invXpX_sc'
+        // a_t = u_t * (X_reg_t . invXpX_sc) so invXpX_sc * Gamma_a * invXpX_sc'
         // = sum_{t=a}^{Th-1} a(t) * a(t - a).
-        const arma::vec a_vec = S.t() * invXpX_sc.t();   // Th x 1
+        const arma::vec a_vec = u % proj_sc;             // Th x 1
         double G_sc = arma::dot(a_vec, a_vec);           // Gamma_0
         for (int lag = 1; lag <= nwL; lag++) {
           const double w = static_cast<double>(nwL + 1 - lag) /
@@ -239,6 +282,15 @@ LPResult fLP_internal(
     }
 
   } // end horizon loop
+
+  // Raise the rank diagnostic outside the parallel region (see rank_ok).
+  for (int h = 0; h <= H; h++) {
+    if (!rank_ok[h]) {
+      out.rank_deficient = true;
+      out.rank_fail_h    = h;
+      break;
+    }
+  }
 
   return out;
 }
@@ -268,7 +320,7 @@ LPResult fLP_internal(
 //'   \eqn{y_{t+h} - y_{t-1}} on the RHS (cumulative response). Default
 //'   \code{FALSE}.
 //' @param n_threads Integer. OpenMP threads for the horizon loop. 0 = all
-//'   cores minus one. Default 0.
+//'   available cores. Default 0.
 //' @param nw_offset Integer. Shift applied to the NW bandwidth rule
 //'   (effective bandwidth = \code{nw_lags_base + h + nw_offset}, floored at
 //'   0). Default \code{1L}, the Miranda-Agrippino & Ricco convention
@@ -278,6 +330,14 @@ LPResult fLP_internal(
 //'   Cesa-Bianchi's VAR Toolbox \code{LPmodel.m}
 //'   (\code{OLSmodel(Y,X,0,hh-1)} with 1-indexed \code{hh}), e.g. for the
 //'   Jorda-Taylor (2025) replication.
+//' @param Y_pre Numeric matrix (1 x n_y) or \code{NULL}. Cumulative LP only:
+//'   the outcome at the date immediately BEFORE row 1 of \code{Y}, used as
+//'   the long-difference base \eqn{y_{t-1}} for the first estimable date.
+//'   Supplying it keeps every row of \code{Y} as an estimable LHS date and
+//'   matches the \code{endo_lag1} alignment of Cesa-Bianchi's
+//'   \code{LPmodel.m}. With \code{NULL} (default) row 1 of \code{Y} is
+//'   consumed as the base and one observation is lost — correct only when no
+//'   earlier outcome exists. Ignored when \code{cumulative = FALSE}.
 //'
 //' @return A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
 //'   \code{irfs_se} (raw, unscaled SE of the shock coefficient — lets
@@ -297,7 +357,8 @@ Rcpp::List fLP_cpp(
     bool      cumulative   = false,
     int       n_threads    = 0,
     int       nw_offset    = 1,
-    bool      verbose      = false
+    bool      verbose      = false,
+    Rcpp::Nullable<arma::mat> Y_pre = R_NilValue
 ) {
   if (Y.n_rows != X.n_rows) {
     Rcpp::stop("fLP_cpp: Y and X must have the same number of rows.");
@@ -322,9 +383,25 @@ Rcpp::List fLP_cpp(
   if (!Y.is_finite() || !X.is_finite())
     Rcpp::stop("fLP_cpp: Y and X must be finite (no NA/NaN/Inf).");
 
+  arma::mat Y_pre_mat;
+  if (Y_pre.isNotNull()) {
+    Y_pre_mat = Rcpp::as<arma::mat>(Y_pre.get());
+    if (!Y_pre_mat.is_finite())
+      Rcpp::stop("fLP_cpp: Y_pre must be finite (no NA/NaN/Inf).");
+  }
+
   LPResult res = fLP_internal(Y, X, H, shock_col, conf_level, nw_lags_base,
                               store_full, cumulative, n_threads, nw_offset,
-                              verbose);
+                              verbose, Y_pre_mat);
+
+  if (res.rank_deficient) {
+    Rcpp::stop(
+      "fLP_cpp: the regressor matrix [1, X] is rank deficient at horizon %d. "
+      "The shock coefficient is not identified and its HAC standard error "
+      "has no interpretation. Drop collinear columns from X (check for "
+      "duplicated lags, a constant column, or a dummy set that sums to 1).",
+      res.rank_fail_h);
+  }
 
   Rcpp::List out = Rcpp::List::create(
     Rcpp::Named("irfs")       = res.irfs,

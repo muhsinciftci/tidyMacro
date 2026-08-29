@@ -96,6 +96,7 @@ The four engines share more arguments than differ. The list below shows what eve
 | `cluster`      | —   | —     | —        | ✓      | Cluster column (default = unit id) |
 | `conf`         | ✓   | ✓     | ✓        | ✓      | Scalar or vector of confidence levels |
 | `cumulative`   | ✓   | ✓     | ✓        | *implicit* | Long-difference outcome `y_{t+h} − y_{t-1}` |
+| `shock_size`   | ✓   | ✓     | —        | —      | `"unit"` (default) or `"sd"` impulse units |
 | `nw_lags`      | ✓   | *as `nw_lags_iv`* | — | — | Newey–West base bandwidth |
 | `nw_offset`    | ✓   | —     | —        | —      | NW bandwidth shift (`+1` MA&R, `0` classic Jordà) |
 | `small_sample` | —   | —     | ✓        | —      | Imbens–Kolesar small-sample refinement |
@@ -110,7 +111,11 @@ The four engines share more arguments than differ. The list below shows what eve
 
 Every engine accepts a **vector** `conf`, e.g. `conf = c(0.68, 0.95)`, and rebuilds every band from the same raw SE in R. There is no re-estimation cost and no multiple-testing story — bands are just alternative visualizations of the same variance. `fPlotLP()` draws one ribbon per level automatically.
 
-### 2.2 · Threading and console noise
+### 2.2 · Impulse units (`shock_size`)
+
+`fLP()` and `fLPIV()` report the response to a **one-unit** shock by default (`shock_size = "unit"`). Setting `shock_size = "sd"` reports the response to a **one-standard-deviation** shock instead: `fLP()` z-scores the shock regressor, `fLPIV()` scales the 2SLS coefficient and its standard error by `sd(D)`. In both cases the standard deviation is taken over the **estimation sample** — i.e. after the leading rows consumed by generated lags — not over the raw input column. These correspond to `LPopt.impact = 1` and `LPopt.impact = 0` in Cesa-Bianchi's `LPmodel.m`.
+
+### 2.3 · Threading and console noise
 
 All four engines parallelize the horizon loop with OpenMP. The thread rule is **uniform**: `n_threads <= 0` uses all available cores, `n_threads > 0` uses exactly that many. Thread-count print messages have been gated behind an internal `verbose` flag (default off), so the engines are silent by default.
 
@@ -180,6 +185,8 @@ $$y_{t+h} \;=\; \alpha_h + \beta_h\, s_t + \gamma_h' w_t + u_{t+h}, \qquad h = 0
 
 Cumulative form (`cumulative = TRUE`):
 $$y_{t+h} - y_{t-1} \;=\; \alpha_h + \beta_h\, s_t + \gamma_h' w_t + u_{t+h}.$$
+
+The base $y_{t-1}$ for the **first** estimable date lies one period before the estimation sample. When generated lags trim the leading rows, that outcome is still observed, so `fLP()` and `fLPIV()` keep it as the base rather than discarding it — the estimation sample is not shortened by the long difference. This matches `endo_lag1 = ENDO(lag_trim:end-1)` in `LPmodel.m`. Time-series LP also requires a contiguous sample: rows with `NA` cannot simply be deleted, since the engines treat retained rows as consecutive periods, so an **interior** gap is rejected with an error (leading and trailing `NA`s from `l()` / `f()` are fine).
 
 The IRF at horizon $h$ is $\beta_h$. Standard errors use the full Newey–West sandwich `V_h = (X'X)⁻¹ X'ΩX (X'X)⁻¹` with a Bartlett kernel of bandwidth `max(nw_lags + h + nw_offset, 0)`.
 

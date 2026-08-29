@@ -328,7 +328,8 @@ window.Quarto = {
   <li><a href="#common-arguments" id="toc-common-arguments" class="nav-link" data-scroll-target="#common-arguments"><span class="header-section-number">3</span> 2 · Common arguments</a>
   <ul class="collapse">
   <li><a href="#multi-level-confidence-bands-from-one-fit" id="toc-multi-level-confidence-bands-from-one-fit" class="nav-link" data-scroll-target="#multi-level-confidence-bands-from-one-fit"><span class="header-section-number">3.1</span> 2.1 · Multi-level confidence bands from one fit</a></li>
-  <li><a href="#threading-and-console-noise" id="toc-threading-and-console-noise" class="nav-link" data-scroll-target="#threading-and-console-noise"><span class="header-section-number">3.2</span> 2.2 · Threading and console noise</a></li>
+  <li><a href="#impulse-units-shock_size" id="toc-impulse-units-shock_size" class="nav-link" data-scroll-target="#impulse-units-shock_size"><span class="header-section-number">3.2</span> 2.2 · Impulse units (<code>shock_size</code>)</a></li>
+  <li><a href="#threading-and-console-noise" id="toc-threading-and-console-noise" class="nav-link" data-scroll-target="#threading-and-console-noise"><span class="header-section-number">3.3</span> 2.3 · Threading and console noise</a></li>
   </ul></li>
   <li><a href="#the-panel-index-convention" id="toc-the-panel-index-convention" class="nav-link" data-scroll-target="#the-panel-index-convention"><span class="header-section-number">4</span> 3 · The panel index convention</a></li>
   <li><a href="#what-each-engine-returns" id="toc-what-each-engine-returns" class="nav-link" data-scroll-target="#what-each-engine-returns"><span class="header-section-number">5</span> 4 · What each engine returns</a>
@@ -606,6 +607,14 @@ window.Quarto = {
 <td>Long-difference outcome <code>y_{t+h} − y_{t-1}</code></td>
 </tr>
 <tr class="odd">
+<td><code>shock_size</code></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td><code>"unit"</code> (default) or <code>"sd"</code> impulse units</td>
+</tr>
+<tr class="even">
 <td><code>nw_lags</code></td>
 <td style="text-align: center;">✓</td>
 <td style="text-align: center;"><em>as <code>nw_lags_iv</code></em></td>
@@ -613,7 +622,7 @@ window.Quarto = {
 <td style="text-align: center;">—</td>
 <td>Newey–West base bandwidth</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>nw_offset</code></td>
 <td style="text-align: center;">✓</td>
 <td style="text-align: center;">—</td>
@@ -621,7 +630,7 @@ window.Quarto = {
 <td style="text-align: center;">—</td>
 <td>NW bandwidth shift (<code>+1</code> MA&amp;R, <code>0</code> classic Jordà)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>small_sample</code></td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">—</td>
@@ -629,7 +638,7 @@ window.Quarto = {
 <td style="text-align: center;">—</td>
 <td>Imbens–Kolesar small-sample refinement</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>p_max</code></td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">—</td>
@@ -637,7 +646,7 @@ window.Quarto = {
 <td style="text-align: center;">—</td>
 <td>Max lags of the regressand and shock added as controls</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>nonabsorbing</code></td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">—</td>
@@ -645,7 +654,7 @@ window.Quarto = {
 <td style="text-align: center;">✓</td>
 <td>Non-absorbing treatment (with <code>L</code>, <code>ccc</code>)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>L</code>, <code>ccc</code></td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">—</td>
@@ -653,7 +662,7 @@ window.Quarto = {
 <td style="text-align: center;">✓</td>
 <td>Clean-control window and flavor</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>pmd</code></td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">—</td>
@@ -661,7 +670,7 @@ window.Quarto = {
 <td style="text-align: center;">✓</td>
 <td>Pre-mean-differenced baseline (Stata formula)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>reweight</code></td>
 <td style="text-align: center;">—</td>
 <td style="text-align: center;">—</td>
@@ -669,7 +678,7 @@ window.Quarto = {
 <td style="text-align: center;">✓</td>
 <td>Equally-weighted ATT via inverse implicit weights</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>n_threads</code></td>
 <td style="text-align: center;">✓</td>
 <td style="text-align: center;">✓</td>
@@ -683,8 +692,12 @@ window.Quarto = {
 <h3 data-number="3.1" class="anchored" data-anchor-id="multi-level-confidence-bands-from-one-fit"><span class="header-section-number">3.1</span> 2.1 · Multi-level confidence bands from one fit</h3>
 <p>Every engine accepts a <strong>vector</strong> <code>conf</code>, e.g.&nbsp;<code>conf = c(0.68, 0.95)</code>, and rebuilds every band from the same raw SE in R. There is no re-estimation cost and no multiple-testing story — bands are just alternative visualizations of the same variance. <code>fPlotLP()</code> draws one ribbon per level automatically.</p>
 </section>
-<section id="threading-and-console-noise" class="level3" data-number="3.2">
-<h3 data-number="3.2" class="anchored" data-anchor-id="threading-and-console-noise"><span class="header-section-number">3.2</span> 2.2 · Threading and console noise</h3>
+<section id="impulse-units-shock_size" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="impulse-units-shock_size"><span class="header-section-number">3.2</span> 2.2 · Impulse units (<code>shock_size</code>)</h3>
+<p><code>fLP()</code> and <code>fLPIV()</code> report the response to a <strong>one-unit</strong> shock by default (<code>shock_size = "unit"</code>). Setting <code>shock_size = "sd"</code> reports the response to a <strong>one-standard-deviation</strong> shock instead: <code>fLP()</code> z-scores the shock regressor, <code>fLPIV()</code> scales the 2SLS coefficient and its standard error by <code>sd(D)</code>. In both cases the standard deviation is taken over the <strong>estimation sample</strong> — i.e.&nbsp;after the leading rows consumed by generated lags — not over the raw input column. These correspond to <code>LPopt.impact = 1</code> and <code>LPopt.impact = 0</code> in Cesa-Bianchi’s <code>LPmodel.m</code>.</p>
+</section>
+<section id="threading-and-console-noise" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="threading-and-console-noise"><span class="header-section-number">3.3</span> 2.3 · Threading and console noise</h3>
 <p>All four engines parallelize the horizon loop with OpenMP. The thread rule is <strong>uniform</strong>: <code>n_threads &lt;= 0</code> uses all available cores, <code>n_threads &gt; 0</code> uses exactly that many. Thread-count print messages have been gated behind an internal <code>verbose</code> flag (default off), so the engines are silent by default.</p>
 <hr>
 </section>
@@ -810,6 +823,7 @@ window.Quarto = {
 <h3 data-number="6.1" class="anchored" data-anchor-id="flp-classical-jordà-lp"><span class="header-section-number">6.1</span> <code>fLP()</code> — classical Jordà LP</h3>
 <p>Standard form: <span class="math display">\[y_{t+h} \;=\; \alpha_h + \beta_h\, s_t + \gamma_h' w_t + u_{t+h}, \qquad h = 0, 1, \dots, H.\]</span></p>
 <p>Cumulative form (<code>cumulative = TRUE</code>): <span class="math display">\[y_{t+h} - y_{t-1} \;=\; \alpha_h + \beta_h\, s_t + \gamma_h' w_t + u_{t+h}.\]</span></p>
+<p>The base <span class="math inline">\(y_{t-1}\)</span> for the <strong>first</strong> estimable date lies one period before the estimation sample. When generated lags trim the leading rows, that outcome is still observed, so <code>fLP()</code> and <code>fLPIV()</code> keep it as the base rather than discarding it — the estimation sample is not shortened by the long difference. This matches <code>endo_lag1 = ENDO(lag_trim:end-1)</code> in <code>LPmodel.m</code>. Time-series LP also requires a contiguous sample: rows with <code>NA</code> cannot simply be deleted, since the engines treat retained rows as consecutive periods, so an <strong>interior</strong> gap is rejected with an error (leading and trailing <code>NA</code>s from <code>l()</code> / <code>f()</code> are fine).</p>
 <p>The IRF at horizon <span class="math inline">\(h\)</span> is <span class="math inline">\(\beta_h\)</span>. Standard errors use the full Newey–West sandwich <code>V_h = (X'X)⁻¹ X'ΩX (X'X)⁻¹</code> with a Bartlett kernel of bandwidth <code>max(nw_lags + h + nw_offset, 0)</code>.</p>
 </section>
 <section id="flpiv-lp-with-an-external-instrument" class="level3" data-number="6.2">

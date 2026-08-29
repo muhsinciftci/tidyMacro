@@ -10,6 +10,11 @@
 //   y_{t+h} - y_{t-1} = a_h + b_h * D_t + Gamma_h' * C_t + u_{t+h}    (cumulative)
 //   y_{t+h}           = a_h + b_h * D_t + Gamma_h' * C_t + u_{t+h}    (standard)
 //
+// Cumulative base row (Y_pre): as in fLP.h. A 1 x n_y Y_pre supplies the
+// outcome one period before row 0 of Y, so every row of Y stays an estimable
+// LHS date (matching LPmodel.m's endo_lag1). Empty Y_pre spends row 0 of Y on
+// the base and loses one observation.
+//
 // where D_t is the endogenous treatment (e.g. FFR) and the external
 // instrument matrix Z_t (already containing all requested lags) identifies
 // b_h via 2SLS. Estimated horizon-by-horizon via Frisch-Waugh-Lovell:
@@ -39,6 +44,17 @@ struct LPIVResult {
   arma::mat irfs_se;      // (H+1) x n_y — raw NW HAC SE (unscaled by z_crit)
   arma::vec Fstat_fs;     // (H+1)       — first-stage F stat (per horizon)
   arma::vec rsqr_fs;      // (H+1)       — first-stage R^2 (per horizon)
+
+  // Rank diagnostic. inv_sympd() failing on [1,C]'[1,C] or Z_r'Z_r means the
+  // controls or the instruments are numerically collinear. The engine still
+  // finishes (pseudo-inverse) so the parallel loop can complete, but the R
+  // wrapper stops: under collinearity the 2SLS coefficient is a min-norm
+  // artefact and the first-stage F degrees of freedom (Th - kc - nz) no
+  // longer equal Th - rank(C) - rank(Z). Stopping keeps the reported F
+  // exact whenever a result is returned.
+  bool rank_deficient  = false;
+  int  rank_fail_h     = -1;     // first offending horizon (-1 if none)
+  bool rank_fail_is_iv = false;  // true: instruments Z_r; false: controls [1,C]
 };
 
 LPIVResult fLPIV_internal(
@@ -51,7 +67,8 @@ LPIVResult fLPIV_internal(
     int              nw_lags_iv,
     bool             cumulative,
     int              n_threads,
-    bool             verbose
+    bool             verbose,
+    const arma::mat& Y_pre       // 1 x n_y cumulative base, or empty
 );
 
 Rcpp::List fLPIV_cpp(
@@ -64,7 +81,8 @@ Rcpp::List fLPIV_cpp(
     int       nw_lags_iv,
     bool      cumulative,
     int       n_threads,
-    bool      verbose
+    bool      verbose,
+    Rcpp::Nullable<arma::mat> Y_pre
 );
 
 #endif // FLPIV_H

@@ -14,7 +14,8 @@ fLPIV_cpp(
   nw_lags_iv,
   cumulative = FALSE,
   n_threads = 0L,
-  verbose = FALSE
+  verbose = FALSE,
+  Y_pre = NULL
 )
 }
 \arguments{
@@ -39,12 +40,23 @@ engine adds one internally). May be empty (0 columns).}
 \item{cumulative}{Logical. \code{TRUE} regresses \eqn{y_{t+h} - y_{t-1}};
 \code{FALSE} regresses the level \eqn{y_{t+h}}.}
 
-\item{n_threads}{Integer. OpenMP threads. \code{0} = all cores minus one.}
+\item{n_threads}{Integer. OpenMP threads. \code{0} = all available cores.}
+
+\item{verbose}{Logical. Print the thread count. Default \code{FALSE}.}
+
+\item{Y_pre}{Numeric matrix (1 x n_y) or \code{NULL}. Cumulative LP only:
+the outcome at the date immediately BEFORE row 1 of \code{Y}, used as the
+long-difference base for the first estimable date. Supplying it keeps
+every row of \code{Y} estimable and matches the \code{endo_lag1}
+alignment of Cesa-Bianchi's \code{LPmodel.m}. With \code{NULL} (default)
+row 1 of \code{Y} is consumed as the base and one observation is lost.}
 }
 \value{
 A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
   \code{irfs_se}, \code{Fstat_fs} (first-stage F per horizon) and
-  \code{rsqr_fs} (first-stage R^2 per horizon).
+  \code{rsqr_fs} (first-stage R^2 per horizon). \code{Fstat_fs} uses
+  \eqn{T_h - k_c - n_z} residual degrees of freedom, which differs by
+  construction from the value reported by \code{LPmodel.m}.
 }
 \description{
 Low-level engine called by \code{fLPIV()}. Prefer the high-level wrapper.

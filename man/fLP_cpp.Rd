@@ -15,7 +15,8 @@ fLP_cpp(
   cumulative = FALSE,
   n_threads = 0L,
   nw_offset = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  Y_pre = NULL
 )
 }
 \arguments{
@@ -42,7 +43,7 @@ standard-error matrices for every horizon.}
 \code{FALSE}.}
 
 \item{n_threads}{Integer. OpenMP threads for the horizon loop. 0 = all
-cores minus one. Default 0.}
+available cores. Default 0.}
 
 \item{nw_offset}{Integer. Shift applied to the NW bandwidth rule
 (effective bandwidth = \code{nw_lags_base + h + nw_offset}, floored at
@@ -53,6 +54,15 @@ Jorda (2005) rule, bandwidth = h. \code{fLP}'s \code{h} is 0-indexed
 Cesa-Bianchi's VAR Toolbox \code{LPmodel.m}
 (\code{OLSmodel(Y,X,0,hh-1)} with 1-indexed \code{hh}), e.g. for the
 Jorda-Taylor (2025) replication.}
+
+\item{Y_pre}{Numeric matrix (1 x n_y) or \code{NULL}. Cumulative LP only:
+the outcome at the date immediately BEFORE row 1 of \code{Y}, used as
+the long-difference base \eqn{y_{t-1}} for the first estimable date.
+Supplying it keeps every row of \code{Y} as an estimable LHS date and
+matches the \code{endo_lag1} alignment of Cesa-Bianchi's
+\code{LPmodel.m}. With \code{NULL} (default) row 1 of \code{Y} is
+consumed as the base and one observation is lost — correct only when no
+earlier outcome exists. Ignored when \code{cumulative = FALSE}.}
 }
 \value{
 A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},

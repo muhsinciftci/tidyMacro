@@ -540,16 +540,16 @@ window.Quarto = {
 <p>Split on a state indicator determined <em>before</em> the intervention and run separate long-difference LPs:</p>
 <p><span class="math display">\[y_{t+h}-y_{t-1} = \alpha^j_h + \beta^j_h \Delta s_t + \gamma^{j\prime}_h \Delta x_t + v_{t+h}, \qquad j = 0,1.\]</span></p>
 <p>Conditioning on past information without conditioning on the state mixes state-specific responses into a single average. The correct approach is to condition on the state.</p>
-<p>Applications: monetary shocks over the cycle (Tenreyro &amp; Thwaites 2016; Angrist, Jordà &amp; Kuersteiner 2018; Jordà, Singh &amp; Taylor 2024); fiscal shocks over the cycle (Auerbach &amp; Gorodnichenko 2013; Jordà &amp; Taylor 2016), and <span class="citation" data-cites="rameyzubairy2018">Ramey and Zubairy (<a href="#ref-rameyzubairy2018" role="doc-biblioref">2018</a>)</span>.</p>
+<p>Applications: monetary shocks over the cycle ( <span class="citation" data-cites="tenreyro2016a">Tenreyro and Thwaites (<a href="#ref-tenreyro2016a" role="doc-biblioref">2016</a>)</span> , <span class="citation" data-cites="jorda2026">Jordà et al. (<a href="#ref-jorda2026" role="doc-biblioref">2026</a>)</span> ); fiscal shocks over the cycle ( <span class="citation" data-cites="auerbach2012">Auerbach and Gorodnichenko (<a href="#ref-auerbach2012" role="doc-biblioref">2012</a>)</span> , <span class="citation" data-cites="jorda2017">Jordà et al. (<a href="#ref-jorda2017" role="doc-biblioref">2017</a>)</span> and <span class="citation" data-cites="rameyzubairy2018">Ramey and Zubairy (<a href="#ref-rameyzubairy2018" role="doc-biblioref">2018</a>)</span>.</p>
 </section>
 <section id="two-caveats" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="two-caveats"><span class="header-section-number">10.2</span> Two caveats</h2>
-<p><strong>The state must not be endogenous to the intervention.</strong> Rates are set low in slumps and high in booms, so naive stratification can confound weak monetary responses. Fiscal policy is safer because it reacts with a lag. Ideally both intervention and state are exogenously determined, which may require instruments for both. Relatedly, Gonçalves et al.&nbsp;(2024) show large interventions are unlikely to represent the true population response; the conservative reading treats estimated responses as derivatives — the effect of an infinitesimal intervention.</p>
+<p><strong>The state must not be endogenous to the intervention.</strong> Rates are set low in slumps and high in booms, so naive stratification can confound weak monetary responses. Fiscal policy is safer because it reacts with a lag. Ideally both intervention and state are exogenously determined, which may require instruments for both. Relatedly, <span class="citation" data-cites="goncalves2024">Gonçalves et al. (<a href="#ref-goncalves2024" role="doc-biblioref">2024</a>)</span> show large interventions are unlikely to represent the true population response; the conservative reading treats estimated responses as derivatives — the effect of an infinitesimal intervention.</p>
 <p><strong>Interpretation differs from a state-dependent VAR.</strong> Deriving the response from state-specific VAR parameters implicitly assumes the economy stays in that state forever. It will not. The correct state-conditional response generally requires simulating and averaging over future trajectories in which the state switches.</p>
 </section>
 <section id="continuous-heterogeneity" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="continuous-heterogeneity"><span class="header-section-number">10.3</span> Continuous heterogeneity</h2>
-<p>Cloyne, Jordà &amp; Taylor (2023) generalise beyond binary states with an interaction term:</p>
+<p><span class="citation" data-cites="cloyne2023">Cloyne et al. (<a href="#ref-cloyne2023" role="doc-biblioref">2023</a>)</span> generalize beyond binary states with an interaction term:</p>
 <p><span class="math display">\[y_{t+h} = \delta^h_0 + \beta_h(s_t - s_0) + \gamma_h(x_t - x_0) + \theta_h(s_t-s_0)(x_t-x_0) + v_{t+h}.\]</span></p>
 <ul>
 <li><span class="math inline">\(\beta_h\)</span> scaled by the dose is the <strong>direct effect</strong> — the usual impulse response.</li>
@@ -559,7 +559,7 @@ window.Quarto = {
 </section>
 <section id="nonlinearity" class="level2" data-number="10.4">
 <h2 data-number="10.4" class="anchored" data-anchor-id="nonlinearity"><span class="header-section-number">10.4</span> Nonlinearity</h2>
-<p>Specifications that are nonlinear in variables but linear in parameters (squares, interactions) remain OLS-estimable. Applications include quantile LPs (Linnemann &amp; Winkler 2016; Adrian et al.&nbsp;2022; Jordà et al.&nbsp;2022) and binary outcomes (Drehmann, Patton &amp; Sorensen 2007; Barattieri &amp; Cacciatore 2023). For the general nonparametric framing see Rambachan &amp; Shephard (2019).</p>
+<p>Specifications that are nonlinear in variables but linear in parameters (squares, interactions) remain OLS-estimable. Applications include quantile LPs <span class="citation" data-cites="linnemann2016">Jordà et al. (<a href="#ref-jorda2022" role="doc-biblioref">2022</a>)</span> and binary outcomes <span class="citation" data-cites="barattieri2023">(Drehmann, Patton &amp; Sorensen 2007, <a href="#ref-barattieri2023" role="doc-biblioref">Barattieri and Cacciatore 2023</a>)</span>. For the general nonparametric framing see <span class="citation" data-cites="rambachan2019">Rambachan and Shephard (<a href="#ref-rambachan2019" role="doc-biblioref">2019</a>)</span></p>
 <p><strong>IV caveat</strong> (Newey 1990). Never instrument a nonlinear transform of <span class="math inline">\(s_t\)</span> by first-stage-regressing <span class="math inline">\(s_t\)</span> on <span class="math inline">\(z_t\)</span> — Jensen’s inequality breaks it. Instrument the transforms directly with <span class="math inline">\(z_t\)</span>, <span class="math inline">\(z_t^2\)</span>, <span class="math inline">\(z_t x_t\)</span>.</p>
 <hr>
 </section>
@@ -570,9 +570,9 @@ window.Quarto = {
 <h2 data-number="11.1" class="anchored" data-anchor-id="inference-in-panels"><span class="header-section-number">11.1</span> Inference in panels</h2>
 <p>Which correction applies depends on <span class="math inline">\(N\)</span> and <span class="math inline">\(T\)</span>:</p>
 <ul>
-<li><span class="math inline">\(T \to \infty\)</span>, <span class="math inline">\(N\)</span> fixed or slow-growing: Driscoll–Kraay (Driscoll &amp; Kraay 1998), the panel analogue of Newey–West.</li>
+<li><span class="math inline">\(T \to \infty\)</span>, <span class="math inline">\(N\)</span> fixed or slow-growing: <strong>Driscoll–Kraay (Driscoll &amp; Kraay 1998)</strong>, the panel analogue of Newey–West.</li>
 <li><span class="math inline">\(N \to \infty\)</span>, <span class="math inline">\(T\)</span> fixed: cluster-robust standard errors.</li>
-<li><span class="math inline">\(T\)</span> small: wild cluster bootstrap (Cameron, Gelbach &amp; Miller 2008; Canay, Santos &amp; Shaikh 2021; Roodman et al.&nbsp;2019).</li>
+<li><span class="math inline">\(T\)</span> small: wild cluster bootstrap (<strong>Cameron, Gelbach &amp; Miller 2008</strong>; <strong>Canay, Santos &amp; Shaikh 2021</strong>; <strong>Roodman et al.&nbsp;2019</strong>).</li>
 </ul>
 <p>With <span class="math inline">\(N\)</span> large relative to <span class="math inline">\(T\)</span>, the asymptotic distribution is dominated by the cross-section. Near-unit-root distortions largely disappear.</p>
 </section>
@@ -593,11 +593,23 @@ window.Quarto = {
 <section id="references" class="level1" data-number="12">
 <h1 data-number="12"><span class="header-section-number">12</span> References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-adrian2022" class="csl-entry" role="listitem">
+Adrian, Tobias, Federico Grinberg, Nellie Liang, Sheheryar Malik, and Jie Yu. 2022. <span>“The <span>Term Structure</span> of <span class="nocase">Growth-at-Risk</span>.”</span> <em>American Economic Journal: Macroeconomics</em> 14 (3): 283–323. <a href="https://doi.org/10.1257/mac.20180428">https://doi.org/10.1257/mac.20180428</a>.
+</div>
+<div id="ref-auerbach2012" class="csl-entry" role="listitem">
+Auerbach, Alan J., and Yuriy Gorodnichenko. 2012. <span>“Measuring the <span>Output Responses</span> to <span>Fiscal Policy</span>.”</span> <em>American Economic Journal: Economic Policy</em> 4 (2): 1–27. <a href="https://doi.org/10.1257/pol.4.2.1">https://doi.org/10.1257/pol.4.2.1</a>.
+</div>
+<div id="ref-barattieri2023" class="csl-entry" role="listitem">
+Barattieri, Alessandro, and Matteo Cacciatore. 2023. <span>“Self-<span>Harming Trade Policy</span>? <span>Protectionism</span> and <span>Production Networks</span>.”</span> <em>American Economic Journal: Macroeconomics</em> 15 (2): 97–128. <a href="https://doi.org/10.1257/mac.20190445">https://doi.org/10.1257/mac.20190445</a>.
+</div>
 <div id="ref-beaudry2014" class="csl-entry" role="listitem">
 Beaudry, Paul, and Franck Portier. 2014. <span>“News-Driven Business Cycles: Insights and Challenges.”</span> <em>Journal of Economic Literature</em> 52 (4): 993–1074. <a href="https://doi.org/10.1257/jel.52.4.993">https://doi.org/10.1257/jel.52.4.993</a>.
 </div>
 <div id="ref-blanchard1989" class="csl-entry" role="listitem">
 Blanchard, Olivier Jean, and Danny Quah. 1989. <span>“The Dynamic Effects of Aggregate Demand and Supply Disturbances.”</span> <em>The American Economic Review</em> 79 (4): 655–73. <a href="https://www.jstor.org/stable/1827924">https://www.jstor.org/stable/1827924</a>.
+</div>
+<div id="ref-cloyne2023" class="csl-entry" role="listitem">
+Cloyne, James, Òscar Jordà, and Alan M. Taylor. 2023. <em>State-<span>Dependent Local Projections</span>: <span>Understanding Impulse Response Heterogeneity</span></em>. Working {{Paper}} No. 30971. Working <span>Paper Series</span>. National Bureau of Economic Research. <a href="https://doi.org/10.3386/w30971">https://doi.org/10.3386/w30971</a>.
 </div>
 <div id="ref-dechaisemartin2023" class="csl-entry" role="listitem">
 <span class="nocase">de&nbsp;Chaisemartin, Clément, and Xavier D’Haultfœuille</span>. 2023. <span>“Two-Way Fixed Effects and Differences-in-Differences with Heterogeneous Treatment Effects: A Survey.”</span> <em>The Econometrics Journal</em> 26 (3): C1–30. <a href="https://doi.org/10.1093/ectj/utac017">https://doi.org/10.1093/ectj/utac017</a>.
@@ -611,20 +623,32 @@ Forni, Mario, Luca Gambetti, and Giovanni Ricco. 2022. <em>External Instrument S
 <div id="ref-gadea2025" class="csl-entry" role="listitem">
 Gadea, María Dolores, and Òscar Jordà. 2025. <em>Local Projections Bootstrap Inference</em>. arXiv:2509.17949. arXiv. <a href="https://doi.org/10.48550/arXiv.2509.17949">https://doi.org/10.48550/arXiv.2509.17949</a>.
 </div>
+<div id="ref-goncalves2024" class="csl-entry" role="listitem">
+Gonçalves, Sílvia, Ana María Herrera, Lutz Kilian, and Elena Pesavento. 2024. <span>“State-Dependent Local Projections.”</span> <em>Journal of Econometrics</em> 244 (2): 105702. <a href="https://doi.org/10.1016/j.jeconom.2024.105702">https://doi.org/10.1016/j.jeconom.2024.105702</a>.
+</div>
 <div id="ref-jorda2025" class="csl-entry" role="listitem">
 Jorda, Oscar, and Alan M. Taylor. 2025. <span>“Local <span>Projections</span>.”</span> <em>Journal of Economic Literature</em> 63 (1): 59–110. <a href="https://doi.org/10.1257/jel.20241521">https://doi.org/10.1257/jel.20241521</a>.
 </div>
 <div id="ref-jorda2005" class="csl-entry" role="listitem">
 Jordà, Òscar. 2005. <span>“Estimation and Inference of Impulse Responses by Local Projections.”</span> <em>American Economic Review</em> 95 (1): 161–82. <a href="https://doi.org/10.1257/0002828053828518">https://doi.org/10.1257/0002828053828518</a>.
 </div>
+<div id="ref-jorda2022" class="csl-entry" role="listitem">
+Jordà, Òscar, Martin Kornejew, Moritz Schularick, and Alan M Taylor. 2022. <span>“Zombies at <span>Large</span>? <span>Corporate Debt Overhang</span> and the <span>Macroeconomy</span>.”</span> <em>The Review of Financial Studies</em> 35 (10): 4561–86. <a href="https://doi.org/10.1093/rfs/hhac018">https://doi.org/10.1093/rfs/hhac018</a>.
+</div>
 <div id="ref-jorda2015" class="csl-entry" role="listitem">
 Jordà, Òscar, Moritz Schularick, and Alan M. Taylor. 2015. <span>“Betting the House.”</span> <em>Journal of International Economics</em>, 37th <span>Annual NBER International Seminar</span> on <span>Macroeconomics</span>, vol. 96 (July): S2–18. <a href="https://doi.org/10.1016/j.jinteco.2014.12.011">https://doi.org/10.1016/j.jinteco.2014.12.011</a>.
+</div>
+<div id="ref-jorda2017" class="csl-entry" role="listitem">
+Jordà, Òscar, Moritz Schularick, and Alan M. Taylor. 2017. <span>“Macrofinancial <span>History</span> and the <span>New Business Cycle Facts</span>.”</span> <em>NBER Macroeconomics Annual</em> 31 (January): 213–63. <a href="https://doi.org/10.1086/690241">https://doi.org/10.1086/690241</a>.
 </div>
 <div id="ref-jorda2026" class="csl-entry" role="listitem">
 Jordà, Òscar, Sanjay R. Singh, and Alan M. Taylor. 2026. <span>“The <span>Long-Run Effects</span> of <span>Monetary Policy</span>.”</span> <em>The Review of Economics and Statistics</em>, July, 1–21. <a href="https://doi.org/10.1162/rest_a_01527">https://doi.org/10.1162/rest_a_01527</a>.
 </div>
 <div id="ref-li2024a" class="csl-entry" role="listitem">
 Li, Dake, Mikkel Plagborg-Møller, and Christian K. Wolf. 2024. <span>“Local Projections Vs. <span>VARs</span>: <span>Lessons</span> from Thousands of <span>DGPs</span>.”</span> <em>Journal of Econometrics</em> 244 (2): 105722. <a href="https://doi.org/10.1016/j.jeconom.2024.105722">https://doi.org/10.1016/j.jeconom.2024.105722</a>.
+</div>
+<div id="ref-linnemann2016" class="csl-entry" role="listitem">
+Linnemann, Ludger, and Roland Winkler. 2016. <span>“Estimating Nonlinear Effects of Fiscal Policy Using Quantile Regression Methods.”</span> <em>Oxford Economic Papers</em> 68 (4): 1120–45. <a href="https://doi.org/10.1093/oep/gpw020">https://doi.org/10.1093/oep/gpw020</a>.
 </div>
 <div id="ref-montielolea2021a" class="csl-entry" role="listitem">
 Montiel Olea, José Luis, and Mikkel Plagborg-Møller. 2021. <span>“Local Projection Inference Is Simpler and More Robust Than You Think.”</span> <em>Econometrica</em> 89 (4): 1789–823. <a href="https://doi.org/10.3982/ECTA18756">https://doi.org/10.3982/ECTA18756</a>.
@@ -641,6 +665,9 @@ Piger, Jeremy, and Thomas Stockwell. 2025. <span>“Differences <span>From Diffe
 <div id="ref-plagborg-møller2021" class="csl-entry" role="listitem">
 Plagborg-Møller, Mikkel, and Christian K. Wolf. 2021. <span>“Local Projections and VARs Estimate the Same Impulse Responses.”</span> <em>Econometrica</em> 89 (2): 955–80. <a href="https://doi.org/10.3982/ECTA17813">https://doi.org/10.3982/ECTA17813</a>.
 </div>
+<div id="ref-rambachan2019" class="csl-entry" role="listitem">
+Rambachan, Ashesh, and Neil Shephard. 2019. <em>A <span>Nonparametric Dynamic Causal Model</span> for <span>Macroeconometrics</span></em>. {{SSRN Scholarly Paper}} No. 3345325. Social Science Research Network. <a href="https://doi.org/10.2139/ssrn.3345325">https://doi.org/10.2139/ssrn.3345325</a>.
+</div>
 <div id="ref-rameyzubairy2018" class="csl-entry" role="listitem">
 Ramey, Valerie A., and Sarah Zubairy. 2018. <span>“Government Spending Multipliers in Good Times and in Bad: Evidence from <span>US</span> Historical Data.”</span> <em>Journal of Political Economy</em> 126 (2): 850–901. <a href="https://doi.org/10.1086/696277">https://doi.org/10.1086/696277</a>.
 </div>
@@ -649,6 +676,9 @@ Roth, Jonathan, Pedro H. C. Sant’Anna, Alyssa Bilinski, and John Poe. 2023. <s
 </div>
 <div id="ref-sims1990" class="csl-entry" role="listitem">
 Sims, Christopher A., James H. Stock, and Mark W. Watson. 1990. <span>“Inference in Linear Time Series Models with Some Unit Roots.”</span> <em>Econometrica</em> 58 (1): 113–44. <a href="https://doi.org/10.2307/2938337">https://doi.org/10.2307/2938337</a>.
+</div>
+<div id="ref-tenreyro2016a" class="csl-entry" role="listitem">
+Tenreyro, Silvana, and Gregory Thwaites. 2016. <span>“Pushing on a <span>String</span>: <span>US Monetary Policy Is Less Powerful</span> in <span>Recessions</span>.”</span> <em>American Economic Journal: Macroeconomics</em> 8 (4): 43–74. <a href="https://doi.org/10.1257/mac.20150016">https://doi.org/10.1257/mac.20150016</a>.
 </div>
 </div>
 

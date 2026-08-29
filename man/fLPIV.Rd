@@ -13,6 +13,7 @@ fLPIV(
   conf = 0.9,
   nw_lags_iv = NULL,
   cumulative = TRUE,
+  shock_size = c("unit", "sd"),
   n_threads = 0L
 )
 }
@@ -46,17 +47,31 @@ by the instrument formula, which reproduces the toolbox default.}
 
 \item{cumulative}{Logical. \code{TRUE} regresses
 \eqn{y_{t+h} - y_{t-1}} on the RHS. Default \code{TRUE} — the standard
-long-difference LP-IV convention.}
+long-difference LP-IV convention. When generated lags trim the leading
+rows, the outcome immediately before the first estimable date is still
+observed and is used as that date's base, so no observation is lost.}
+
+\item{shock_size}{Character. Units of the reported impulse response.
+\code{"unit"} (default) = response to a one-unit move in the treatment.
+\code{"sd"} = response to a one-standard-deviation move, scaling the
+2SLS coefficient and its standard error by \code{sd(D)} over the
+estimation sample. These correspond to \code{LPopt.impact = 1} and
+\code{LPopt.impact = 0} in Cesa-Bianchi's \code{LPmodel.m}.}
 
 \item{n_threads}{Integer. OpenMP threads for the horizon loop. Default 0
-(= all cores minus one).}
+(= all available cores).}
 }
 \value{
 An object of class \code{c("fLPIV", "fLP")} so all existing
   \code{fLP}-family methods (\code{print}, \code{tidy.fLP}, \code{fPlotLP})
   work unchanged. Additional fields: \code{Fstat_fs} and \code{rsqr_fs}
   (both length \code{H + 1}: per-horizon first-stage F-statistic and R²),
-  plus \code{endog} and \code{instrument_vars}.
+  plus \code{endog} and \code{instrument_vars}. \code{Fstat_fs} is the
+  textbook exclusion F for \eqn{D \sim [1, C, Z]}, with
+  \eqn{T_h - k_c - n_z} residual degrees of freedom. Cesa-Bianchi's
+  \code{LPmodel.m} reports \eqn{n_h - k_z} instead (it ignores the df
+  consumed by the residualised controls), so the two F values differ by
+  construction. Point estimates, standard errors and bands are unaffected.
 }
 \description{
 Estimates 2SLS local projections horizon-by-horizon using the delta-method

@@ -14,6 +14,7 @@ fLP(
   nw_offset = 1L,
   store_full = FALSE,
   cumulative = FALSE,
+  shock_size = c("unit", "sd"),
   n_threads = 0L
 )
 }
@@ -69,10 +70,21 @@ keep the result small and fast.}
 
 \item{cumulative}{Logical. If \code{TRUE}, the LHS at horizon \eqn{h} is
 \eqn{y_{t+h} - y_{t-1}} (cumulative response from \eqn{t-1} to \eqn{t+h}).
-Default \code{FALSE}.}
+Default \code{FALSE}. When generated lags trim the leading rows, the
+outcome immediately before the first estimable date is still observed
+and is used as that date's long-difference base, so no observation is
+lost — matching \code{endo_lag1} in Cesa-Bianchi's \code{LPmodel.m}.}
+
+\item{shock_size}{Character. Units of the reported impulse response.
+\code{"unit"} (default) = response to a one-unit shock. \code{"sd"} =
+response to a one-standard-deviation shock, obtained by z-scoring the
+shock over the estimation sample. These correspond to
+\code{LPopt.impact = 1} and \code{LPopt.impact = 0} respectively in
+Cesa-Bianchi's \code{LPmodel.m}; note the standard deviation is taken
+over the lag-trimmed estimation sample, not the raw input column.}
 
 \item{n_threads}{Integer. Number of OpenMP threads for the horizon loop.
-\code{0} = all cores minus one. Default \code{0}.}
+\code{0} = all available cores. Default \code{0}.}
 }
 \value{
 An object of class \code{"fLP"}.

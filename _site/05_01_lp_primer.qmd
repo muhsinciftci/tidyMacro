@@ -188,17 +188,17 @@ $$y_{t+h}-y_{t-1} = \alpha^j_h + \beta^j_h \Delta s_t + \gamma^{j\prime}_h \Delt
 
 Conditioning on past information without conditioning on the state mixes state-specific responses into a single average. The correct approach is to condition on the state.
 
-Applications: monetary shocks over the cycle (Tenreyro & Thwaites 2016; Angrist, Jordà & Kuersteiner 2018; Jordà, Singh & Taylor 2024); fiscal shocks over the cycle (Auerbach & Gorodnichenko 2013; Jordà & Taylor 2016), and @rameyzubairy2018.
+Applications: monetary shocks over the cycle ( @tenreyro2016a , @jorda2026 ); fiscal shocks over the cycle ( @auerbach2012 , @jorda2017 and @rameyzubairy2018.
 
 ## Two caveats
 
-**The state must not be endogenous to the intervention.** Rates are set low in slumps and high in booms, so naive stratification can confound weak monetary responses. Fiscal policy is safer because it reacts with a lag. Ideally both intervention and state are exogenously determined, which may require instruments for both. Relatedly, Gonçalves et al. (2024) show large interventions are unlikely to represent the true population response; the conservative reading treats estimated responses as derivatives — the effect of an infinitesimal intervention.
+**The state must not be endogenous to the intervention.** Rates are set low in slumps and high in booms, so naive stratification can confound weak monetary responses. Fiscal policy is safer because it reacts with a lag. Ideally both intervention and state are exogenously determined, which may require instruments for both. Relatedly, @goncalves2024 show large interventions are unlikely to represent the true population response; the conservative reading treats estimated responses as derivatives — the effect of an infinitesimal intervention.
 
 **Interpretation differs from a state-dependent VAR.** Deriving the response from state-specific VAR parameters implicitly assumes the economy stays in that state forever. It will not. The correct state-conditional response generally requires simulating and averaging over future trajectories in which the state switches.
 
 ## Continuous heterogeneity
 
-Cloyne, Jordà & Taylor (2023) generalise beyond binary states with an interaction term:
+@cloyne2023 generalize beyond binary states with an interaction term:
 
 $$y_{t+h} = \delta^h_0 + \beta_h(s_t - s_0) + \gamma_h(x_t - x_0) + \theta_h(s_t-s_0)(x_t-x_0) + v_{t+h}.$$
 
@@ -209,7 +209,7 @@ The decomposition makes a point stratification hides: identification requires ex
 
 ## Nonlinearity
 
-Specifications that are nonlinear in variables but linear in parameters (squares, interactions) remain OLS-estimable. Applications include quantile LPs (Linnemann & Winkler 2016; Adrian et al. 2022; Jordà et al. 2022) and binary outcomes (Drehmann, Patton & Sorensen 2007; Barattieri & Cacciatore 2023). For the general nonparametric framing see Rambachan & Shephard (2019).
+Specifications that are nonlinear in variables but linear in parameters (squares, interactions) remain OLS-estimable. Applications include quantile LPs [@linnemann2016, @adrian2022, @jorda2022] and binary outcomes [Drehmann, Patton & Sorensen 2007, @barattieri2023]. For the general nonparametric framing see @rambachan2019
 
 **IV caveat** (Newey 1990). Never instrument a nonlinear transform of $s_t$ by first-stage-regressing $s_t$ on $z_t$ — Jensen's inequality breaks it. Instrument the transforms directly with $z_t$, $z_t^2$, $z_t x_t$.
 
@@ -221,9 +221,9 @@ Specifications that are nonlinear in variables but linear in parameters (squares
 
 Which correction applies depends on $N$ and $T$:
 
-- $T \to \infty$, $N$ fixed or slow-growing: Driscoll–Kraay (Driscoll & Kraay 1998), the panel analogue of Newey–West.
+- $T \to \infty$, $N$ fixed or slow-growing: **Driscoll–Kraay (Driscoll & Kraay 1998)**, the panel analogue of Newey–West.
 - $N \to \infty$, $T$ fixed: cluster-robust standard errors.
-- $T$ small: wild cluster bootstrap (Cameron, Gelbach & Miller 2008; Canay, Santos & Shaikh 2021; Roodman et al. 2019).
+- $T$ small: wild cluster bootstrap (**Cameron, Gelbach & Miller 2008**; **Canay, Santos & Shaikh 2021**; **Roodman et al. 2019**).
 
 With $N$ large relative to $T$, the asymptotic distribution is dominated by the cross-section. Near-unit-root distortions largely disappear.
 
@@ -244,9 +244,7 @@ Two structural points:
 
 $\hat\beta_h$ recovers a variance-weighted average of heterogeneous effects, where algorithmic DiD estimators typically target an equally-weighted average. Another bias–variance trade-off, with the shoe now on the other foot relative to the LP-versus-VAR case.
 
-
 # References
 
 ::: {#refs}
 :::
-

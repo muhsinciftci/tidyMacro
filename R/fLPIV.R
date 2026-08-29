@@ -51,15 +51,28 @@
 #'   by the instrument formula, which reproduces the toolbox default.
 #' @param cumulative Logical. \code{TRUE} regresses
 #'   \eqn{y_{t+h} - y_{t-1}} on the RHS. Default \code{TRUE} — the standard
-#'   long-difference LP-IV convention.
+#'   long-difference LP-IV convention. When generated lags trim the leading
+#'   rows, the outcome immediately before the first estimable date is still
+#'   observed and is used as that date's base, so no observation is lost.
+#' @param shock_size Character. Units of the reported impulse response.
+#'   \code{"unit"} (default) = response to a one-unit move in the treatment.
+#'   \code{"sd"} = response to a one-standard-deviation move, scaling the
+#'   2SLS coefficient and its standard error by \code{sd(D)} over the
+#'   estimation sample. These correspond to \code{LPopt.impact = 1} and
+#'   \code{LPopt.impact = 0} in Cesa-Bianchi's \code{LPmodel.m}.
 #' @param n_threads Integer. OpenMP threads for the horizon loop. Default 0
-#'   (= all cores minus one).
+#'   (= all available cores).
 #'
 #' @return An object of class \code{c("fLPIV", "fLP")} so all existing
 #'   \code{fLP}-family methods (\code{print}, \code{tidy.fLP}, \code{fPlotLP})
 #'   work unchanged. Additional fields: \code{Fstat_fs} and \code{rsqr_fs}
 #'   (both length \code{H + 1}: per-horizon first-stage F-statistic and R²),
-#'   plus \code{endog} and \code{instrument_vars}.
+#'   plus \code{endog} and \code{instrument_vars}. \code{Fstat_fs} is the
+#'   textbook exclusion F for \eqn{D \sim [1, C, Z]}, with
+#'   \eqn{T_h - k_c - n_z} residual degrees of freedom. Cesa-Bianchi's
+#'   \code{LPmodel.m} reports \eqn{n_h - k_z} instead (it ignores the df
+#'   consumed by the residualised controls), so the two F values differ by
+#'   construction. Point estimates, standard errors and bands are unaffected.
 #'
 #' @examples
 #' \dontrun{
@@ -83,9 +96,12 @@ fLPIV <- function(formula, instruments, data,
                   conf       = 0.90,
                   nw_lags_iv = NULL,
                   cumulative = TRUE,
+                  shock_size = c("unit", "sd"),
                   n_threads  = 0L) {
 
   env <- parent.frame()
+
+  shock_size <- .fLP_shock_size(shock_size, "fLPIV")
 
   # -------------------------------------------------------------------
   # 0. Basic checks
@@ -163,12 +179,9 @@ fLPIV <- function(formula, instruments, data,
   if (length(miss_v) > 0L)
     stop(sprintf("fLPIV: variable(s) not in data: %s", paste(miss_v, collapse = ", ")))
 
-  raw <- data[, all_needed, drop = FALSE]
-  na_rows <- which(!complete.cases(raw))
-  if (length(na_rows) > 0L) {
-    message(sprintf("fLPIV: removing %d row(s) with NA.", length(na_rows)))
-    raw <- raw[-na_rows, , drop = FALSE]
-  }
+  samp <- .fLP_estimation_sample(data, all_needed, lhs_vars,
+                                 cumulative = cumulative, fn = "fLPIV")
+  raw  <- samp$raw
   non_num <- names(raw)[!vapply(raw, is.numeric, logical(1))]
   if (length(non_num) > 0L)
     stop(sprintf("fLPIV: all variables must be numeric. Non-numeric: %s",
@@ -181,6 +194,14 @@ fLPIV <- function(formula, instruments, data,
          as.matrix(raw[, ctrl_vars, drop = FALSE])
        else matrix(0.0, nrow = nrow(raw), ncol = 0)
   storage.mode(C) <- "double"
+
+  # Cumulative long-difference base (see .fLP_estimation_sample); NULL when
+  # no earlier outcome exists or the fit is not cumulative.
+  Y_pre <- NULL
+  if (!is.null(samp$pre)) {
+    Y_pre <- as.matrix(samp$pre[, lhs_vars, drop = FALSE])
+    storage.mode(Y_pre) <- "double"
+  }
 
   T_eff <- nrow(Y)
 
@@ -196,7 +217,8 @@ fLPIV <- function(formula, instruments, data,
     stop("fLPIV: 'cumulative' must be TRUE or FALSE.")
   n_threads <- .fLP_validate_scalar_int(n_threads, "n_threads")
 
-  min_obs <- ncol(C) + ncol(Z) + 3L + H + as.integer(cumulative)
+  min_obs <- ncol(C) + ncol(Z) + 3L + H +
+             as.integer(isTRUE(cumulative) && is.null(Y_pre))
   if (T_eff < min_obs) {
     stop(sprintf("fLPIV: not enough observations. Need >= %d rows after NA removal; have %d.",
                  min_obs, T_eff))
@@ -215,8 +237,22 @@ fLPIV <- function(formula, instruments, data,
     nw_lags_iv = as.integer(nw_lags_iv),
     cumulative = isTRUE(cumulative),
     n_threads  = as.integer(n_threads),
-    verbose    = FALSE
+    verbose    = FALSE,
+    Y_pre      = Y_pre
   )
+
+  # Shock-size convention. LPmodel.m's impact = 0 does not touch the
+  # treatment; it scales the 2SLS coefficient and its SE by d_norm =
+  # std(treat) over the lag-trimmed sample (beta_h = beta_h*d_norm;
+  # se_h = se_h*d_norm). Applied here, before the bands are built, so the
+  # bands inherit the scaling.
+  if (identical(shock_size, "sd")) {
+    d_norm <- stats::sd(D)
+    if (!is.finite(d_norm) || d_norm <= 0)
+      stop("fLPIV: shock_size = \"sd\" requires a treatment with positive variance.")
+    res_cpp$irfs    <- res_cpp$irfs    * d_norm
+    res_cpp$irfs_se <- res_cpp$irfs_se * d_norm
+  }
 
   # -------------------------------------------------------------------
   # 7. Rebuild multi-band bands (matching fLP behavior)
@@ -273,6 +309,7 @@ fLPIV <- function(formula, instruments, data,
   res_cpp$conf            <- conf
   res_cpp$nw_lags_iv      <- nw_lags_iv
   res_cpp$cumulative      <- isTRUE(cumulative)
+  res_cpp$shock_size      <- shock_size
   res_cpp$n_threads       <- as.integer(n_threads)
   res_cpp$nobs            <- T_eff
   res_cpp$formula         <- fmla_full

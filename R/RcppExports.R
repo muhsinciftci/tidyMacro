@@ -936,7 +936,7 @@ fHistDec <- function(y, fVAR, K, series) {
 #'   \eqn{y_{t+h} - y_{t-1}} on the RHS (cumulative response). Default
 #'   \code{FALSE}.
 #' @param n_threads Integer. OpenMP threads for the horizon loop. 0 = all
-#'   cores minus one. Default 0.
+#'   available cores. Default 0.
 #' @param nw_offset Integer. Shift applied to the NW bandwidth rule
 #'   (effective bandwidth = \code{nw_lags_base + h + nw_offset}, floored at
 #'   0). Default \code{1L}, the Miranda-Agrippino & Ricco convention
@@ -946,6 +946,14 @@ fHistDec <- function(y, fVAR, K, series) {
 #'   Cesa-Bianchi's VAR Toolbox \code{LPmodel.m}
 #'   (\code{OLSmodel(Y,X,0,hh-1)} with 1-indexed \code{hh}), e.g. for the
 #'   Jorda-Taylor (2025) replication.
+#' @param Y_pre Numeric matrix (1 x n_y) or \code{NULL}. Cumulative LP only:
+#'   the outcome at the date immediately BEFORE row 1 of \code{Y}, used as
+#'   the long-difference base \eqn{y_{t-1}} for the first estimable date.
+#'   Supplying it keeps every row of \code{Y} as an estimable LHS date and
+#'   matches the \code{endo_lag1} alignment of Cesa-Bianchi's
+#'   \code{LPmodel.m}. With \code{NULL} (default) row 1 of \code{Y} is
+#'   consumed as the base and one observation is lost — correct only when no
+#'   earlier outcome exists. Ignored when \code{cumulative = FALSE}.
 #'
 #' @return A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
 #'   \code{irfs_se} (raw, unscaled SE of the shock coefficient — lets
@@ -953,8 +961,8 @@ fHistDec <- function(y, fVAR, K, series) {
 #'   engine), and optionally \code{betas} and \code{ses}.
 #'
 #' @keywords internal
-fLP_cpp <- function(Y, X, H, shock_col, conf_level, nw_lags_base, store_full = FALSE, cumulative = FALSE, n_threads = 0L, nw_offset = 1L, verbose = FALSE) {
-    .Call(`_tidyMacro_fLP_cpp`, Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset, verbose)
+fLP_cpp <- function(Y, X, H, shock_col, conf_level, nw_lags_base, store_full = FALSE, cumulative = FALSE, n_threads = 0L, nw_offset = 1L, verbose = FALSE, Y_pre = NULL) {
+    .Call(`_tidyMacro_fLP_cpp`, Y, X, H, shock_col, conf_level, nw_lags_base, store_full, cumulative, n_threads, nw_offset, verbose, Y_pre)
 }
 
 fLPDID_cpp <- function(y, treat, X, i_index, t_index, cl_index, pre_window, post_window, nonabsorbing, Lwin, ccc, pmd, reweight, n_threads, verbose = FALSE) {
@@ -978,15 +986,24 @@ fLPDID_cpp <- function(y, treat, X, i_index, t_index, cl_index, pre_window, post
 #'   \code{== 0}: horizon-varying bandwidth = h (just-identified LP rule).
 #' @param cumulative Logical. \code{TRUE} regresses \eqn{y_{t+h} - y_{t-1}};
 #'   \code{FALSE} regresses the level \eqn{y_{t+h}}.
-#' @param n_threads Integer. OpenMP threads. \code{0} = all cores minus one.
+#' @param n_threads Integer. OpenMP threads. \code{0} = all available cores.
+#' @param verbose Logical. Print the thread count. Default \code{FALSE}.
+#' @param Y_pre Numeric matrix (1 x n_y) or \code{NULL}. Cumulative LP only:
+#'   the outcome at the date immediately BEFORE row 1 of \code{Y}, used as the
+#'   long-difference base for the first estimable date. Supplying it keeps
+#'   every row of \code{Y} estimable and matches the \code{endo_lag1}
+#'   alignment of Cesa-Bianchi's \code{LPmodel.m}. With \code{NULL} (default)
+#'   row 1 of \code{Y} is consumed as the base and one observation is lost.
 #'
 #' @return A named list with \code{irfs}, \code{irfs_upper}, \code{irfs_lower},
 #'   \code{irfs_se}, \code{Fstat_fs} (first-stage F per horizon) and
-#'   \code{rsqr_fs} (first-stage R^2 per horizon).
+#'   \code{rsqr_fs} (first-stage R^2 per horizon). \code{Fstat_fs} uses
+#'   \eqn{T_h - k_c - n_z} residual degrees of freedom, which differs by
+#'   construction from the value reported by \code{LPmodel.m}.
 #'
 #' @keywords internal
-fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE, n_threads = 0L, verbose = FALSE) {
-    .Call(`_tidyMacro_fLPIV_cpp`, Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads, verbose)
+fLPIV_cpp <- function(Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative = FALSE, n_threads = 0L, verbose = FALSE, Y_pre = NULL) {
+    .Call(`_tidyMacro_fLPIV_cpp`, Y, D, Z, C, H, conf_level, nw_lags_iv, cumulative, n_threads, verbose, Y_pre)
 }
 
 #' Panel Local Projections — Internal C++ engine
