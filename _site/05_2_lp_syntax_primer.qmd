@@ -170,7 +170,7 @@ Non-`0` `status` values are surfaced as R warnings when they occur; the `status`
 
 ### `fLPDID()`
 
-A tibble of class `c("fLPDID", ...)` with columns `event_time, estimate, se, conf_low, conf_high, nobs, nclust`, and an `attr("lpdid_spec")` list capturing every argument that shaped the fit. The plot function is `fPlotLPDID()`, which accepts one result or several named results (`fPlotLPDID(\`OLS\` = m1, \`Reweighted\` = m2)`).
+A tibble of class `c("fLPDID", ...)` with columns `event_time, estimate, se, conf_low, conf_high, nobs, nclust, ndrop`, and an `attr("lpdid_spec")` list capturing every argument that shaped the fit. `ndrop` counts control columns omitted for collinearity at that horizon (as `reghdfe` does); horizons that could not be estimated raise a warning naming the event times rather than returning a silent `NaN`. The plot function is `fPlotLPDID()`, which accepts one result or several named results (`fPlotLPDID(\`OLS\` = m1, \`Reweighted\` = m2)`).
 
 ------------------------------------------------------------------------
 
@@ -213,7 +213,7 @@ Inference: asymptotic time-clustered (LAHR) by default; the @imbens2016 small-sa
 At horizon $h$:
 $$y_{i, t+h} - y_{i, t-1} \;=\; \beta_h\, \Delta D_{it} + X_{it}' \gamma_h + \tau_t + \varepsilon_{it},$$
 
-restricted to a clean-control sample. Pre-treatment horizons replace $y_{i, t+h}$ by $y_{i, t-j}$ with $\beta_{-1} = 0$ as the normalization. Standard errors are CR1 cluster-robust with the `reghdfe` correction $c = \tfrac{G}{G-1} \cdot \tfrac{N-1}{N-K}$ where $K$ counts absorbed time fixed effects.
+restricted to a clean-control sample. Pre-treatment horizons replace $y_{i, t+h}$ by $y_{i, t-j}$ with $\beta_{-1} = 0$ as the normalization. Standard errors are CR1 cluster-robust with the `reghdfe` correction $c = \tfrac{G}{G-1} \cdot \tfrac{N-1}{N-K}$ where $K$ counts absorbed time fixed effects. Singleton absorbed-FE observations are dropped before $N$ and $K$ are formed, again as `reghdfe` does. Confidence bands use a cluster-$t$ critical value with $G-1$ degrees of freedom, not a normal quantile.
 
 **PMD baseline (`pmd = TRUE`)** replaces $y_{i, t-1}$ by the pre-treatment mean $\bar y_{i,<t}$ computed **exactly as in the DGJT Stata replication code**:
 

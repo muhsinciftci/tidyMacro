@@ -25,7 +25,8 @@ fLPDID(
 \item{formula}{A formula \code{y ~ treat + controls}, e.g.
 \code{lshare ~ bank + l(lshare, 1:4) + l(d(lshare), 1:4)}.
 \itemize{
-  \item \strong{LHS}: single outcome variable.
+  \item \strong{LHS}: the outcome. Transformations are evaluated,
+    so \code{log(y) ~ treat} estimates the model for \code{log(y)}.
   \item \strong{RHS}: the treatment \emph{level} column (0/1;
     \code{NA} allowed) plus any controls. The term named in
     \code{treat} is the treatment; all other terms are controls.
@@ -76,7 +77,11 @@ yet implemented in C++).}
 \value{
 A tibble of class \code{"fLPDID"} with columns
   \code{event_time}, \code{estimate}, \code{se}, \code{conf_low},
-  \code{conf_high}, \code{nobs}, \code{nclust}.
+  \code{conf_high}, \code{nobs}, \code{nclust}, \code{ndrop}.
+  Confidence bands use a cluster-t critical value with
+  \code{nclust - 1} degrees of freedom (the \code{reghdfe}
+  convention); \code{ndrop} counts control columns omitted for
+  collinearity at that horizon.
 }
 \description{
 Estimates event-study treatment effects with the LP-DiD estimator of

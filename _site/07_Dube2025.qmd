@@ -110,7 +110,10 @@ This chapter replicates the two empirical applications of @dube2025. For technic
 - `nonabsorbing = TRUE` — non-absorbing treatment; requires the stabilization window `L` and the clean-control flavor `ccc ∈ {0, 1, 2}`.
 - `pmd = TRUE` — pre-mean-differenced baseline (Stata calendar-time formula, see §5 of the syntax primer).
 - `reweight = TRUE` — equally-weighted ATT via $w = 1/(1-p_t)$; with non-empty controls this is **not** the DDCG `teffects ra` estimator and the function warns accordingly.
+- `conf` — confidence level for the reported bands. Bands use a **cluster-$t$** critical value with $G-1$ degrees of freedom, matching the CR1 correction applied to the standard errors.
 - Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference. Any `| time` you write is accepted but redundant.
+
+The outcome is an expression, not just a column name, so `log(y) ~ treat` estimates the model for $\log y$. Every result carries an `ndrop` column counting control columns omitted for collinearity at that horizon (as `reghdfe` does), and non-estimable horizons raise a warning naming the offending event times rather than returning a silent `NaN`.
 
 ```{r setup}
 library(tidyMacro)
@@ -165,6 +168,59 @@ fPlotLPDID(
     ylab  = "Labor share"
 )
 ```
+
+## Inference: exact `reghdfe` compatibility
+
+`fLPDID()` is built to reproduce the Stata numbers in the DGJT replication package, not merely to approximate them. Three conventions do the work:
+
+- **CR1 cluster correction** $c = \tfrac{G}{G-1} \cdot \tfrac{N-1}{N-K}$, with $K$ counting the absorbed time fixed effects — `reghdfe`'s default, or `fixest::ssc(fixef.K = "full")`.
+- **Singleton absorbed-FE observations are dropped**, as `reghdfe` does by default. A year cell holding a single retained row demeans to exactly zero, so it can never move the coefficient; leaving it in would nonetheless inflate $N$ in the finite-sample factor and misreport `nobs`.
+- **Cluster-$t$ critical values** with $G-1$ degrees of freedom for `conf_low` / `conf_high`. With few clusters this is not a rounding detail: at $G = 20$ the multiplier is $2.093$ rather than the normal $1.960$, so normal bands would be roughly 7% too narrow.
+
+The impact horizon of the only-year-FE banking specification is a useful test case, because its sample happens to contain exactly one singleton year cell. Rebuilding that single LP-DiD cell by hand and handing it to `fixest` reproduces all four reported quantities:
+
+```{r banking-verify}
+library(fixest)
+
+cell <- BankingDeregulation |>
+    arrange(id, year) |>
+    group_by(id) |>
+    mutate(
+        d_lshare = lshare - lag(lshare),
+        d_bank   = bank   - lag(bank)
+    ) |>
+    ungroup() |>
+    filter(
+        is.finite(d_lshare), is.finite(d_bank),
+        d_bank == 1 | (d_bank == 0 & bank == 0)
+    )
+
+ref <- feols(
+    d_lshare ~ d_bank | year,
+    data = cell, cluster = ~id,
+    ssc  = ssc(fixef.K = "full")
+)
+
+ci <- confint(ref)["d_bank", ]
+
+bind_rows(
+    bank_fe |>
+        filter(event_time == 0) |>
+        transmute(source = "fLPDID()", estimate, se, conf_low, conf_high,
+                  nobs, nclust),
+    tibble(
+        source    = "fixest::feols()",
+        estimate  = coef(ref)[["d_bank"]],
+        se        = se(ref)[["d_bank"]],
+        conf_low  = ci[[1]],
+        conf_high = ci[[2]],
+        nobs      = ref$nobs,
+        nclust    = degrees_freedom(ref, "t") + 1L
+    )
+)
+```
+
+`fixest` reports the singleton removal in its own notes, and both routes land on $N = 752$ rather than the 753 rows that enter before the drop. Agreement is to machine precision across the coefficient, the clustered standard error and both band endpoints.
 
 ## Variance-weighted vs. equally-weighted ATT
 

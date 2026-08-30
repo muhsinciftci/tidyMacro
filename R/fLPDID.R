@@ -10,7 +10,7 @@
 #   fLPDID(y ~ treat + controls, data, panel_id = c("id", "year"),
 #          treat = "treat", post = 9, pre = 9)
 #
-#   - LHS: single outcome variable.
+#   - LHS: the outcome; transformations such as log(y) are evaluated.
 #   - RHS: the treatment LEVEL column plus any controls. The term named in
 #     `treat` is the treatment; everything else is a control.
 #   - Time fixed effects are ALWAYS absorbed (they are part of the
@@ -94,7 +94,8 @@
 #' @param formula A formula \code{y ~ treat + controls}, e.g.
 #'   \code{lshare ~ bank + l(lshare, 1:4) + l(d(lshare), 1:4)}.
 #'   \itemize{
-#'     \item \strong{LHS}: single outcome variable.
+#'     \item \strong{LHS}: the outcome. Transformations are evaluated,
+#'       so \code{log(y) ~ treat} estimates the model for \code{log(y)}.
 #'     \item \strong{RHS}: the treatment \emph{level} column (0/1;
 #'       \code{NA} allowed) plus any controls. The term named in
 #'       \code{treat} is the treatment; all other terms are controls.
@@ -132,7 +133,11 @@
 #'
 #' @return A tibble of class \code{"fLPDID"} with columns
 #'   \code{event_time}, \code{estimate}, \code{se}, \code{conf_low},
-#'   \code{conf_high}, \code{nobs}, \code{nclust}.
+#'   \code{conf_high}, \code{nobs}, \code{nclust}, \code{ndrop}.
+#'   Confidence bands use a cluster-t critical value with
+#'   \code{nclust - 1} degrees of freedom (the \code{reghdfe}
+#'   convention); \code{ndrop} counts control columns omitted for
+#'   collinearity at that horizon.
 #'
 #' @examples
 #' \dontrun{
@@ -180,6 +185,13 @@ fLPDID <- function(formula, data,
     if (!v %in% names(data))
       stop(sprintf("fLPDID: column '%s' not found in data.", v),
            call. = FALSE)
+  # Missing identifiers cannot be honoured: `as.integer(as.factor(NA))` is
+  # NA_integer_, which the C++ hash maps would treat as one ordinary shared
+  # unit — silently merging unrelated rows. Reject instead.
+  if (anyNA(data[[id_var]]))
+    stop(sprintf("fLPDID: %d missing value(s) in unit id '%s'; ",
+                 sum(is.na(data[[id_var]])), id_var),
+         "remove those rows before calling fLPDID.", call. = FALSE)
   # ---- scalar / range validation for numeric + logical args -----------
   for (nm_flag in c("nonabsorbing", "pmd", "reweight")) {
     v <- get(nm_flag)
@@ -230,6 +242,12 @@ fLPDID <- function(formula, data,
   if (!is.numeric(t_raw))
     stop("fLPDID: 'time' column must be numeric, Date, or POSIXct.",
          call. = FALSE)
+  # A non-finite time would become NA_integer_ in `t_index` and reach the C++
+  # engine as an ordinary (garbage) period, silently corrupting every shift.
+  if (!all(is.finite(t_raw)))
+    stop(sprintf("fLPDID: %d missing or non-finite value(s) in time column '%s'; ",
+                 sum(!is.finite(t_raw)), time_var),
+         "remove those rows before calling fLPDID.", call. = FALSE)
   steps <- diff(sort(unique(t_raw)))
   step  <- if (length(steps)) min(steps) else 1
   if (!is.finite(step) || step <= 0)
@@ -275,9 +293,19 @@ fLPDID <- function(formula, data,
     error = function(e) stop("fLPDID: could not parse the formula:\n  ",
                              main_str, "\n  ", conditionMessage(e),
                              call. = FALSE))
-  lhs_vars <- all.vars(main_formula[[2L]])
-  if (length(lhs_vars) != 1L)
-    stop("fLPDID: exactly one LHS variable is required.", call. = FALSE)
+  # The LHS is an expression, not just a column name: RHS controls already
+  # go through model.matrix() and honour transformations, so `log(y) ~ treat`
+  # must be evaluated too rather than silently collapsing to `y`.
+  lhs_expr  <- main_formula[[2L]]
+  lhs_vars  <- all.vars(lhs_expr)
+  lhs_label <- paste(deparse(lhs_expr), collapse = "")
+  if (!length(lhs_vars))
+    stop("fLPDID: the LHS must reference at least one column of `data`.",
+         call. = FALSE)
+  for (nm in lhs_vars)
+    if (!nm %in% names(data))
+      stop(sprintf("fLPDID: LHS variable '%s' not found in data.", nm),
+           call. = FALSE)
 
   rhs_str    <- paste(deparse(main_formula[[3L]]), collapse = " ")
   rhs_terms  <- stats::terms(stats::as.formula(paste("~", rhs_str), env = env),
@@ -300,6 +328,31 @@ fLPDID <- function(formula, data,
       stop(sprintf("fLPDID: column '%s' must be numeric.", nm),
            call. = FALSE)
 
+  # The engine defines an entry as dD == 1 and a candidate control as
+  # dD == 0 with treatment level 0. Any other coding (e.g. 0/2) selects no
+  # rows at all and would return NaN for every horizon without explanation.
+  tr_obs <- data[[treat]][!is.na(data[[treat]])]
+  if (length(tr_obs) && !all(tr_obs %in% c(0, 1))) {
+    offending <- unique(tr_obs[!tr_obs %in% c(0, 1)])
+    stop(sprintf(
+      "fLPDID: treatment '%s' must be coded 0/1 (NA allowed); found %s.",
+      treat, paste(utils::head(sort(offending), 5L), collapse = ", ")),
+      call. = FALSE)
+  }
+  if (!any(tr_obs == 1))
+    warning(sprintf(
+      "fLPDID: treatment '%s' is never 1 — no treatment entries exist, so ",
+      treat), "every horizon will be non-estimable.", call. = FALSE)
+
+  # LHS evaluated on the (operator-expanded) data.
+  y_vec <- tryCatch(eval(lhs_expr, data, env),
+                    error = function(e)
+                      stop("fLPDID: could not evaluate the LHS '", lhs_label,
+                           "':\n  ", conditionMessage(e), call. = FALSE))
+  if (!is.numeric(y_vec) || length(y_vec) != nrow(data))
+    stop("fLPDID: the LHS '", lhs_label, "' must evaluate to a numeric ",
+         "vector of length nrow(data).", call. = FALSE)
+
   # ---- control design matrix (NA rows preserved; C++ handles them) -----
   if (length(control_labels)) {
     design_formula <- stats::as.formula(
@@ -321,6 +374,12 @@ fLPDID <- function(formula, data,
   if (!cl_var %in% names(data))
     stop(sprintf("fLPDID: cluster column '%s' not found in data.", cl_var),
          call. = FALSE)
+  # As for the unit id: NA cluster codes would be pooled into one cluster,
+  # changing G and the CR1 factor without any diagnostic.
+  if (anyNA(data[[cl_var]]))
+    stop(sprintf("fLPDID: %d missing value(s) in cluster column '%s'; ",
+                 sum(is.na(data[[cl_var]])), cl_var),
+         "remove those rows before calling fLPDID.", call. = FALSE)
 
   # Finalize the reweight+controls note now that controls are parsed.
   if (reweight_needs_note && length(control_labels) > 0L) {
@@ -334,7 +393,7 @@ fLPDID <- function(formula, data,
 
   # ---- C++ engine -------------------------------------------------------
   out <- fLPDID_cpp(
-    y            = as.numeric(data[[lhs_vars]]),
+    y            = as.numeric(y_vec),
     treat        = as.numeric(data[[treat]]),
     X            = X,
     i_index      = as.integer(as.factor(data[[id_var]])),
@@ -356,24 +415,47 @@ fLPDID <- function(formula, data,
     estimate   = as.numeric(out$estimate),
     se         = as.numeric(out$se),
     nobs       = as.integer(out$nobs),
-    nclust     = as.integer(out$nclust)
+    nclust     = as.integer(out$nclust),
+    ndrop      = as.integer(out$ndrop),
+    .norm      = FALSE
   )
   if (!pmd)
     res <- dplyr::bind_rows(
       res,
       tibble::tibble(event_time = -1L, estimate = 0, se = 0,
-                     nobs = NA_integer_, nclust = NA_integer_))
+                     nobs = NA_integer_, nclust = NA_integer_,
+                     ndrop = NA_integer_, .norm = TRUE))
 
-  z   <- stats::qnorm(1 - (1 - conf) / 2)
   res <- dplyr::arrange(res, .data$event_time)
-  res <- dplyr::mutate(res,
-                       conf_low  = .data$estimate - z * .data$se,
-                       conf_high = .data$estimate + z * .data$se)
+
+  # Cluster-robust inference uses a t critical value with G - 1 degrees of
+  # freedom (the `reghdfe` / `fixest` convention that matches the CR1 factor
+  # applied in C++), not a normal quantile.
+  crit <- rep(NA_real_, nrow(res))
+  ok   <- !is.na(res$nclust) & res$nclust > 1L
+  crit[ok] <- stats::qt(1 - (1 - conf) / 2, res$nclust[ok] - 1L)
+  res$conf_low  <- res$estimate - crit * res$se
+  res$conf_high <- res$estimate + crit * res$se
+  # The normalized event_time == -1 point is exactly zero by construction.
+  res$conf_low[res$.norm]  <- 0
+  res$conf_high[res$.norm] <- 0
+
+  bad <- !res$.norm & !is.finite(res$estimate)
+  if (any(bad))
+    warning(sprintf(
+      "fLPDID: %d horizon(s) not estimable (event_time %s) — too few clean-control rows, no treatment entries, or a degenerate treatment column after within-year demeaning.",
+      sum(bad), paste(res$event_time[bad], collapse = ", ")), call. = FALSE)
+  if (any(res$ndrop > 0L, na.rm = TRUE))
+    warning(sprintf(
+      "fLPDID: collinear control column(s) omitted at event_time %s (as `reghdfe` does); see the `ndrop` column.",
+      paste(res$event_time[!is.na(res$ndrop) & res$ndrop > 0L],
+            collapse = ", ")), call. = FALSE)
+
   res <- dplyr::select(res, "event_time", "estimate", "se",
-                       "conf_low", "conf_high", "nobs", "nclust")
+                       "conf_low", "conf_high", "nobs", "nclust", "ndrop")
 
   attr(res, "lpdid_spec") <- list(
-    formula = formula_chr, y = lhs_vars, treat = treat,
+    formula = formula_chr, y = lhs_label, treat = treat,
     controls = control_labels, post = post, pre = pre,
     nonabsorbing = nonabsorbing, L = L, ccc = ccc,
     pmd = pmd, reweight = reweight, conf = conf, cluster = cl_var

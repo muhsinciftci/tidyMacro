@@ -281,6 +281,21 @@ Rcpp::List fLPDID_cpp(
       for (uword s = 0; s < m0; ++s) sel.push_back(s);
     }
 
+    // ---- 4b'. drop singleton time cells (reghdfe default) ------------
+    // A year cell holding a single selected row demeans to exactly zero in
+    // both y and Z, so it moves neither the coefficient nor the cluster
+    // score - but it does inflate m in the CR1 finite-sample factor and the
+    // reported nobs. reghdfe removes such rows before estimating; match it.
+    // One pass suffices: with a single absorbed dimension, removing a
+    // size-1 cell cannot shrink any other cell.
+    {
+      std::vector<uword> ycnt(nY0, 0);
+      for (uword s : sel) ycnt[yid0[s]] += 1;
+      std::vector<uword> sel_ns; sel_ns.reserve(sel.size());
+      for (uword s : sel) if (ycnt[yid0[s]] > 1) sel_ns.push_back(s);
+      sel.swap(sel_ns);
+    }
+
     const uword m = sel.size();
     if (m < K + 3) return R;
 
@@ -374,29 +389,34 @@ Rcpp::List fLPDID_cpp(
     const uvec kv  = conv_to<uvec>::from(keepc);
     const mat Zk   = Z.cols(kv);
     const mat Zsk  = (Pk < P) ? mat(Zs.cols(kv)) : Zs;
-    const mat Ak   = Zsk.t() * Zsk;
+    // A was already formed for the rank pass; its kept-column submatrix IS
+    // Zsk' Zsk, so there is no need to re-accumulate the cross-product.
+    const mat Ak   = (Pk < P) ? mat(A.submat(kv, kv)) : A;
 
-    vec coef;
-    mat Ainv;
+    // Only the treatment coefficient and its variance are returned, so the
+    // full inverse is unnecessary: q = Ak^{-1} e_0 gives V(0,0) as
+    // cadj * q' meat q.
+    vec e0(Pk, fill::zeros); e0(0) = 1.0;
+    vec coef, q;
     if (!solve(coef, Ak, Zsk.t() * ys, solve_opts::likely_sympd) ||
-        !inv_sympd(Ainv, Ak)) return R;
+        !solve(q,    Ak, e0,           solve_opts::likely_sympd)) return R;
 
     const vec u  = yv - Zk * coef;     // unweighted residuals
     const vec us = u % sw;             // score uses w * z * u = (sw z)(sw u)
 
     mat S(nG, Pk, fill::zeros);
     for (uword s = 0; s < m; ++s) S.row(gid[s]) += us(s) * Zsk.row(s);
-    const mat meat = S.t() * S;
+    const vec Sq = S * q;              // meat sandwich needs only S q
 
     const double Kfull = double(Pk + nY);          // reghdfe fixef.K = "full"
     const double denom = double(m) - Kfull;
     if (denom <= 0.0) return R;
     const double cadj = (double(nG) / double(nG - 1)) *
                         ((double(m) - 1.0) / denom);
-    const mat V = cadj * Ainv * meat * Ainv;
+    const double v00 = cadj * dot(Sq, Sq);         // q' (S'S) q
 
     R.b  = coef(0);                    // treatment is keepc[0] == 0
-    R.se = std::sqrt(std::max(V(0, 0), 0.0));
+    R.se = std::sqrt(std::max(v00, 0.0));
     R.n  = (int)m;
     R.G  = (int)nG;
     return R;

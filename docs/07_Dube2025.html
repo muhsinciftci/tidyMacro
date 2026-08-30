@@ -322,8 +322,9 @@ window.Quarto = {
   <ul>
   <li><a href="#what-is-lp-did" id="toc-what-is-lp-did" class="nav-link active" data-scroll-target="#what-is-lp-did"><span class="header-section-number">1</span> What is LP-DID?</a></li>
   <li><a href="#banking-deregulation-and-the-labor-share" id="toc-banking-deregulation-and-the-labor-share" class="nav-link" data-scroll-target="#banking-deregulation-and-the-labor-share"><span class="header-section-number">2</span> Banking deregulation and the labor share</a></li>
-  <li><a href="#variance-weighted-vs.-equally-weighted-att" id="toc-variance-weighted-vs.-equally-weighted-att" class="nav-link" data-scroll-target="#variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</a></li>
-  <li><a href="#democracy-and-growth-non-absorbing-treatment" id="toc-democracy-and-growth-non-absorbing-treatment" class="nav-link" data-scroll-target="#democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">4</span> Democracy and growth (non-absorbing treatment)</a></li>
+  <li><a href="#inference-exact-reghdfe-compatibility" id="toc-inference-exact-reghdfe-compatibility" class="nav-link" data-scroll-target="#inference-exact-reghdfe-compatibility"><span class="header-section-number">3</span> Inference: exact <code>reghdfe</code> compatibility</a></li>
+  <li><a href="#variance-weighted-vs.-equally-weighted-att" id="toc-variance-weighted-vs.-equally-weighted-att" class="nav-link" data-scroll-target="#variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">4</span> Variance-weighted vs.&nbsp;equally-weighted ATT</a></li>
+  <li><a href="#democracy-and-growth-non-absorbing-treatment" id="toc-democracy-and-growth-non-absorbing-treatment" class="nav-link" data-scroll-target="#democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">5</span> Democracy and growth (non-absorbing treatment)</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/07_Dube2025.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -462,8 +463,10 @@ e_{it}^h.\]</span></p>
 <li><code>nonabsorbing = TRUE</code> — non-absorbing treatment; requires the stabilization window <code>L</code> and the clean-control flavor <code>ccc ∈ {0, 1, 2}</code>.</li>
 <li><code>pmd = TRUE</code> — pre-mean-differenced baseline (Stata calendar-time formula, see §5 of the syntax primer).</li>
 <li><code>reweight = TRUE</code> — equally-weighted ATT via <span class="math inline">\(w = 1/(1-p_t)\)</span>; with non-empty controls this is <strong>not</strong> the DDCG <code>teffects ra</code> estimator and the function warns accordingly.</li>
+<li><code>conf</code> — confidence level for the reported bands. Bands use a <strong>cluster-<span class="math inline">\(t\)</span></strong> critical value with <span class="math inline">\(G-1\)</span> degrees of freedom, matching the CR1 correction applied to the standard errors.</li>
 <li>Time fixed effects are always absorbed (they are part of the estimator); unit effects are removed by the long difference. Any <code>| time</code> you write is accepted but redundant.</li>
 </ul>
+<p>The outcome is an expression, not just a column name, so <code>log(y) ~ treat</code> estimates the model for <span class="math inline">\(\log y\)</span>. Every result carries an <code>ndrop</code> column counting control columns omitted for collinearity at that horizon (as <code>reghdfe</code> does), and non-estimable horizons raise a warning naming the offending event times rather than returning a silent <code>NaN</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -522,28 +525,84 @@ e_{it}^h.\]</span></p>
 </div>
 </div>
 </section>
-<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">3</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
+<section id="inference-exact-reghdfe-compatibility" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="inference-exact-reghdfe-compatibility"><span class="header-section-number">3</span> Inference: exact <code>reghdfe</code> compatibility</h2>
+<p><code>fLPDID()</code> is built to reproduce the Stata numbers in the DGJT replication package, not merely to approximate them. Three conventions do the work:</p>
+<ul>
+<li><strong>CR1 cluster correction</strong> <span class="math inline">\(c = \tfrac{G}{G-1} \cdot \tfrac{N-1}{N-K}\)</span>, with <span class="math inline">\(K\)</span> counting the absorbed time fixed effects — <code>reghdfe</code>’s default, or <code>fixest::ssc(fixef.K = "full")</code>.</li>
+<li><strong>Singleton absorbed-FE observations are dropped</strong>, as <code>reghdfe</code> does by default. A year cell holding a single retained row demeans to exactly zero, so it can never move the coefficient; leaving it in would nonetheless inflate <span class="math inline">\(N\)</span> in the finite-sample factor and misreport <code>nobs</code>.</li>
+<li><strong>Cluster-<span class="math inline">\(t\)</span> critical values</strong> with <span class="math inline">\(G-1\)</span> degrees of freedom for <code>conf_low</code> / <code>conf_high</code>. With few clusters this is not a rounding detail: at <span class="math inline">\(G = 20\)</span> the multiplier is <span class="math inline">\(2.093\)</span> rather than the normal <span class="math inline">\(1.960\)</span>, so normal bands would be roughly 7% too narrow.</li>
+</ul>
+<p>The impact horizon of the only-year-FE banking specification is a useful test case, because its sample happens to contain exactly one singleton year cell. Rebuilding that single LP-DiD cell by hand and handing it to <code>fixest</code> reproduces all four reported quantities:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>cell <span class="ot">&lt;-</span> BankingDeregulation <span class="sc">|&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(id, year) <span class="sc">|&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(id) <span class="sc">|&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">d_lshare =</span> lshare <span class="sc">-</span> <span class="fu">lag</span>(lshare),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">d_bank   =</span> bank   <span class="sc">-</span> <span class="fu">lag</span>(bank)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">is.finite</span>(d_lshare), <span class="fu">is.finite</span>(d_bank),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        d_bank <span class="sc">==</span> <span class="dv">1</span> <span class="sc">|</span> (d_bank <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> bank <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>ref <span class="ot">&lt;-</span> <span class="fu">feols</span>(</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    d_lshare <span class="sc">~</span> d_bank <span class="sc">|</span> year,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> cell, <span class="at">cluster =</span> <span class="sc">~</span>id,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">ssc  =</span> <span class="fu">ssc</span>(<span class="at">fixef.K =</span> <span class="st">"full"</span>)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>ci <span class="ot">&lt;-</span> <span class="fu">confint</span>(ref)[<span class="st">"d_bank"</span>, ]</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    bank_fe <span class="sc">|&gt;</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(event_time <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">transmute</span>(<span class="at">source =</span> <span class="st">"fLPDID()"</span>, estimate, se, conf_low, conf_high,</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>                  nobs, nclust),</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">source    =</span> <span class="st">"fixest::feols()"</span>,</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>        <span class="at">estimate  =</span> <span class="fu">coef</span>(ref)[[<span class="st">"d_bank"</span>]],</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">se        =</span> <span class="fu">se</span>(ref)[[<span class="st">"d_bank"</span>]],</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">conf_low  =</span> ci[[<span class="dv">1</span>]],</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>        <span class="at">conf_high =</span> ci[[<span class="dv">2</span>]],</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>        <span class="at">nobs      =</span> ref<span class="sc">$</span>nobs,</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">nclust    =</span> <span class="fu">degrees_freedom</span>(ref, <span class="st">"t"</span>) <span class="sc">+</span> <span class="dv">1</span>L</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 7</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   source          estimate      se conf_low conf_high  nobs nclust</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;              &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;int&gt;  &lt;dbl&gt;</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 fLPDID()        -0.00486 0.00178 -0.00846  -0.00127   752     46</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 fixest::feols() -0.00486 0.00178 -0.00846  -0.00127   752     46</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>fixest</code> reports the singleton removal in its own notes, and both routes land on <span class="math inline">\(N = 752\)</span> rather than the 753 rows that enter before the drop. Agreement is to machine precision across the coefficient, the clustered standard error and both band endpoints.</p>
+</section>
+<section id="variance-weighted-vs.-equally-weighted-att" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="variance-weighted-vs.-equally-weighted-att"><span class="header-section-number">4</span> Variance-weighted vs.&nbsp;equally-weighted ATT</h2>
 <p>By default the LP-DiD OLS coefficient is a <strong>variance-weighted</strong> average of clean <span class="math inline">\(2\times2\)</span> comparisons — efficient, but it overweights treatment cohorts observed when the treated share is small. Setting <code>reweight = TRUE</code> inverts the implicit weights (<span class="math inline">\(w = 1/(1-p_t)\)</span>) and recovers the <strong>equally-weighted</strong> ATT.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bank_rw <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data     =</span> BankingDeregulation, </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat    =</span> <span class="st">"bank"</span>, </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">post     =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">reweight =</span> <span class="cn">TRUE</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bank_rw <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data     =</span> BankingDeregulation, </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat    =</span> <span class="st">"bank"</span>, </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">post     =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">reweight =</span> <span class="cn">TRUE</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Variance-weighted (OLS)</span><span class="st">`</span> <span class="ot">=</span> bank_fe,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Equally-weighted ATT</span><span class="st">`</span>    <span class="ot">=</span> bank_rw,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">ci =</span> <span class="st">"bars"</span>, <span class="at">scales =</span> <span class="st">"free"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Weighting and the estimand"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab  =</span> <span class="st">"Years since deregulation"</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab  =</span> <span class="st">"Labor share"</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Variance-weighted (OLS)</span><span class="st">`</span> <span class="ot">=</span> bank_fe,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Equally-weighted ATT</span><span class="st">`</span>    <span class="ot">=</span> bank_rw,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">ci =</span> <span class="st">"bars"</span>, <span class="at">scales =</span> <span class="st">"free"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Weighting and the estimand"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab  =</span> <span class="st">"Years since deregulation"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab  =</span> <span class="st">"Labor share"</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -553,8 +612,8 @@ e_{it}^h.\]</span></p>
 </div>
 </div>
 </section>
-<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">4</span> Democracy and growth (non-absorbing treatment)</h2>
+<section id="democracy-and-growth-non-absorbing-treatment" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="democracy-and-growth-non-absorbing-treatment"><span class="header-section-number">5</span> Democracy and growth (non-absorbing treatment)</h2>
 <p>The second application of <span class="citation" data-cites="jorda2025">Jorda and Taylor (<a href="#ref-jorda2025" role="doc-biblioref">2025</a>)</span> revisits <span class="citation" data-cites="acemoglu2019">Acemoglu et al. (<a href="#ref-acemoglu2019" role="doc-biblioref">2019</a>)</span> . Treatment is <strong>non-absorbing</strong> — countries democratize and revert — and its timing is endogenous to past GDP dynamics, so all specifications control for four lags of GDP and clean-control samples are built recursively over a stabilization window of <span class="math inline">\(L = 20\)</span> years. Specifically the estimation is:</p>
 <p><span class="math display">\[y_{ct} = \beta D_{ct} + \sum_{j = 1}^{p} \gamma_j y_{c, t - j}   + \alpha_c + \delta_t + \epsilon_{ct}\]</span></p>
 <p>Three flavors of the clean-control condition (<code>ccc</code>):</p>
@@ -564,38 +623,38 @@ e_{it}^h.\]</span></p>
 <li><code>ccc = 2</code> — controls must additionally remain clean up to <span class="math inline">\(t+h\)</span>.</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>demo_anrr <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">0</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>demo_ccc1 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">1</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>demo_ccc2 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">2</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>demo_anrr <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">0</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>demo_ccc1 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">1</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>demo_ccc2 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">2</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">ANRR LP specification</span><span class="st">`</span> <span class="ot">=</span> demo_anrr,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">LP-DiD (CCC 1)</span><span class="st">`</span>        <span class="ot">=</span> demo_ccc1,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">LP-DiD (CCC 2)</span><span class="st">`</span>        <span class="ot">=</span> demo_ccc2,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">scales =</span> <span class="st">'free'</span>,</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Democracy and growth (LP-DiD)"</span>,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab  =</span> <span class="st">"Years since democratization"</span>,</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab  =</span> <span class="st">"GDP per capita (log x 100)"</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">40</span>, <span class="dv">60</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">ANRR LP specification</span><span class="st">`</span> <span class="ot">=</span> demo_anrr,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">LP-DiD (CCC 1)</span><span class="st">`</span>        <span class="ot">=</span> demo_ccc1,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">LP-DiD (CCC 2)</span><span class="st">`</span>        <span class="ot">=</span> demo_ccc2,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ncol  =</span> <span class="dv">3</span>, <span class="at">scales =</span> <span class="st">'free'</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Democracy and growth (LP-DiD)"</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab  =</span> <span class="st">"Years since democratization"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab  =</span> <span class="st">"GDP per capita (log x 100)"</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">40</span>, <span class="dv">60</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">

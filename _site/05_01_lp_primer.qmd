@@ -141,7 +141,7 @@ Following Stock & Watson (2018):
 LPs do not solve identification. They host standard strategies.
 
 | Strategy | LP implementation |
-|--------------------------|----------------------------------------------|
+|----|----|
 | Selection on observables | Include $x_t$ as controls. |
 | Recursive / Cholesky | Add contemporaneous values of variables ordered *before* $s_t$ in the causal chain, alongside lags of all system variables. Asymptotically equivalent to a Cholesky VAR [@plagborg-møller2021]. |
 | Inverse propensity weighting | Reweight by $\hat p_t = \Pr(s_t = 1 \mid x_t)$ from a logit/probit first stage. Adding regression adjustment gives a doubly robust estimator. |
