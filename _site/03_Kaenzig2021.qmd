@@ -242,7 +242,7 @@ boot_hd <- fBootstrapHDIV(
     adjustZ    = adjustZ,
     adjustu    = adjustu,
     policyvar  = 1L,
-    prc        = 90,
+    conf        = 90,
     n_threads  = 3
 )
 toc()
@@ -464,8 +464,8 @@ boot_aug <- fBootstrapChol(
     var_result = var_aug,
     nboot      = 1000,
     horizon    = hor,
-    prc        = 90,
-    prc2       = 68,
+    conf        = 90,
+    conf2       = 68,
     n_threads  = 3
 )
 toc()

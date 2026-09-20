@@ -8,7 +8,7 @@
 #     data        = df,
 #     endog       = "D",
 #     horizons    = 48,
-#     conf        = c(0.68, 0.95),
+#     conf        = c(68, 95),
 #     nw_lags_iv  = 6,          # fixed HAC bandwidth (matches Stata vce(hac nw 6))
 #     cumulative  = TRUE
 #   )
@@ -41,7 +41,7 @@
 #'   the endogenous treatment. The remaining RHS terms are the exogenous
 #'   control matrix.
 #' @param horizons Integer or the sequence \code{0:H}. Default 12.
-#' @param conf Numeric in (0, 1). Scalar or vector of confidence levels.
+#' @param conf Numeric in (0, 100), in percent. Scalar or vector of levels.
 #'   Vectors trigger multi-band output; see \code{\link{fLP}}.
 #' @param nw_lags_iv Integer. Bartlett HAC bandwidth for the IV score
 #'   variance. \code{> 0}: fixed bandwidth across horizons — this matches
@@ -83,7 +83,7 @@
 #'   data        = jt_iv,
 #'   endog       = "FFRates",
 #'   horizons    = 48,
-#'   conf        = c(0.68, 0.95),
+#'   conf        = c(68, 95),
 #'   nw_lags_iv  = 6,
 #'   cumulative  = TRUE
 #' )
@@ -93,7 +93,7 @@
 fLPIV <- function(formula, instruments, data,
                   endog,
                   horizons   = 12L,
-                  conf       = 0.90,
+                  conf       = 90,
                   nw_lags_iv = NULL,
                   cumulative = TRUE,
                   shock_size = c("unit", "sd"),
@@ -233,7 +233,7 @@ fLPIV <- function(formula, instruments, data,
     Z          = Z,
     C          = C,
     H          = H,
-    conf_level = as.double(conf[1L]),
+    conf_level = as.double(conf[1L]) / 100,
     nw_lags_iv = as.integer(nw_lags_iv),
     cumulative = isTRUE(cumulative),
     n_threads  = as.integer(n_threads),
@@ -258,7 +258,7 @@ fLPIV <- function(formula, instruments, data,
   # 7. Rebuild multi-band bands (matching fLP behavior)
   # -------------------------------------------------------------------
   .build_band <- function(cl) {
-    z <- stats::qnorm(0.5 * (1.0 + cl))
+    z <- stats::qnorm(0.5 * (1.0 + cl / 100))
     list(upper = res_cpp$irfs + z * res_cpp$irfs_se,
          lower = res_cpp$irfs - z * res_cpp$irfs_se)
   }
@@ -339,7 +339,7 @@ print.fLPIV <- function(x, digits = 4L, ...) {
   cat("Horizons         : 0 to", max(x$horizons),     "\n")
   cat("Cumulative       : ", isTRUE(x$cumulative),     "\n")
   cat("Confidence       : ",
-      paste0(format(x$conf * 100, trim = TRUE), "%", collapse = ", "), "\n")
+      paste0(format(x$conf, trim = TRUE), "%", collapse = ", "), "\n")
   cat("HAC bandwidth    :  ")
   if (isTRUE(x$nw_lags_iv > 0)) {
     cat(sprintf("fixed = %d (vce(hac nw %d))\n", x$nw_lags_iv, x$nw_lags_iv))

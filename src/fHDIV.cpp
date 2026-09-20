@@ -91,7 +91,7 @@ BootstrapHDIVResult fBootstrapHDIV_cpp(const arma::mat& y,
                                         const arma::ivec& adjustZ,
                                         const arma::ivec& adjustu,
                                         int policyvar,
-                                        double prc,
+                                        double conf,
                                         int n_threads) {
 
     const int N      = static_cast<int>(y.n_cols);
@@ -166,8 +166,8 @@ BootstrapHDIVResult fBootstrapHDIV_cpp(const arma::mat& y,
     }
 
     // Compute percentiles and recenter (Kaenzig/Gertler-Karadi convention)
-    const double up_pct  = 50.0 + prc * 0.5;
-    const double low_pct = 50.0 - prc * 0.5;
+    const double up_pct  = 50.0 + conf * 0.5;
+    const double low_pct = 50.0 - conf * 0.5;
 
     arma::mat upper(T_eff, N, arma::fill::none);
     arma::mat lower(T_eff, N, arma::fill::none);
@@ -262,7 +262,7 @@ Rcpp::List fHDIV(const arma::mat& residuals,
 //' @param adjustu Integer vector \code{c(start, end)} selecting the proxy-sample
 //'   rows of the residuals (1-based).
 //' @param policyvar Integer (1-based) index of the IV policy variable. Default 1.
-//' @param prc Confidence level in percent (e.g. 90 for 90\% CI). Default 90.
+//' @param conf Confidence level in percent (e.g. 90 for 90\% CI). Default 90.
 //' @param n_threads OpenMP threads. 0 = all cores minus one. Default 0.
 //'
 //' @return A list with elements:
@@ -280,7 +280,7 @@ Rcpp::List fBootstrapHDIV(const arma::mat& y,
                            const arma::ivec& adjustZ,
                            const arma::ivec& adjustu,
                            int policyvar = 1,
-                           double prc = 90.0,
+                           double conf = 90.0,
                            int n_threads = 0) {
 
     VARResult var_struct;
@@ -294,7 +294,7 @@ Rcpp::List fBootstrapHDIV(const arma::mat& y,
 
     BootstrapHDIVResult result = fBootstrapHDIV_cpp(
         y, var_struct, Z, s, nboot, blocksize, adjustZ, adjustu,
-        policyvar, prc, n_threads);
+        policyvar, conf, n_threads);
 
     return Rcpp::List::create(
         Rcpp::Named("HDshock") = result.HDshock,

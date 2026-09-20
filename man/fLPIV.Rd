@@ -10,7 +10,7 @@ fLPIV(
   data,
   endog,
   horizons = 12L,
-  conf = 0.9,
+  conf = 90,
   nw_lags_iv = NULL,
   cumulative = TRUE,
   shock_size = c("unit", "sd"),
@@ -35,7 +35,7 @@ control matrix.}
 
 \item{horizons}{Integer or the sequence \code{0:H}. Default 12.}
 
-\item{conf}{Numeric in (0, 1). Scalar or vector of confidence levels.
+\item{conf}{Numeric in (0, 100), in percent. Scalar or vector of levels.
 Vectors trigger multi-band output; see \code{\link{fLP}}.}
 
 \item{nw_lags_iv}{Integer. Bartlett HAC bandwidth for the IV score
@@ -88,7 +88,7 @@ fLPIV(
   data        = jt_iv,
   endog       = "FFRates",
   horizons    = 48,
-  conf        = c(0.68, 0.95),
+  conf        = c(68, 95),
   nw_lags_iv  = 6,
   cumulative  = TRUE
 )

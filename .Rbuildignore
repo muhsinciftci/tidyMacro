@@ -7,6 +7,8 @@
 ^pkgdown$
 ^vignettes$
 ^docs$
+^_site$
+^_quarto\.yml$
 
 # Exclude xlsx from data/ (only .rda/.rds/.R allowed there)
 ^data/.*\.xlsx$

@@ -67,8 +67,8 @@ static void bias_correct_chol(const arma::mat &beta, int c, int p,
 // Internal C++ function (called from other C++ code)
 BootstrapCholResult
 fBootstrapCholCorrected_cpp(const arma::mat &y, const VARResult &var_result,
-                             int nboot1, int nboot2, int horizon, double prc,
-                             double prc2, const std::string &bootscheme,
+                             int nboot1, int nboot2, int horizon, double conf,
+                             double conf2, const std::string &bootscheme,
                              Rcpp::Nullable<arma::mat> exog, int n_threads = 0) {
 
   const int p      = var_result.p;
@@ -154,7 +154,7 @@ fBootstrapCholCorrected_cpp(const arma::mat &y, const VARResult &var_result,
   VARResult corrected_var = var_result;
   corrected_var.beta      = Beta_t.t();
 
-  return fBootstrapChol_cpp(y, corrected_var, nboot2, horizon, prc, prc2,
+  return fBootstrapChol_cpp(y, corrected_var, nboot2, horizon, conf, conf2,
                              bootscheme, exog, actual_threads);
 }
 
@@ -165,8 +165,8 @@ fBootstrapCholCorrected_cpp(const arma::mat &y, const VARResult &var_result,
 //' @param nboot1 Number of first-pass replications for bias estimation.
 //' @param nboot2 Number of second-pass replications for confidence bands.
 //' @param horizon Maximum IRF horizon.
-//' @param prc Outer confidence level in percent (e.g. 90).
-//' @param prc2 Inner confidence level in percent (e.g. 68).
+//' @param conf Outer confidence level in percent (e.g. 90).
+//' @param conf2 Inner confidence level in percent (e.g. 68).
 //' @param bootscheme \code{"residual"} or \code{"wild"}.
 //' @param exog Optional T x M matrix of exogenous variables. Must be provided
 //'   if the original VAR was estimated with exogenous variables; must be
@@ -188,7 +188,7 @@ fBootstrapCholCorrected_cpp(const arma::mat &y, const VARResult &var_result,
 // [[Rcpp::export]]
 Rcpp::List fBootstrapCholCorrected(const arma::mat &y, const Rcpp::List &var_result,
                                     int nboot1, int nboot2, int horizon,
-                                    double prc = 90.0, double prc2 = 68.0,
+                                    double conf = 90.0, double conf2 = 68.0,
                                     const std::string &bootscheme = "residual",
                                     Rcpp::Nullable<arma::mat> exog = R_NilValue,
                                     int n_threads = 0) {
@@ -205,7 +205,7 @@ Rcpp::List fBootstrapCholCorrected(const arma::mat &y, const Rcpp::List &var_res
 
   BootstrapCholResult result = fBootstrapCholCorrected_cpp(y, var_result_struct,
                                                             nboot1, nboot2, horizon,
-                                                            prc, prc2, bootscheme,
+                                                            conf, conf2, bootscheme,
                                                             exog, n_threads);
 
   Rcpp::NumericVector bootchol_out(result.bootchol_flat.begin(),

@@ -20,6 +20,29 @@ void fGenerateQ_inplace(arma::mat& Q,
     }
 }
 
+void fGenerateQ_inplace(arma::mat& Q,
+                        arma::mat& R,
+                        arma::mat& G,
+                        const arma::uword N,
+                        tidymacro::RNG& rng) {
+    if (N == 0u) {
+        Rcpp::stop("N must be positive.");
+    }
+
+    G.set_size(N, N);
+    double* g = G.memptr();
+    const arma::uword n_elem = N * N;
+    for (arma::uword i = 0; i < n_elem; ++i) g[i] = rng.norm();
+
+    arma::qr_econ(Q, R, G);
+
+    for (arma::uword j = 0; j < N; ++j) {
+        if (R(j, j) < 0.0) {
+            Q.col(j) *= -1.0;
+        }
+    }
+}
+
 arma::mat fGenerateQ_cpp(int N) {
     if (N <= 0) {
         Rcpp::stop("N must be positive.");

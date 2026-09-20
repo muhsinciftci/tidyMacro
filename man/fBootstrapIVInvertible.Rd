@@ -13,8 +13,8 @@ fBootstrapIVInvertible(
   c,
   hor,
   cumu,
-  prc = 90,
-  prc2 = 68
+  conf = 90,
+  conf2 = 68
 )
 }
 \arguments{
@@ -34,13 +34,13 @@ fBootstrapIVInvertible(
 
 \item{cumu}{1-indexed integer vector of variable positions to cumulate.}
 
-\item{prc}{Primary confidence level (e.g. 90). Default 90.}
+\item{conf}{Primary confidence level (e.g. 90). Default 90.}
 
-\item{prc2}{Secondary confidence level (e.g. 68). Default 68.}
+\item{conf2}{Secondary confidence level (e.g. 68). Default 68.}
 }
 \value{
-List with N x (hor+1) matrices: upper, lower (at \code{prc}),
-  upper2, lower2 (at \code{prc2}), median.
+List with N x (hor+1) matrices: upper, lower (at \code{conf}),
+  upper2, lower2 (at \code{conf2}), median.
 }
 \description{
 Implements the wild bootstrap with Rademacher signs for standard SVAR-IV.

@@ -12,13 +12,13 @@ static double lin_interp(const std::vector<double>& sv, int B, double pct) {
     return sv[lo] * (1.0 - frac) + sv[lo + 1] * frac;
 }
 
-FGetBandsResult fGetBands_cpp(const arma::cube& bootirf, double prc) {
+FGetBandsResult fGetBands_cpp(const arma::cube& bootirf, double conf) {
     int N = static_cast<int>(bootirf.n_rows);
     int H = static_cast<int>(bootirf.n_cols);
     int B = static_cast<int>(bootirf.n_slices);
 
-    double up_pct  = 50.0 + prc / 2.0;
-    double low_pct = 50.0 - prc / 2.0;
+    double up_pct  = 50.0 + conf / 2.0;
+    double low_pct = 50.0 - conf / 2.0;
 
     arma::mat upper(N, H, arma::fill::none);
     arma::mat lower(N, H, arma::fill::none);
@@ -43,15 +43,15 @@ FGetBandsResult fGetBands_cpp(const arma::cube& bootirf, double prc) {
 }
 
 // Sort once, extract all five quantiles — avoids double sort when called for two bands
-FGetBands2Result fGetBands2_cpp(const arma::cube& bootirf, double prc, double prc2) {
+FGetBands2Result fGetBands2_cpp(const arma::cube& bootirf, double conf, double conf2) {
     int N = static_cast<int>(bootirf.n_rows);
     int H = static_cast<int>(bootirf.n_cols);
     int B = static_cast<int>(bootirf.n_slices);
 
-    double up1  = 50.0 + prc  / 2.0;
-    double lo1  = 50.0 - prc  / 2.0;
-    double up2  = 50.0 + prc2 / 2.0;
-    double lo2  = 50.0 - prc2 / 2.0;
+    double up1  = 50.0 + conf  / 2.0;
+    double lo1  = 50.0 - conf  / 2.0;
+    double up2  = 50.0 + conf2 / 2.0;
+    double lo2  = 50.0 - conf2 / 2.0;
 
     FGetBands2Result res;
     res.upper  = arma::mat(N, H, arma::fill::none);
@@ -82,16 +82,16 @@ FGetBands2Result fGetBands2_cpp(const arma::cube& bootirf, double prc, double pr
 //' statistics.
 //'
 //' @param bootirf N x (hor+1) x nboot cube of bootstrapped IRFs.
-//' @param prc Confidence level (e.g. 68 for 68\% band). Upper and lower
-//'   quantiles are \eqn{(50 + prc/2)}\% and \eqn{(50 - prc/2)}\%.
+//' @param conf Confidence level (e.g. 68 for 68\% band). Upper and lower
+//'   quantiles are \eqn{(50 + conf/2)}\% and \eqn{(50 - conf/2)}\%.
 //'   Default 68.
 //'
 //' @return List with three N x (hor+1) matrices: upper, lower, median.
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::List fGetBands(const arma::cube& bootirf, double prc = 68.0) {
-    FGetBandsResult r = fGetBands_cpp(bootirf, prc);
+Rcpp::List fGetBands(const arma::cube& bootirf, double conf = 90.0) {
+    FGetBandsResult r = fGetBands_cpp(bootirf, conf);
     return Rcpp::List::create(
         Rcpp::Named("upper")  = r.upper,
         Rcpp::Named("lower")  = r.lower,

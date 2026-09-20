@@ -14,7 +14,7 @@ fBootstrapHDIV(
   adjustZ,
   adjustu,
   policyvar = 1L,
-  prc = 90,
+  conf = 90,
   n_threads = 0L
 )
 }
@@ -39,7 +39,7 @@ rows of the residuals (1-based).}
 
 \item{policyvar}{Integer (1-based) index of the IV policy variable. Default 1.}
 
-\item{prc}{Confidence level in percent (e.g. 90 for 90\% CI). Default 90.}
+\item{conf}{Confidence level in percent (e.g. 90 for 90\% CI). Default 90.}
 
 \item{n_threads}{OpenMP threads. 0 = all cores minus one. Default 0.}
 }

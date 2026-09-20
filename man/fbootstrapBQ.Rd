@@ -9,8 +9,8 @@ fBootstrapBQ(
   var_result,
   nboot,
   horizon,
-  prc = 90,
-  prc2 = 68,
+  conf = 90,
+  conf2 = 68,
   bootscheme = "residual",
   cumulate = integerVector(),
   scaling = NULL,
@@ -26,7 +26,7 @@ fBootstrapBQ(
 
 \item{horizon}{Maximum IRF horizon.}
 
-\item{prc}{Confidence level in percent (e.g. 68).}
+\item{conf}{Confidence level in percent (e.g. 68).}
 
 \item{bootscheme}{\code{"residual"} or \code{"wild"}.}
 
@@ -72,7 +72,7 @@ point_irf  <- fBQIRF(wold, K)
 
 # Bootstrap with cumulation of both variables (VAR in first differences)
 boot <- fBootstrapBQ(y, var_result, nboot = 1000, horizon = 40,
-                     prc = 68, bootscheme = "residual",
+                     conf = 68, bootscheme = "residual",
                      cumulate = c(1L, 2L))
 }
 

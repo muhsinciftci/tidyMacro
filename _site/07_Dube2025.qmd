@@ -136,15 +136,17 @@ bank_fe <- fLPDID(
     data     = BankingDeregulation, 
     panel_id = c("id", "year"),
     treat    = "bank", 
-    post     = 9, pre = 9
-)
+    post     = 9, pre = 9,
+    conf = 95
+    )
 
 bank_ylags <- fLPDID(
     lshare ~ bank + l(lshare, 1:4) + l(d(lshare), 1:4),
     data = BankingDeregulation, 
     panel_id = c("id", "year"),
-    treat = "bank", post = 9, pre = 9
-)
+    treat = "bank", post = 9, pre = 9,
+    conf = 95
+    )
 
 # additional controls via a ..macro, as in fixest
 ctrl <- c("grgsp", "corptax", "unionmem")
@@ -153,8 +155,9 @@ bank_full <- fLPDID(
     lshare ~ bank + l(lshare, 1:4) + l(d(lshare), 1:4) + l(..ctrl, 1:4),
     data = BankingDeregulation, 
     panel_id = c("id", "year"),
-    treat = "bank", post = 9, pre = 9
-)
+    treat = "bank", post = 9, pre = 9,
+    conf = 95
+    )
 ```
 
 ```{r banking-plot, fig.width=9, fig.height=4}
@@ -233,8 +236,9 @@ bank_rw <- fLPDID(
     panel_id = c("id", "year"),
     treat    = "bank", 
     post     = 9, pre = 9,
-    reweight = TRUE
-)
+    reweight = TRUE,
+    conf = 95
+    )
 ```
 
 ```{r banking-reweight-plot, fig.width=9, fig.height=4}
@@ -265,22 +269,25 @@ demo_anrr <- fLPDID(
     lgdp ~ dem + l(lgdp, 1:4),
     data = DemocracyGrowth, panel_id = c("id", "year"),
     treat = "dem", post = 30, pre = 20,
-    nonabsorbing = TRUE, L = 20, ccc = 0
-)
+    nonabsorbing = TRUE, L = 20, ccc = 0,
+    conf = 95
+    )
 
 demo_ccc1 <- fLPDID(
     lgdp ~ dem + l(lgdp, 1:4),
     data = DemocracyGrowth, panel_id = c("id", "year"),
     treat = "dem", post = 30, pre = 20,
-    nonabsorbing = TRUE, L = 20, ccc = 1
-)
+    nonabsorbing = TRUE, L = 20, ccc = 1,
+    conf = 95
+    )
 
 demo_ccc2 <- fLPDID(
     lgdp ~ dem + l(lgdp, 1:4),
     data = DemocracyGrowth, panel_id = c("id", "year"),
     treat = "dem", post = 30, pre = 20,
-    nonabsorbing = TRUE, L = 20, ccc = 2
-)
+    nonabsorbing = TRUE, L = 20, ccc = 2,
+    conf = 95
+    )
 ```
 
 ```{r democracy-plot, fig.width=9, fig.height=4}

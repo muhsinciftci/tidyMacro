@@ -221,3 +221,316 @@
 #'             panel_id = c("id", "year"), treat = "dem",
 #'             post = 30, pre = 20, nonabsorbing = TRUE, L = 20, ccc = 1)
 "DemocracyGrowth"
+
+
+#' Uhlig (2005) Data
+#'
+#' Monthly US data used to replicate the agnostic sign-restriction VAR of
+#' Uhlig (2005), covering January 1965 - December 2003.
+#'
+#' @format A data frame with 468 rows and 7 columns:
+#' \describe{
+#'   \item{Date}{Month start date (\code{Date}), 1965-01 - 2003-12}
+#'   \item{Real GDP}{Log real GDP, interpolated to monthly frequency}
+#'   \item{GDP Deflator}{Log GDP deflator, interpolated to monthly frequency}
+#'   \item{Commodity Price Idx.}{Log commodity price index}
+#'   \item{Total Reserves}{Log total reserves}
+#'   \item{Non-Borrowed Reserves}{Log non-borrowed reserves}
+#'   \item{Fed. Funds Rate}{Federal funds rate, in percent}
+#' }
+#'
+#' @details
+#' The five log-level series are stored unscaled. Multiply them by 100 before
+#' estimation so that impulse responses read in percent, as in the original
+#' replication code; the funds rate is already in percent and must be left
+#' alone.
+#'
+#' Identification is by sign restrictions only: a contractionary monetary
+#' policy shock raises the funds rate and lowers the GDP deflator, commodity
+#' prices and non-borrowed reserves for six months. Real GDP and total
+#' reserves are deliberately left unrestricted - the response of output is
+#' the object of the exercise, so it is not assumed.
+#'
+#' Data taken from the replication files of the VAR Toolbox of
+#' Ambrogio Cesa-Bianchi (\url{https://github.com/ambropo/VAR-Toolbox}).
+#'
+#' @references
+#' Uhlig, H. (2005). What are the effects of monetary policy on output?
+#' Results from an agnostic identification procedure.
+#' \emph{Journal of Monetary Economics}, 52(2), 381-419.
+#' \doi{10.1016/j.jmoneco.2004.05.007}
+#'
+#' @seealso \code{\link{fSignRestr}} for the estimator, \code{\link{ADRR2018}}
+#'   for the same variables over a longer sample.
+#'
+#' @examples
+#' data("Uhlig2005")
+#'
+#' y <- Uhlig2005 |>
+#'   dplyr::mutate(dplyr::across(-c(Date, `Fed. Funds Rate`), \(x) 100 * x)) |>
+#'   dplyr::select(-Date) |>
+#'   as.matrix()
+#'
+#' SIGN <- matrix(0, 6, 6)
+#' SIGN[, 1] <- c(0, -1, -1, 0, -1, 1)
+#'
+#' fit <- fSignRestr(y, p = 12, c = 1, sign = SIGN, nsteps = 60,
+#'                   ndraws = 100, sr_hor = 6, seed = 42)
+"Uhlig2005"
+
+
+#' Antolin-Diaz & Rubio-Ramirez (2018) Data
+#'
+#' Monthly US data used to replicate the narrative sign-restriction VAR of
+#' Antolin-Diaz and Rubio-Ramirez (2018), covering January 1965 - November
+#' 2007. The variables are those of \code{\link{Uhlig2005}}; the sample runs
+#' four years longer.
+#'
+#' @format A data frame with 515 rows and 7 columns:
+#' \describe{
+#'   \item{Date}{Month start date (\code{Date}), 1965-01 - 2007-11}
+#'   \item{Real GDP}{Log real GDP, interpolated to monthly frequency}
+#'   \item{GDP Deflator}{Log GDP deflator, interpolated to monthly frequency}
+#'   \item{Commodity Price Idx.}{Log commodity price index}
+#'   \item{Total Reserves}{Log total reserves}
+#'   \item{Non-Borrowed Reserves}{Log non-borrowed reserves}
+#'   \item{Fed. Funds Rate}{Federal funds rate, in percent}
+#' }
+#'
+#' @details
+#' The paper keeps Uhlig's sign restrictions and adds two narrative
+#' constraints tied to the Volcker announcement of October 1979: the monetary
+#' policy shock was positive that month (a Type 1, sign restriction), and it
+#' was the dominant contributor to the unexpected move in the funds rate (a
+#' Type 2, dominance restriction). Both are imposed by
+#' \code{\link{fSignRestr}} through its \code{narrative} argument.
+#'
+#' Estimation follows footnote 8 of the paper and uses no constant, the data
+#' having been demeaned. Unlike \code{\link{Uhlig2005}}, the log-level series
+#' are used as stored, without rescaling by 100.
+#'
+#' Data taken from the replication files of the VAR Toolbox of
+#' Ambrogio Cesa-Bianchi (\url{https://github.com/ambropo/VAR-Toolbox}).
+#'
+#' @references
+#' Antolin-Diaz, J., & Rubio-Ramirez, J. F. (2018). Narrative Sign
+#' Restrictions for SVARs. \emph{American Economic Review}, 108(10),
+#' 2802-2829. \doi{10.1257/aer.20161852}
+#'
+#' @seealso \code{\link{fSignRestr}}, \code{\link{Uhlig2005}}
+#'
+#' @examples
+#' data("ADRR2018")
+#'
+#' y <- ADRR2018 |> dplyr::select(-Date) |> as.matrix()
+#'
+#' SIGN <- matrix(0, 6, 6)
+#' SIGN[, 1] <- c(0, -1, -1, 0, -1, 1)
+#'
+#' # Volcker, October 1979: positive MP shock that dominates the funds-rate
+#' # forecast error (variable 6).
+#' narr <- list(
+#'   sign = list(shock = 1, period = as.Date("1979-10-01"), sign = 1),
+#'   dom  = list(shock = 1, period = as.Date("1979-10-01"), var = 6)
+#' )
+#'
+#' fit <- fSignRestr(y, p = 12, c = 0, sign = SIGN, nsteps = 60, ndraws = 100,
+#'                   sr_hor = 6, narrative = narr, dates = ADRR2018$Date,
+#'                   seed = 42)
+"ADRR2018"
+
+
+#' Gertler & Karadi (2015) Data with External Instrument
+#'
+#' Monthly US data and the high-frequency monetary policy surprise used to
+#' replicate the proxy-SVAR of Gertler and Karadi (2015), covering July 1979 -
+#' June 2012.
+#'
+#' @format A data frame with 396 rows and 6 columns:
+#' \describe{
+#'   \item{Date}{Month start date (\code{Date}), 1979-07 - 2012-06}
+#'   \item{Consumer Price Index}{Log CPI}
+#'   \item{Industrial Production}{Log industrial production}
+#'   \item{1-year T-Bill}{One-year Treasury rate, in percent}
+#'   \item{EBP}{Excess bond premium of Gilchrist and Zakrajsek (2012), in
+#'     percentage points}
+#'   \item{FF4}{Three-month-ahead fed funds futures surprise in a 30-minute
+#'     window around FOMC announcements, cumulated over the month, in
+#'     percentage points. \code{NA} before January 1990, where the futures
+#'     series does not exist.}
+#' }
+#'
+#' @details
+#' This is a different object from \code{\link{GK2015}}, which holds a
+#' four-variable system on the shorter 1990m1 sample and carries no
+#' instrument. \code{GK2015_2} adds the \code{FF4} proxy and starts in
+#' 1979m7, so the VAR is estimated on the full sample while the first stage
+#' uses only the 270 months where the instrument is observed.
+#'
+#' The columns are stored in source order. \code{\link{fSignRestr}}
+#' instruments the residual of the \emph{first} endogenous variable, so the
+#' policy rate must be reordered to the front before estimation - see the
+#' example. Note that 49 of the 270 observed \code{FF4} values are genuine
+#' zeros (months with no FOMC announcement surprise), not missing data.
+#'
+#' Data taken from the replication files of the VAR Toolbox of
+#' Ambrogio Cesa-Bianchi (\url{https://github.com/ambropo/VAR-Toolbox}), where
+#' missing instrument values are flagged with the sentinel \code{123456789};
+#' they are stored here as \code{NA}.
+#'
+#' @references
+#' Gertler, M., & Karadi, P. (2015). Monetary Policy Surprises, Credit Costs,
+#' and Economic Activity. \emph{American Economic Journal: Macroeconomics},
+#' 7(1), 44-76. \doi{10.1257/mac.20130329}
+#'
+#' Gilchrist, S., & Zakrajsek, E. (2012). Credit Spreads and Business Cycle
+#' Fluctuations. \emph{American Economic Review}, 102(4), 1692-1720.
+#' \doi{10.1257/aer.102.4.1692}
+#'
+#' @seealso \code{\link{fSignRestr}}, \code{\link{GK2015}}
+#'
+#' @examples
+#' data("GK2015_2")
+#'
+#' # Policy rate first: the estimator instruments the first variable.
+#' endo <- GK2015_2 |>
+#'   dplyr::select(`1-year T-Bill`, `Consumer Price Index`,
+#'                 `Industrial Production`, EBP) |>
+#'   as.matrix()
+#'
+#' iv <- GK2015_2 |> dplyr::select(FF4) |> as.matrix()
+#'
+#' # Shock 1 is instrument-identified, so `sign` has k - 1 columns.
+#' SIGN <- matrix(0, 4, 3)
+#' SIGN[, 1] <- c(0, -1, -1, 0)
+#'
+#' fit <- fSignRestr(endo, p = 12, c = 1, sign = SIGN, nsteps = 48,
+#'                   ndraws = 100, sr_hor = 3, instrument = list(Z = iv),
+#'                   seed = 42)
+"GK2015_2"
+
+
+#' Gertler & Karadi (2015) Data, Forni-Gambetti-Ricco Sample
+#'
+#' Monthly US data and the Gertler-Karadi high-frequency monetary policy
+#' surprise, restricted to the January 1990 - June 2012 window over which the
+#' instrument is observed. This is the sample used by Forni, Gambetti and
+#' Ricco (2024) to test invertibility and recoverability.
+#'
+#' @format A data frame with 270 rows and 5 columns:
+#' \describe{
+#'   \item{Date}{Month start date (\code{Date}), 1990-01 - 2012-06}
+#'   \item{BY1}{One-year Treasury rate, in percent}
+#'   \item{CPI_Inflation}{Monthly CPI inflation, in percent}
+#'   \item{IP_Growth}{Monthly industrial production growth, in percent}
+#'   \item{instr}{Three-month-ahead fed funds futures surprise (FF4) in a
+#'     30-minute window around FOMC announcements, in percentage points}
+#' }
+#'
+#' @details
+#' Distinct from \code{\link{GK2015_2}}, which starts in 1979m7, keeps the
+#' price and quantity series in log levels, adds the excess bond premium, and
+#' leaves \code{FF4} as \code{NA} before 1990. Use this one for the
+#' invertibility and recoverability tests, which need a balanced sample of
+#' macro data and instrument; use \code{GK2015_2} for the proxy-SVAR, which
+#' estimates the reduced form on the longer sample.
+#'
+#' The 49 zero values in \code{instr} are genuine - months without an FOMC
+#' announcement surprise - not missing observations.
+#'
+#' @references
+#' Gertler, M., & Karadi, P. (2015). Monetary Policy Surprises, Credit Costs,
+#' and Economic Activity. \emph{American Economic Journal: Macroeconomics},
+#' 7(1), 44-76. \doi{10.1257/mac.20130329}
+#'
+#' Forni, M., Gambetti, L., & Ricco, G. (2024). External Instrument SVAR
+#' Analysis for Noninvertible Shocks. \emph{Journal of Applied Econometrics},
+#' 39(7), 1173-1193. \doi{10.1002/jae.3072}
+#'
+#' @seealso \code{\link{fTestInvertibility}}, \code{\link{fTestRecoverability}},
+#'   \code{\link{GK2015_2}}
+#'
+#' @examples
+#' data("GK2015")
+#'
+#' X     <- GK2015 |> dplyr::select(BY1, CPI_Inflation, IP_Growth) |> as.matrix()
+#' instr <- GK2015$instr
+"GK2015"
+
+
+#' Arias, Caldara & Rubio-Ramirez (2019) Data with the Romer-Romer Instrument
+#'
+#' Monthly US data for the six-variable monetary policy VAR of Arias, Caldara
+#' and Rubio-Ramirez (2019), together with the Romer and Romer (2004) narrative
+#' monetary policy shock used as an external instrument. Covers January 1965 -
+#' December 2007.
+#'
+#' @format A data frame with 516 rows and 8 columns:
+#' \describe{
+#'   \item{Date}{Month start date (\code{Date}), 1965-01 - 2007-12}
+#'   \item{Real GDP}{Monthly real GDP, level (interpolated to monthly)}
+#'   \item{GDP Deflator}{Monthly GDP deflator, level}
+#'   \item{Commodity Price Idx.}{Commodity price index, level}
+#'   \item{Total Reserves}{Total reserves, level}
+#'   \item{Non-Borrowed Reserves}{Non-borrowed reserves, level}
+#'   \item{Fed. Funds Rate}{Federal funds rate, in percent}
+#'   \item{RR}{Romer-Romer narrative monetary policy shock, in percentage
+#'     points. \code{NA} before January 1969, where the series does not exist.}
+#' }
+#'
+#' @details
+#' The first six series are the same variables as \code{\link{Uhlig2005}} and
+#' \code{\link{ADRR2018}}, which makes the three directly comparable. They are
+#' stored as levels rather than logs: the replication code takes
+#' \code{100 * log()} of all but the funds rate before estimation, and that
+#' transformation is left explicit rather than baked into the object.
+#'
+#' \code{RR} is a narrative instrument, so the 118 exact zeros inside its
+#' observed span are genuine months without an identified policy change, not
+#' missing data. The 48 leading \code{NA} values form one contiguous block, so
+#' the instrument aligns with a single sub-sample of the VAR.
+#'
+#' Obtained from the replication package of Braun and Bruggemann (2023)
+#' (\url{https://github.com/r-a-braun/SVAR-IVSR}), file
+#' \code{dataset_ACR.mat}, which carries the Arias, Caldara and Rubio-Ramirez
+#' dataset. Note that Braun and Bruggemann identify the model with zero
+#' restrictions and sign restrictions on both \eqn{B} and \eqn{A_0 = B^{-1}} in
+#' a proxy-augmented Bayesian setup; \code{\link{fSignRestr}} implements the
+#' different scheme of Cesa-Bianchi and Sokol (2022), so this object supports
+#' their data, not a replication of their results.
+#'
+#' @references
+#' Arias, J. E., Caldara, D., & Rubio-Ramirez, J. F. (2019). The systematic
+#' component of monetary policy in SVARs: An agnostic identification procedure.
+#' \emph{Journal of Monetary Economics}, 101, 1-13.
+#' \doi{10.1016/j.jmoneco.2018.07.011}
+#'
+#' Braun, R., & Bruggemann, R. (2023). Identification of SVAR Models by
+#' Combining Sign Restrictions With External Instruments. \emph{Journal of
+#' Business & Economic Statistics}, 41(4), 1077-1089.
+#' \doi{10.1080/07350015.2022.2104857}
+#'
+#' Romer, C. D., & Romer, D. H. (2004). A New Measure of Monetary Shocks:
+#' Derivation and Implications. \emph{American Economic Review}, 94(4),
+#' 1055-1084. \doi{10.1257/0002828042002651}
+#'
+#' @seealso \code{\link{fSignRestr}}, \code{\link{Uhlig2005}},
+#'   \code{\link{ADRR2018}}
+#'
+#' @examples
+#' data("ACR2019")
+#'
+#' y <- ACR2019 |>
+#'   dplyr::mutate(dplyr::across(-c(Date, `Fed. Funds Rate`, RR),
+#'                               \(x) 100 * log(x))) |>
+#'   dplyr::select(-Date, -RR) |>
+#'   as.matrix()
+#'
+#' # Shock 1 is pinned by the instrument, so `sign` has k - 1 columns.
+#' SIGN <- matrix(0, 6, 5)
+#' SIGN[, 1] <- c(-1, -1, 0, 0, 0, -1)   # a conventional demand shock
+#'
+#' fit <- fSignRestr(y, p = 12, c = 0, sign = SIGN, nsteps = 48,
+#'                   ndraws = 100, sr_hor = 6,
+#'                   instrument = list(Z = as.matrix(ACR2019$RR)), seed = 42)
+"ACR2019"

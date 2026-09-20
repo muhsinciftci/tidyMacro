@@ -17,7 +17,7 @@ struct FGetBands2Result {
     arma::mat median;
 };
 
-FGetBandsResult  fGetBands_cpp(const arma::cube& bootirf, double prc);
-FGetBands2Result fGetBands2_cpp(const arma::cube& bootirf, double prc, double prc2);
+FGetBandsResult  fGetBands_cpp(const arma::cube& bootirf, double conf);
+FGetBands2Result fGetBands2_cpp(const arma::cube& bootirf, double conf, double conf2);
 
 #endif

@@ -17,7 +17,7 @@ fLPDID(
   ccc = 1L,
   pmd = FALSE,
   reweight = FALSE,
-  conf = 0.95,
+  conf = 90,
   n_threads = -1L
 )
 }
@@ -70,7 +70,7 @@ weights \code{1/(1-p_t)} (exogenous/absorbing case; with covariates
 this is an approximation — the regression-adjustment version is not
 yet implemented in C++).}
 
-\item{conf}{Confidence level for the reported bands (default 0.95).}
+\item{conf}{Confidence level for the reported bands, in percent (default 90).}
 
 \item{n_threads}{OpenMP threads (\code{-1} = all available).}
 }

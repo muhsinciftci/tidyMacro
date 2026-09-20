@@ -100,7 +100,7 @@ boot_max <- fBootstrapMaxCorrected(
   horizon    = horizon,
   var_idx    = 1,          # maximise long-run effect on TFP (variable 1)
   cumulate   = integer(0), # no cumulation (levels data)
-  prc        = 68          # Match original paper
+  conf        = 68          # Match original paper
 )
 toc()
 ```
@@ -135,7 +135,7 @@ boot_uhlig <- fBootstrapUhligCorrected(
   horizon    = horizon,
   idx        = 1L,        # maximise FEV share of TFP (variable 1)
   cumulate   = integer(0),
-  prc        = 68         # Match original study
+  conf        = 68         # Match original study
 )
 toc()
 ```

@@ -103,7 +103,7 @@ fBQIRF <- function(wold, K, scaling = NULL) {
 #' @param var_result List from \code{fVAR()}.
 #' @param nboot Number of bootstrap replications.
 #' @param horizon Maximum IRF horizon.
-#' @param prc Confidence level in percent (e.g. 68).
+#' @param conf Confidence level in percent (e.g. 68).
 #' @param bootscheme \code{"residual"} or \code{"wild"}.
 #' @param cumulate Integer vector (1-based) of variable indices whose IRFs
 #'   should be cumulated along the horizon. Typically used when the VAR is
@@ -150,13 +150,13 @@ fBQIRF <- function(wold, K, scaling = NULL) {
 #'
 #' # Bootstrap with cumulation of both variables (VAR in first differences)
 #' boot <- fBootstrapBQ(y, var_result, nboot = 1000, horizon = 40,
-#'                      prc = 68, bootscheme = "residual",
+#'                      conf = 68, bootscheme = "residual",
 #'                      cumulate = c(1L, 2L))
 #' }
 #'
 #' @export
-fBootstrapBQ <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", cumulate = integerVector(), scaling = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapBQ`, y, var_result, nboot, horizon, prc, prc2, bootscheme, cumulate, scaling, n_threads)
+fBootstrapBQ <- function(y, var_result, nboot, horizon, conf = 90.0, conf2 = 68.0, bootscheme = "residual", cumulate = integerVector(), scaling = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapBQ`, y, var_result, nboot, horizon, conf, conf2, bootscheme, cumulate, scaling, n_threads)
 }
 
 #' Bootstrap Cholesky Identified Impulse Response Functions
@@ -165,8 +165,8 @@ fBootstrapBQ <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0,
 #' @param var_result List from \code{fVAR()}.
 #' @param nboot Number of bootstrap replications.
 #' @param horizon Maximum IRF horizon.
-#' @param prc Outer confidence level in percent (e.g. 90).
-#' @param prc2 Inner confidence level in percent (e.g. 68).
+#' @param conf Outer confidence level in percent (e.g. 90).
+#' @param conf2 Inner confidence level in percent (e.g. 68).
 #' @param bootscheme \code{"residual"} or \code{"wild"}.
 #' @param exog Optional T x M matrix of exogenous variables. Must be provided
 #'   if the original VAR was estimated with exogenous variables; must be
@@ -185,8 +185,8 @@ fBootstrapBQ <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0,
 #'   }
 #'
 #' @export
-fBootstrapChol <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapChol`, y, var_result, nboot, horizon, prc, prc2, bootscheme, exog, n_threads)
+fBootstrapChol <- function(y, var_result, nboot, horizon, conf = 90.0, conf2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapChol`, y, var_result, nboot, horizon, conf, conf2, bootscheme, exog, n_threads)
 }
 
 #' Bootstrap Bias-Corrected Cholesky Identified Impulse Response Functions
@@ -196,8 +196,8 @@ fBootstrapChol <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.
 #' @param nboot1 Number of first-pass replications for bias estimation.
 #' @param nboot2 Number of second-pass replications for confidence bands.
 #' @param horizon Maximum IRF horizon.
-#' @param prc Outer confidence level in percent (e.g. 90).
-#' @param prc2 Inner confidence level in percent (e.g. 68).
+#' @param conf Outer confidence level in percent (e.g. 90).
+#' @param conf2 Inner confidence level in percent (e.g. 68).
 #' @param bootscheme \code{"residual"} or \code{"wild"}.
 #' @param exog Optional T x M matrix of exogenous variables. Must be provided
 #'   if the original VAR was estimated with exogenous variables; must be
@@ -216,8 +216,8 @@ fBootstrapChol <- function(y, var_result, nboot, horizon, prc = 90.0, prc2 = 68.
 #'   }
 #'
 #' @export
-fBootstrapCholCorrected <- function(y, var_result, nboot1, nboot2, horizon, prc = 90.0, prc2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapCholCorrected`, y, var_result, nboot1, nboot2, horizon, prc, prc2, bootscheme, exog, n_threads)
+fBootstrapCholCorrected <- function(y, var_result, nboot1, nboot2, horizon, conf = 90.0, conf2 = 68.0, bootscheme = "residual", exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapCholCorrected`, y, var_result, nboot1, nboot2, horizon, conf, conf2, bootscheme, exog, n_threads)
 }
 
 #' Bootstrap IRFs for the Invertible Case (Wild Bootstrap)
@@ -235,17 +235,17 @@ fBootstrapCholCorrected <- function(y, var_result, nboot1, nboot2, horizon, prc 
 #' @param c Integer (0/1): include intercept.
 #' @param hor Impulse-response horizon.
 #' @param cumu 1-indexed integer vector of variable positions to cumulate.
-#' @param prc Primary confidence level (e.g. 90). Default 90.
-#' @param prc2 Secondary confidence level (e.g. 68). Default 68.
+#' @param conf Primary confidence level (e.g. 90). Default 90.
+#' @param conf2 Secondary confidence level (e.g. 68). Default 68.
 #'
-#' @return List with N x (hor+1) matrices: upper, lower (at \code{prc}),
-#'   upper2, lower2 (at \code{prc2}), median.
+#' @return List with N x (hor+1) matrices: upper, lower (at \code{conf}),
+#'   upper2, lower2 (at \code{conf2}), median.
 #'
 #' @seealso \code{\link{fBootstrapIVRecover}}, \code{\link{fGetBands}}
 #'
 #' @export
-fBootstrapIVInvertible <- function(y, instr, var_result, nboot, p, c, hor, cumu, prc = 90.0, prc2 = 68.0) {
-    .Call(`_tidyMacro_fBootstrapIVInvertible`, y, instr, var_result, nboot, p, c, hor, cumu, prc, prc2)
+fBootstrapIVInvertible <- function(y, instr, var_result, nboot, p, c, hor, cumu, conf = 90.0, conf2 = 68.0) {
+    .Call(`_tidyMacro_fBootstrapIVInvertible`, y, instr, var_result, nboot, p, c, hor, cumu, conf, conf2)
 }
 
 #' Bootstrap IV Impulse Response Functions using Moving Block Bootstrap
@@ -292,19 +292,19 @@ NULL
 #' result <- fBootstrapIVMBB(y, var_result, Z,
 #'                             nboot = 1000, blocksize = 10,
 #'                             adjustZ = c(1, 100), adjustu = c(1, 100),
-#'                             policyvar = 1, horizon = 20, prc = 68)
+#'                             policyvar = 1, horizon = 20, conf = 68)
 #'
 #' # Use 4 threads for parallel computation
 #' result <- fBootstrapIVMBB(y, var_result, Z,
 #'                             nboot = 1000, blocksize = 10,
 #'                             adjustZ = c(1, 100), adjustu = c(1, 100),
-#'                             policyvar = 1, horizon = 20, prc = 68,
+#'                             policyvar = 1, horizon = 20, conf = 68,
 #'                             n_threads = 4)
 #' }
 #'
 #' @export
-fBootstrapIVMBB <- function(y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, prc = 90.0, prc2 = 68.0, exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapIVMBB`, y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, prc, prc2, exog, n_threads)
+fBootstrapIVMBB <- function(y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, conf = 90.0, conf2 = 68.0, exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapIVMBB`, y, var_result, Z, nboot, blocksize, adjustZ, adjustu, policyvar, horizon, conf, conf2, exog, n_threads)
 }
 
 #' Bootstrap IRFs for the Recoverable Non-Invertible Case
@@ -328,37 +328,37 @@ fBootstrapIVMBB <- function(y, var_result, Z, nboot, blocksize, adjustZ, adjustu
 #' @param r Number of future residuals used in the invertibility test.
 #' @param hor Impulse-response horizon.
 #' @param cumu 1-indexed integer vector of variable positions to cumulate.
-#' @param prc Primary confidence level (e.g. 90). Default 90.
-#' @param prc2 Secondary confidence level (e.g. 68). Default 68.
+#' @param conf Primary confidence level (e.g. 90). Default 90.
+#' @param conf2 Secondary confidence level (e.g. 68). Default 68.
 #'
-#' @return List with N x (hor+1) matrices: upper, lower (at \code{prc}),
-#'   upper2, lower2 (at \code{prc2}), median.
+#' @return List with N x (hor+1) matrices: upper, lower (at \code{conf}),
+#'   upper2, lower2 (at \code{conf2}), median.
 #'
 #' @seealso \code{\link{fBootstrapIVInvertible}}, \code{\link{fGetBands}}
 #'
 #' @export
-fBootstrapIVRecover <- function(y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, prc = 90.0, prc2 = 68.0) {
-    .Call(`_tidyMacro_fBootstrapIVRecover`, y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, prc, prc2)
+fBootstrapIVRecover <- function(y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, conf = 90.0, conf2 = 68.0) {
+    .Call(`_tidyMacro_fBootstrapIVRecover`, y, instr, var_result, noise, delta, nboot, p, c, r, hor, cumu, conf, conf2)
 }
 
 #' @export
-fBootstrapMax <- function(y, var_result, nboot, horizon, var_idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapMax`, y, var_result, nboot, horizon, var_idx, prc, prc2, cumulate, scaling, exog, n_threads)
+fBootstrapMax <- function(y, var_result, nboot, horizon, var_idx, conf = 90.0, conf2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapMax`, y, var_result, nboot, horizon, var_idx, conf, conf2, cumulate, scaling, exog, n_threads)
 }
 
 #' @export
-fBootstrapMaxCorrected <- function(y, var_result, nboot1, nboot2, horizon, var_idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapMaxCorrected`, y, var_result, nboot1, nboot2, horizon, var_idx, prc, prc2, cumulate, scaling, exog, n_threads)
+fBootstrapMaxCorrected <- function(y, var_result, nboot1, nboot2, horizon, var_idx, conf = 90.0, conf2 = 68.0, cumulate = integerVector(), scaling = NULL, exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapMaxCorrected`, y, var_result, nboot1, nboot2, horizon, var_idx, conf, conf2, cumulate, scaling, exog, n_threads)
 }
 
 #' @export
-fBootstrapUhlig <- function(y, var_result, nboot, horizon, idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapUhlig`, y, var_result, nboot, horizon, idx, prc, prc2, cumulate, exog, n_threads)
+fBootstrapUhlig <- function(y, var_result, nboot, horizon, idx, conf = 90.0, conf2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapUhlig`, y, var_result, nboot, horizon, idx, conf, conf2, cumulate, exog, n_threads)
 }
 
 #' @export
-fBootstrapUhligCorrected <- function(y, var_result, nboot1, nboot2, horizon, idx, prc = 90.0, prc2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapUhligCorrected`, y, var_result, nboot1, nboot2, horizon, idx, prc, prc2, cumulate, exog, n_threads)
+fBootstrapUhligCorrected <- function(y, var_result, nboot1, nboot2, horizon, idx, conf = 90.0, conf2 = 68.0, cumulate = integerVector(), exog = NULL, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapUhligCorrected`, y, var_result, nboot1, nboot2, horizon, idx, conf, conf2, cumulate, exog, n_threads)
 }
 
 #' Bootstrap VAR Model
@@ -386,6 +386,55 @@ fBootstrapUhligCorrected <- function(y, var_result, nboot1, nboot2, horizon, idx
 #' @export
 fBootstrapVAR <- function(y, fVAR_result, bootscheme = "residual") {
     .Call(`_tidyMacro_fBootstrapVAR`, y, fVAR_result, bootscheme)
+}
+
+#' Check Narrative Sign Restrictions for One Draw
+#'
+#' Evaluates Antolin-Diaz and Rubio-Ramirez (2018) narrative restrictions for a
+#' candidate structural impact matrix, and optionally returns the importance
+#' weight that makes plain rejection sampling agree with their algorithm.
+#'
+#' @param B N x N structural impact matrix.
+#' @param resid T x N matrix of reduced-form VAR residuals. Row 1 is the first
+#'   post-lag observation.
+#' @param narr_sign_shock Integer vector (1-indexed) of restricted shocks,
+#'   type 1. Default \code{integer(0)}.
+#' @param narr_sign_period Integer vector (1-indexed rows of \code{resid}) of
+#'   restricted dates, type 1. Default \code{integer(0)}.
+#' @param narr_sign_sign Numeric vector of \code{+1} / \code{-1} required signs,
+#'   type 1. Default \code{numeric(0)}.
+#' @param narr_dom_shock Integer vector (1-indexed) of dominant shocks, type 2.
+#'   Default \code{integer(0)}.
+#' @param narr_dom_period Integer vector (1-indexed rows of \code{resid}) of
+#'   restricted dates, type 2. Default \code{integer(0)}.
+#' @param narr_dom_var Integer vector (1-indexed) of variables whose unexpected
+#'   movement the shock must dominate, type 2. Default \code{integer(0)}.
+#' @param n_mc Integer number of Monte Carlo replications used to estimate the
+#'   importance weight. \code{0} (default) skips the estimate and returns a
+#'   weight of 1.
+#' @param seed Integer seed for the Monte Carlo replications (default 42).
+#'
+#' @return A list with \code{pass} (logical: all restrictions hold) and
+#'   \code{weight} (the ADRR importance weight, or 1 when \code{n_mc = 0}).
+#'
+#' @details
+#' Type 1 requires \code{sign * e[t, j] > 0} for the structural shocks
+#' \eqn{e_t = B^{-1} u_t}. Type 2 requires shock \code{j} to contribute more to
+#' the unexpected movement in variable \code{i} at date \code{t} than all other
+#' shocks combined. The importance weight is the reciprocal of the probability
+#' that the restrictions hold when shocks are drawn from their unconditional
+#' \eqn{N(0, I)} distribution; the VAR Toolbox omits it, which makes plain
+#' rejection sampling an approximation to the ADRR posterior.
+#'
+#' @references
+#' Antolin-Diaz, J., & Rubio-Ramirez, J. F. (2018). Narrative sign restrictions
+#' for SVARs. \emph{American Economic Review}, 108(10), 2802--2829.
+#'
+#' @seealso \code{\link{fSR_cpp}}
+#'
+#' @export
+fCheckNarrative_cpp <- function(B, resid, narr_sign_shock = NULL, narr_sign_period = NULL, narr_sign_sign = NULL, narr_dom_shock = NULL, narr_dom_period = NULL, narr_dom_var = NULL, n_mc = 0L, seed = 42L) {
+    .Call(`_tidyMacro_fCheckNarrative_cpp`, B, resid, narr_sign_shock, narr_sign_period, narr_sign_sign, narr_dom_shock, narr_dom_period, narr_dom_var, n_mc, seed)
 }
 
 #' Check Sign Restrictions for One Shock
@@ -432,6 +481,23 @@ fBootstrapVAR <- function(y, fVAR_result, bootscheme = "residual") {
 #' @export
 fCheckRestrictions <- function(irf, shock, restr, hor_vec) {
     .Call(`_tidyMacro_fCheckRestrictions`, irf, shock, restr, hor_vec)
+}
+
+#' Check VAR Stability
+#'
+#' @param var_model A list containing VAR estimation results with elements:
+#'   \itemize{
+#'     \item beta: Coefficient matrix
+#'     \item c: Integer indicator for intercept (1 if intercept, 0 otherwise)
+#'     \item p: Integer lag order
+#'   }
+#'
+#' @return Called for its side-effect of printing to the console.
+#'   Returns \code{NULL} invisibly.
+#'
+#' @export
+fCheckStability <- function(var_model) {
+    invisible(.Call(`_tidyMacro_fCheckStability`, var_model))
 }
 
 #' Compute Cholesky Impulse Response Functions
@@ -717,15 +783,15 @@ fGenerateVARData <- function(y, p, c, beta, residuals) {
 #' statistics.
 #'
 #' @param bootirf N x (hor+1) x nboot cube of bootstrapped IRFs.
-#' @param prc Confidence level (e.g. 68 for 68\% band). Upper and lower
-#'   quantiles are \eqn{(50 + prc/2)}\% and \eqn{(50 - prc/2)}\%.
+#' @param conf Confidence level (e.g. 68 for 68\% band). Upper and lower
+#'   quantiles are \eqn{(50 + conf/2)}\% and \eqn{(50 - conf/2)}\%.
 #'   Default 68.
 #'
 #' @return List with three N x (hor+1) matrices: upper, lower, median.
 #'
 #' @export
-fGetBands <- function(bootirf, prc = 68.0) {
-    .Call(`_tidyMacro_fGetBands`, bootirf, prc)
+fGetBands <- function(bootirf, conf = 90.0) {
+    .Call(`_tidyMacro_fGetBands`, bootirf, conf)
 }
 
 #' Recover Structural Shock Series (Stock-Watson 2018)
@@ -793,7 +859,7 @@ fHDIV <- function(residuals, sigma, s, beta, c, p) {
 #' @param adjustu Integer vector \code{c(start, end)} selecting the proxy-sample
 #'   rows of the residuals (1-based).
 #' @param policyvar Integer (1-based) index of the IV policy variable. Default 1.
-#' @param prc Confidence level in percent (e.g. 90 for 90\% CI). Default 90.
+#' @param conf Confidence level in percent (e.g. 90 for 90\% CI). Default 90.
 #' @param n_threads OpenMP threads. 0 = all cores minus one. Default 0.
 #'
 #' @return A list with elements:
@@ -802,8 +868,43 @@ fHDIV <- function(residuals, sigma, s, beta, c, p) {
 #'   \item{lower}{(T-p) x N lower confidence bands.}
 #'
 #' @export
-fBootstrapHDIV <- function(y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar = 1L, prc = 90.0, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapHDIV`, y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar, prc, n_threads)
+fBootstrapHDIV <- function(y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar = 1L, conf = 90.0, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapHDIV`, y, var_result, Z, s, nboot, blocksize, adjustZ, adjustu, policyvar, conf, n_threads)
+}
+
+#' Historical Decomposition for a Sign-Restricted SVAR
+#'
+#' Decomposes each observed series into the cumulated contribution of every
+#' structural shock plus the initial condition, the intercept and any exogenous
+#' regressors, given a structural impact matrix.
+#'
+#' @param y A T x N numeric matrix of endogenous variables.
+#' @param beta A (Np + c + M) x N coefficient matrix, as returned by
+#'   \code{fVAR} or drawn by \code{fVARPosterior_cpp}.
+#' @param B An N x N structural impact matrix, for instance \code{Bfp} from
+#'   \code{fSR_cpp}. It must be invertible.
+#' @param p Integer lag order.
+#' @param c Integer intercept indicator (1 = include, 0 = exclude).
+#' @param exog Optional T x M matrix of exogenous regressors (default NULL).
+#'
+#' @return A list with \code{shock}, a T x N x N array indexed
+#'   \code{[time, variable, shock]}; \code{init}, \code{const} and \code{endo},
+#'   each T x N; and \code{exo}, a T x N x M array. The first \code{p} rows are
+#'   \code{NA} because they are absorbed as initial conditions. The components
+#'   sum to \code{y} over the estimation sample.
+#'
+#' @details
+#' Contributions are accumulated through the companion-form recursion
+#' \eqn{s_t = F s_{t-1} + \tilde{B} e_t} with \eqn{e_t = B^{-1} u_t}, run once
+#' per structural shock. This is the decomposition of \code{compute_HD.m} in
+#' the VAR Toolbox; the trend block is omitted because \code{fVAR} supports an
+#' intercept only.
+#'
+#' @seealso \code{\link{fSR_cpp}}, \code{\link{fHistDec}}
+#'
+#' @export
+fHDShock_cpp <- function(y, beta, B, p, c, exog = NULL) {
+    .Call(`_tidyMacro_fHDShock_cpp`, y, beta, B, p, c, exog)
 }
 
 #' Heteroskedasticity-Based VAR Identification (Proxy IV, Treatment Months)
@@ -847,15 +948,15 @@ fHeteroIRF <- function(var_result, Z, adjustu, indsR1, hor, nvar, scale = 10.0) 
 #' @param hor        IRF horizon.
 #' @param nvar       1-based normalization variable.
 #' @param scale      Shock size.
-#' @param prc        Primary confidence level (e.g. 90).
-#' @param prc2       Secondary confidence level (e.g. 68).
+#' @param conf        Primary confidence level (e.g. 90).
+#' @param conf2       Secondary confidence level (e.g. 68).
 #' @param n_threads  OpenMP threads (0 = all available - 1).
 #'
 #' @return A list with \code{upper}, \code{lower}, \code{upper2},
 #'   \code{lower2}, \code{meanirf}, \code{medianirf} (each N x hor+1).
 #' @export
-fBootstrapHetero <- function(y, var_result, Z, indsR1, adjustu, nboot = 1000L, blocksize = 0L, hor = 48L, nvar = 1L, scale = 10.0, prc = 90.0, prc2 = 68.0, n_threads = 0L) {
-    .Call(`_tidyMacro_fBootstrapHetero`, y, var_result, Z, indsR1, adjustu, nboot, blocksize, hor, nvar, scale, prc, prc2, n_threads)
+fBootstrapHetero <- function(y, var_result, Z, indsR1, adjustu, nboot = 1000L, blocksize = 0L, hor = 48L, nvar = 1L, scale = 10.0, conf = 90.0, conf2 = 68.0, n_threads = 0L) {
+    .Call(`_tidyMacro_fBootstrapHetero`, y, var_result, Z, indsR1, adjustu, nboot, blocksize, hor, nvar, scale, conf, conf2, n_threads)
 }
 
 #' Historical Decomposition of a VAR Variable
@@ -1187,6 +1288,51 @@ fPolyConvolve <- function(A, B, nlags) {
     .Call(`_tidyMacro_fPolyConvolve`, A, B, nlags)
 }
 
+#' Proxy-SVAR Impact Column from an External Instrument
+#'
+#' Recovers the structural impact column of the instrumented variable by the
+#' Mertens-Ravn / Gertler-Karadi two-stage procedure, and completes it to a
+#' full invertible impact matrix.
+#'
+#' @param resid_sub T x N matrix of reduced-form VAR residuals restricted to
+#'   the rows overlapping the instrument. The instrumented variable must be
+#'   the first column.
+#' @param Z_sub T x k matrix of instruments, row-aligned with \code{resid_sub}.
+#' @param sigma N x N full-sample reduced-form residual covariance matrix.
+#' @param ntotcoeff Integer number of coefficients per VAR equation
+#'   (\code{N * p + c + n_exog}), used in the degrees-of-freedom correction of
+#'   the instrument-subsample covariance.
+#'
+#' @return A list with \code{b1} (identified impact column), \code{B}
+#'   (completed N x N impact matrix with \code{B \%*\% t(B) = sigma} and
+#'   \code{B[, 1] = b1}), \code{sigma_b} (instrument-subsample covariance),
+#'   \code{fs_beta}, \code{fs_F} and \code{fs_r2} (first-stage coefficients,
+#'   F statistic on the excluded instruments, and R-squared), \code{shock_sd}
+#'   (the implied shock standard deviation) and \code{n_iv}.
+#'
+#' @details
+#' Columns 2 to N of \code{B} are a Cholesky-QR completion with no economic
+#' content; they exist so that \code{B} is invertible, which the historical
+#' decomposition and the narrative-restriction check require. Because the
+#' instrument typically spans a shorter sample than the VAR, the completion
+#' renormalises \code{b1} in the Cholesky basis so that \code{B \%*\% t(B)}
+#' equals the full-sample \code{sigma} exactly and FEVD shares still sum to one.
+#'
+#' @references
+#' Mertens, K., & Ravn, M. O. (2013). The dynamic effects of personal and
+#' corporate income tax changes in the United States. \emph{American Economic
+#' Review}, 103(4), 1212--1247.
+#'
+#' Gertler, M., & Karadi, P. (2015). Monetary policy surprises, credit costs,
+#' and economic activity. \emph{AEJ: Macroeconomics}, 7(1), 44--76.
+#'
+#' @seealso \code{\link{fSR_cpp}}, \code{\link{fVAR}}
+#'
+#' @export
+fRecoverBIV_cpp <- function(resid_sub, Z_sub, sigma, ntotcoeff) {
+    .Call(`_tidyMacro_fRecoverBIV_cpp`, resid_sub, Z_sub, sigma, ntotcoeff)
+}
+
 #' Remove Small-Sample Bias from VAR Coefficient Estimates
 #'
 #' Computes the bootstrap mean of the VAR coefficients, subtracts the bias
@@ -1228,6 +1374,111 @@ fRemoveBias <- function(beta, c, p, boot_beta) {
     .Call(`_tidyMacro_fRemoveBias`, beta, c, p, boot_beta)
 }
 
+#' Bayesian Sign and Narrative Restrictions for SVARs
+#'
+#' Identifies a structural VAR by sign restrictions, optionally combined with
+#' Antolin-Diaz and Rubio-Ramirez narrative restrictions and with an external
+#' instrument that pins down the first impact column. Inference is Bayesian:
+#' reduced-form parameters are drawn from their flat-prior Normal-inverse-Wishart
+#' posterior and each draw is paired with a Haar-uniform rotation.
+#'
+#' @param y A T x N numeric matrix of endogenous variables.
+#' @param p Integer lag order.
+#' @param c Integer intercept indicator (1 = include, 0 = exclude).
+#' @param SIGN An N x ds sign-restriction matrix: \code{+1} the response must be
+#'   non-negative, \code{-1} non-positive, \code{0} unrestricted. \code{ds} must
+#'   equal N minus the number of columns of \code{Bfix}.
+#' @param nsteps Integer number of horizons to report, counting impact as the
+#'   first (default 40).
+#' @param ndraws Integer number of accepted draws to collect (default 500).
+#' @param sr_hor Integer. Sign restrictions are imposed at horizons
+#'   \code{0, ..., sr_hor - 1} (default 1, impact only).
+#' @param sr_rot Integer maximum rotations attempted per parameter draw
+#'   (default 500).
+#' @param max_post_draws Integer maximum parameter draws attempted per accepted
+#'   draw before that slot is abandoned (default 1000).
+#' @param conf Numeric coverage of the reported credible bands, in percent
+#'   (default 68).
+#' @param inference Integer. \code{1} (default) draws reduced-form parameters
+#'   from the posterior, so bands reflect both parameter and identification
+#'   uncertainty; \code{0} holds them at OLS, leaving only the set of admissible
+#'   rotations.
+#' @param Bfix Optional N x q matrix of impact columns identified elsewhere and
+#'   held fixed, which selects the \code{sign+iv} scheme (default NULL).
+#' @param narr_sign_shock,narr_sign_period,narr_sign_sign Type-1 narrative
+#'   restrictions: the structural shock \code{shock} at residual-sample row
+#'   \code{period} must have the given \code{sign}. All 1-indexed; default NULL.
+#' @param narr_dom_shock,narr_dom_period,narr_dom_var Type-2 narrative
+#'   restrictions: at row \code{period}, shock \code{shock} must contribute more
+#'   to the unexpected movement in variable \code{var} than all other shocks
+#'   combined. All 1-indexed; default NULL.
+#' @param narr_weight_mc Integer. When positive, each accepted draw is weighted
+#'   by the ADRR importance weight, estimated with this many Monte Carlo
+#'   replications, and bands become weighted percentiles. \code{0} (default)
+#'   reproduces the plain rejection sampling of the VAR Toolbox.
+#' @param resid_from_draw Logical. \code{FALSE} (default) evaluates narrative
+#'   restrictions on the OLS residuals, as the VAR Toolbox does; \code{TRUE}
+#'   recomputes residuals from each parameter draw.
+#' @param store_draws Logical. \code{TRUE} (default) returns the full IRF and
+#'   FEVD distributions across accepted draws; \code{FALSE} returns only medians
+#'   and bands, which avoids copying two
+#'   \code{(N * N * nsteps) x ndraws} matrices back into R.
+#' @param exog Optional T x M matrix of exogenous regressors (default NULL).
+#' @param n_threads Integer. \code{0} (default) uses all cores but one.
+#' @param seed Integer base seed. Accepted draw \code{d} uses a stream derived
+#'   from \code{seed} and \code{d}, so results are independent of the thread
+#'   count.
+#' @param verbose Logical; print thread count and acceptance diagnostics
+#'   (default FALSE).
+#'
+#' @return A list with medians and credible bands for the IRFs (\code{IRmed},
+#'   \code{IRinf}, \code{IRsup}) and the FEVD (\code{VDmed}, \code{VDinf},
+#'   \code{VDsup}), each an N x N x nsteps cube indexed
+#'   \code{[variable, shock, horizon]}; the accepted impact matrices
+#'   \code{Ball} and coefficient draws \code{beta_all}; the median impact matrix
+#'   \code{Bmed} and the Fry-Pagan draw \code{Bfp} with its \code{IRfp},
+#'   \code{VDfp} and index \code{fp_index}; the importance \code{weights};
+#'   \code{accept_rate}, \code{ndraws_tried}, \code{n_tried} and
+#'   \code{n_failed}; and, when \code{store_draws = TRUE}, the flattened draw
+#'   distributions \code{IRall} and \code{VDall}, each
+#'   \code{(N * N * nsteps) x ndraws} and reshapeable to
+#'   \code{c(N, N, nsteps, ndraws)}.
+#'
+#' @details
+#' Each accepted draw is produced independently: parameters are drawn from the
+#' posterior, a Haar rotation is sought that satisfies \code{SIGN}, and the
+#' candidate is then screened against the narrative restrictions. A slot that
+#' exhausts \code{max_post_draws} parameter draws is reported in
+#' \code{n_failed} rather than silently dropped.
+#'
+#' FEVD shares are returned on the \code{[0, 1]} scale, not in percent.
+#'
+#' The instrument-identified column is fixed at
+#' its OLS point estimate while the rest of the system is redrawn, so the
+#' reported bands omit the instrument's own sampling uncertainty. This
+#' reproduces the VAR Toolbox exactly. The fixed column is rescaled by
+#' \eqn{1/\|L^{-1}b_1\|} against each draw's Cholesky factor \eqn{L}, so its
+#' direction is held constant but its length is not; this too matches the
+#' toolbox.
+#'
+#' @references
+#' Uhlig, H. (2005). What are the effects of monetary policy on output?
+#' \emph{Journal of Monetary Economics}, 52(2), 381--419.
+#'
+#' Rubio-Ramirez, J. F., Waggoner, D. F., & Zha, T. (2010). Structural vector
+#' autoregressions. \emph{Review of Economic Studies}, 77(2), 665--696.
+#'
+#' Antolin-Diaz, J., & Rubio-Ramirez, J. F. (2018). Narrative sign restrictions
+#' for SVARs. \emph{American Economic Review}, 108(10), 2802--2829.
+#'
+#' @seealso \code{\link{fSignRestrictions_cpp}}, \code{\link{fCheckNarrative_cpp}},
+#'   \code{\link{fRecoverBIV_cpp}}, \code{\link{fVARPosterior_cpp}}
+#'
+#' @export
+fSR_cpp <- function(y, p, c, SIGN, nsteps = 40L, ndraws = 500L, sr_hor = 1L, sr_rot = 500L, max_post_draws = 1000L, conf = 90.0, inference = 1L, Bfix = NULL, narr_sign_shock = NULL, narr_sign_period = NULL, narr_sign_sign = NULL, narr_dom_shock = NULL, narr_dom_period = NULL, narr_dom_var = NULL, narr_weight_mc = 0L, resid_from_draw = FALSE, store_draws = TRUE, exog = NULL, n_threads = 0L, seed = 42L, verbose = FALSE) {
+    .Call(`_tidyMacro_fSR_cpp`, y, p, c, SIGN, nsteps, ndraws, sr_hor, sr_rot, max_post_draws, conf, inference, Bfix, narr_sign_shock, narr_sign_period, narr_sign_sign, narr_dom_shock, narr_dom_period, narr_dom_var, narr_weight_mc, resid_from_draw, store_draws, exog, n_threads, seed, verbose)
+}
+
 #' Print SVAR Identification Steps
 #'
 #' Prints a numbered guide to the proxy-SVAR identification and
@@ -1263,6 +1514,51 @@ fRemoveBias <- function(beta, c, p, boot_beta) {
 #' @export
 fSVARSteps <- function() {
     invisible(.Call(`_tidyMacro_fSVARSteps`))
+}
+
+#' Find a Rotation Satisfying Sign Restrictions
+#'
+#' Draws random orthonormal rotations of the reduced-form covariance matrix
+#' until the implied structural impact matrix satisfies a sign-restriction
+#' pattern, optionally holding pre-identified columns fixed.
+#'
+#' @param sigma N x N reduced-form residual covariance matrix.
+#' @param SIGN N x ds sign-restriction matrix: \code{+1} the response must be
+#'   non-negative, \code{-1} non-positive, \code{0} unrestricted. \code{ds} is
+#'   the number of shocks to be matched and must equal \code{N} minus the
+#'   number of columns supplied in \code{Bfix}.
+#' @param sr_hor Integer. Restrictions are imposed at horizons
+#'   \code{0, ..., sr_hor - 1}. \code{sr_hor = 1} (default) restricts the
+#'   impact matrix only, in which case \code{beta} is not used.
+#' @param sr_rot Integer maximum number of rotations to attempt (default 500).
+#' @param Bfix Optional N x q matrix of impact columns identified by another
+#'   scheme and held fixed (default NULL). Used for \code{sign+iv}.
+#' @param beta Optional VAR coefficient matrix, required when
+#'   \code{sr_hor > 1} to build the Wold multipliers (default NULL).
+#' @param p Integer lag order, required when \code{sr_hor > 1} (default 1).
+#' @param c Integer intercept indicator, required when \code{sr_hor > 1}
+#'   (default 1).
+#' @param seed Integer seed for the rotation draws (default 42).
+#'
+#' @return A list with \code{B} (N x N impact matrix, or a 0 x 0 matrix when no
+#'   admissible rotation was found), \code{n_tried} (rotations attempted) and
+#'   \code{found} (logical).
+#'
+#' @details
+#' Shocks are matched to columns greedily: shock \code{ii} takes the first
+#' unmatched column whose responses satisfy \code{SIGN[, ii]}, with the sign of
+#' that column flipped if the restrictions hold in reverse. This reproduces the
+#' matching rule of \code{SignRestrictions.m} in the VAR Toolbox.
+#'
+#' @references
+#' Rubio-Ramirez, J. F., Waggoner, D. F., & Zha, T. (2010). Structural vector
+#' autoregressions. \emph{Review of Economic Studies}, 77(2), 665--696.
+#'
+#' @seealso \code{\link{fSR_cpp}}, \code{\link{fGenerateQ}}
+#'
+#' @export
+fSignRestrictions_cpp <- function(sigma, SIGN, sr_hor = 1L, sr_rot = 500L, Bfix = NULL, beta = NULL, p = 1L, c = 1L, seed = 42L) {
+    .Call(`_tidyMacro_fSignRestrictions_cpp`, sigma, SIGN, sr_hor, sr_rot, Bfix, beta, p, c, seed)
 }
 
 #' Spectral Forecast Error Variance Decomposition
@@ -1351,6 +1647,43 @@ fUhligMaxShare <- function(wold, S, idx) {
 #' @export
 fVAR <- function(y, p, c, exog = NULL) {
     .Call(`_tidyMacro_fVAR`, y, p, c, exog)
+}
+
+#' Draw from the Normal-Inverse-Wishart Posterior of a VAR
+#'
+#' Samples reduced-form VAR parameters from their exact posterior under a
+#' flat (diffuse) prior, the sampler underlying Bayesian sign-restriction
+#' inference.
+#'
+#' @param y A T x N numeric matrix of endogenous variables.
+#' @param p Integer lag order.
+#' @param c Integer intercept indicator (1 = include, 0 = exclude).
+#' @param ndraws Integer number of posterior draws.
+#' @param seed Integer base seed. Draw \code{d} uses \code{seed + d}, so the
+#'   output does not depend on how the work is scheduled.
+#' @param exog Optional T x M matrix of exogenous regressors (default NULL).
+#'
+#' @return A list with elements \code{beta_draws}, a (Np + c + M) x N x ndraws
+#'   cube of coefficient draws, and \code{sigma_draws}, an N x N x ndraws cube
+#'   of covariance draws.
+#'
+#' @details
+#' The posterior is
+#' \deqn{\Sigma \mid y \sim IW(T_{eff}\hat{\Sigma},\ T_{eff}), \qquad
+#'       vec(B) \mid \Sigma, y \sim N(vec(\hat{B}),\ \Sigma \otimes (X'X)^{-1})}
+#' with \eqn{T_{eff} = T - p}. The Kronecker covariance is never formed: the
+#' coefficient draw is built from the Cholesky factors of \eqn{(X'X)^{-1}} and
+#' of the drawn \eqn{\Sigma}.
+#'
+#' @references
+#' Uhlig, H. (2005). What are the effects of monetary policy on output?
+#' \emph{Journal of Monetary Economics}, 52(2), 381--419.
+#'
+#' @seealso \code{\link{fSR_cpp}}, \code{\link{fVAR}}
+#'
+#' @export
+fVARPosterior_cpp <- function(y, p, c, ndraws, seed = 42L, exog = NULL) {
+    .Call(`_tidyMacro_fVARPosterior_cpp`, y, p, c, ndraws, seed, exog)
 }
 
 #' Vector Autoregression with Exogenous Variables (VARX) Model Estimation

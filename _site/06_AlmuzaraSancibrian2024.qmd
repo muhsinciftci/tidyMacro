@@ -118,7 +118,7 @@ lp_pkg <- fLPPanel(
   panel_id     = c("unit", "tt"),   # id + time in a single argument
   shock        = "shock:size",      # term label whose IRF we want
   horizons     = 5,
-  conf         = c(0.68, 0.90),     # two bands from a single fit
+  conf         = c(68, 90),     # two bands from a single fit
   small_sample = TRUE,              # Imbens–Kolesar (2016) refinement
   cumulative   = TRUE,              # sum_{k=0..h} y_{i,t+k}
   n_threads    = 2                  # OpenMP over horizons
@@ -194,7 +194,7 @@ lp_pkg_asy <- fLPPanel(
   panel_id     = c("unit", "tt"),
   shock        = "shock:size",
   horizons     = H,
-  conf         = 0.90,
+  conf         = 90,
   small_sample = FALSE,       # asymptotic LAHR to match fixest
   cumulative   = TRUE,
   n_threads    = 2
@@ -246,7 +246,7 @@ p_pkg + p_fx + plot_layout(ncol = 2)
 - Panel-aware `l()` / `f()` operators that respect unit boundaries.
 - OpenMP-parallel horizon loop (each horizon is independent once y is leaded).
 - Optional @imbens2016 small-sample refinement with component-specific effective degrees of freedom (set `small_sample = TRUE`; not in `fixest`).
-- Multi-band CIs from a single fit (`conf = c(0.68, 0.95)`).
+- Multi-band CIs from a single fit (`conf = c(68, 95)`).
 :::
 
 ------------------------------------------------------------------------

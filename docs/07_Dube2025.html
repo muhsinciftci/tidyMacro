@@ -270,6 +270,12 @@ window.Quarto = {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./04_2_sign_narrative_external.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Identifcation via Sign, Narrative and Sign+IV restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Identifcation via Internal instruments</span></a>
   </div>
@@ -486,25 +492,28 @@ e_{it}^h.\]</span></p>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data     =</span> BankingDeregulation, </span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat    =</span> <span class="st">"bank"</span>, </span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">post     =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>bank_ylags <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank <span class="sc">+</span> <span class="fu">l</span>(lshare, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">+</span> <span class="fu">l</span>(<span class="fu">d</span>(lshare), <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> BankingDeregulation, </span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"bank"</span>, <span class="at">post =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># additional controls via a ..macro, as in fixest</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>ctrl <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"grgsp"</span>, <span class="st">"corptax"</span>, <span class="st">"unionmem"</span>)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>bank_full <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank <span class="sc">+</span> <span class="fu">l</span>(lshare, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">+</span> <span class="fu">l</span>(<span class="fu">d</span>(lshare), <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">+</span> <span class="fu">l</span>(..ctrl, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> BankingDeregulation, </span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"bank"</span>, <span class="at">post =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">post     =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>bank_ylags <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank <span class="sc">+</span> <span class="fu">l</span>(lshare, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">+</span> <span class="fu">l</span>(<span class="fu">d</span>(lshare), <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> BankingDeregulation, </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"bank"</span>, <span class="at">post =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># additional controls via a ..macro, as in fixest</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>ctrl <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"grgsp"</span>, <span class="st">"corptax"</span>, <span class="st">"unionmem"</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>bank_full <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    lshare <span class="sc">~</span> bank <span class="sc">+</span> <span class="fu">l</span>(lshare, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">+</span> <span class="fu">l</span>(<span class="fu">d</span>(lshare), <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">+</span> <span class="fu">l</span>(..ctrl, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> BankingDeregulation, </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"bank"</span>, <span class="at">post =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
@@ -591,8 +600,9 @@ e_{it}^h.\]</span></p>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat    =</span> <span class="st">"bank"</span>, </span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">post     =</span> <span class="dv">9</span>, <span class="at">pre =</span> <span class="dv">9</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">reweight =</span> <span class="cn">TRUE</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">reweight =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>
@@ -627,22 +637,25 @@ e_{it}^h.\]</span></p>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">0</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>demo_ccc1 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">1</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>demo_ccc2 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">2</span></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">0</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>demo_ccc1 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">1</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>demo_ccc2 <span class="ot">&lt;-</span> <span class="fu">fLPDID</span>(</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    lgdp <span class="sc">~</span> dem <span class="sc">+</span> <span class="fu">l</span>(lgdp, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> DemocracyGrowth, <span class="at">panel_id =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"year"</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">treat =</span> <span class="st">"dem"</span>, <span class="at">post =</span> <span class="dv">30</span>, <span class="at">pre =</span> <span class="dv">20</span>,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">nonabsorbing =</span> <span class="cn">TRUE</span>, <span class="at">L =</span> <span class="dv">20</span>, <span class="at">ccc =</span> <span class="dv">2</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="dv">95</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotLPDID</span>(</span>

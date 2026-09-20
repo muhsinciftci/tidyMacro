@@ -10,8 +10,8 @@ fBootstrapCholCorrected(
   nboot1,
   nboot2,
   horizon,
-  prc = 90,
-  prc2 = 68,
+  conf = 90,
+  conf2 = 68,
   bootscheme = "residual",
   exog = NULL,
   n_threads = 0L
@@ -28,9 +28,9 @@ fBootstrapCholCorrected(
 
 \item{horizon}{Maximum IRF horizon.}
 
-\item{prc}{Outer confidence level in percent (e.g. 90).}
+\item{conf}{Outer confidence level in percent (e.g. 90).}
 
-\item{prc2}{Inner confidence level in percent (e.g. 68).}
+\item{conf2}{Inner confidence level in percent (e.g. 68).}
 
 \item{bootscheme}{\code{"residual"} or \code{"wild"}.}
 

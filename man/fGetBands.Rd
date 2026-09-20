@@ -4,13 +4,13 @@
 \alias{fGetBands}
 \title{Compute Confidence Bands from Bootstrap IRF Cube}
 \usage{
-fGetBands(bootirf, prc = 68)
+fGetBands(bootirf, conf = 90)
 }
 \arguments{
 \item{bootirf}{N x (hor+1) x nboot cube of bootstrapped IRFs.}
 
-\item{prc}{Confidence level (e.g. 68 for 68\% band). Upper and lower
-quantiles are \eqn{(50 + prc/2)}\% and \eqn{(50 - prc/2)}\%.
+\item{conf}{Confidence level (e.g. 68 for 68\% band). Upper and lower
+quantiles are \eqn{(50 + conf/2)}\% and \eqn{(50 - conf/2)}\%.
 Default 68.}
 }
 \value{

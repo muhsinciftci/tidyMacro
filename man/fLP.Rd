@@ -9,7 +9,7 @@ fLP(
   data,
   horizons = 12L,
   shock,
-  conf = 0.9,
+  conf = 90,
   nw_lags = NULL,
   nw_offset = 1L,
   store_full = FALSE,
@@ -42,12 +42,12 @@ referenced in the formula (before lag/lead expansion).}
 (must appear on the RHS). This is the variable whose coefficient at each
 horizon is returned as the IRF.}
 
-\item{conf}{Numeric in (0, 1). One or more confidence levels for bands, e.g.
-\code{0.90} or \code{c(0.68, 0.95)}. When more than one level is supplied,
+\item{conf}{Numeric in (0, 100), in percent. One or more confidence levels
+for bands, e.g. \code{90} or \code{c(68, 95)}. When more than one is supplied,
 \code{irfs_upper} and \code{irfs_lower} become named lists of matrices
 (one per level, keyed by the level as a string) and \code{fPlotLP()} draws
 one ribbon per level. Bands are always rebuilt in R from \code{irfs_se},
-so multi-level fits cost the same as single-level fits. Default: 0.90.}
+so multi-level fits cost the same as single-level fits. Default: 90.}
 
 \item{nw_lags}{Integer or \code{NULL}. Base Newey-West bandwidth.
 At horizon \eqn{h} the effective bandwidth is

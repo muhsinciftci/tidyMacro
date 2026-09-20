@@ -59,7 +59,7 @@ static void bias_correct_max(const arma::mat& beta, int c, int p,
 BootstrapMaxResult
 fBootstrapMaxCorrected_cpp(const arma::mat& y, const VARResult& var_result,
                            int nboot1, int nboot2, int horizon, int var_idx,
-                           double prc, double prc2, const arma::uvec& cumulate,
+                           double conf, double conf2, const arma::uvec& cumulate,
                            Rcpp::Nullable<arma::vec> scaling,
                            Rcpp::Nullable<arma::mat> exog,
                            int n_threads) {
@@ -139,14 +139,14 @@ fBootstrapMaxCorrected_cpp(const arma::mat& y, const VARResult& var_result,
     corrected_var.beta      = Beta_t.t();
 
     return fBootstrapMax_cpp(y, corrected_var, nboot2, horizon, var_idx,
-                             prc, prc2, cumulate, scaling, exog, actual_threads);
+                             conf, conf2, cumulate, scaling, exog, actual_threads);
 }
 
 //' @export
 // [[Rcpp::export]]
 Rcpp::List fBootstrapMaxCorrected(const arma::mat& y, const Rcpp::List& var_result,
                                    int nboot1, int nboot2, int horizon, int var_idx,
-                                   double prc = 90.0, double prc2 = 68.0,
+                                   double conf = 90.0, double conf2 = 68.0,
                                    Rcpp::IntegerVector cumulate = Rcpp::IntegerVector(),
                                    Rcpp::Nullable<arma::vec> scaling = R_NilValue,
                                    Rcpp::Nullable<arma::mat> exog    = R_NilValue,
@@ -165,7 +165,7 @@ Rcpp::List fBootstrapMaxCorrected(const arma::mat& y, const Rcpp::List& var_resu
         : Rcpp::as<arma::uvec>(cumulate) - 1;
     BootstrapMaxResult res = fBootstrapMaxCorrected_cpp(y, vr, nboot1, nboot2,
                                                         horizon, var_idx - 1,
-                                                        prc, prc2, cumulate_cpp,
+                                                        conf, conf2, cumulate_cpp,
                                                         scaling, exog, n_threads);
 
     Rcpp::NumericVector bootmax_out(res.bootmax_flat.begin(), res.bootmax_flat.end());

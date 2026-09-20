@@ -23,7 +23,7 @@ BootstrapIVMBBResult
 fBootstrapIVMBB_cpp(const arma::mat &y, const VARResult &var_result,
                      const arma::mat &Z, int nboot, int blocksize,
                      const arma::ivec &adjustZ, const arma::ivec &adjustu,
-                     int policyvar, int horizon, double prc, double prc2,
+                     int policyvar, int horizon, double conf, double conf2,
                      Rcpp::Nullable<arma::mat> exog, int n_threads) {
 
   // Extract VAR components from struct (much faster than from Rcpp::List)
@@ -167,10 +167,10 @@ actual_threads = 1;
   }
 
   // Compute percentiles
-  const double up_pct  = 50.0 + prc  * 0.5;
-  const double low_pct = 50.0 - prc  * 0.5;
-  const double up_pct2  = 50.0 + prc2 * 0.5;
-  const double low_pct2 = 50.0 - prc2 * 0.5;
+  const double up_pct  = 50.0 + conf  * 0.5;
+  const double low_pct = 50.0 - conf  * 0.5;
+  const double up_pct2  = 50.0 + conf2 * 0.5;
+  const double low_pct2 = 50.0 - conf2 * 0.5;
 
   // Pre-allocate output matrices
   arma::mat upper(N, H, arma::fill::none);
@@ -241,7 +241,7 @@ actual_threads = 1;
 // alignment ' @param adjustu Integer vector of length 2: [start, end] indices
 // for residuals alignment ' @param policyvar Integer index (1-based) of the
 // policy variable ' @param horizon Integer maximum impulse response horizon '
-//@param prc Double percentile for confidence bands (e.g., 68 for 68% CI) '
+//@param conf Double percentile for confidence bands (e.g., 68 for 68% CI) '
 //@param exog Optional matrix of exogenous variables (T x M). Default is NULL.
 //' @param n_threads Integer number of threads for parallel computation.
 //'   Default is 0 (uses all available cores). Set to 1 for single-threaded
@@ -274,13 +274,13 @@ actual_threads = 1;
 //' result <- fBootstrapIVMBB(y, var_result, Z,
 //'                             nboot = 1000, blocksize = 10,
 //'                             adjustZ = c(1, 100), adjustu = c(1, 100),
-//'                             policyvar = 1, horizon = 20, prc = 68)
+//'                             policyvar = 1, horizon = 20, conf = 68)
 //'
 //' # Use 4 threads for parallel computation
 //' result <- fBootstrapIVMBB(y, var_result, Z,
 //'                             nboot = 1000, blocksize = 10,
 //'                             adjustZ = c(1, 100), adjustu = c(1, 100),
-//'                             policyvar = 1, horizon = 20, prc = 68,
+//'                             policyvar = 1, horizon = 20, conf = 68,
 //'                             n_threads = 4)
 //' }
 //'
@@ -290,7 +290,7 @@ Rcpp::List fBootstrapIVMBB(const arma::mat &y, const Rcpp::List &var_result,
                             const arma::mat &Z, int nboot, int blocksize,
                             const arma::ivec &adjustZ,
                             const arma::ivec &adjustu, int policyvar,
-                            int horizon, double prc = 90.0, double prc2 = 68.0,
+                            int horizon, double conf = 90.0, double conf2 = 68.0,
                             Rcpp::Nullable<arma::mat> exog = R_NilValue,
                             int n_threads = 0) {
 
@@ -311,7 +311,7 @@ Rcpp::List fBootstrapIVMBB(const arma::mat &y, const Rcpp::List &var_result,
   // Call the C++ function with the struct
   BootstrapIVMBBResult result =
       fBootstrapIVMBB_cpp(y, var_result_struct, Z, nboot, blocksize, adjustZ,
-                           adjustu, policyvar, horizon, prc, prc2, exog, n_threads);
+                           adjustu, policyvar, horizon, conf, conf2, exog, n_threads);
 
   // Return results as a list for R
   return Rcpp::List::create(Rcpp::Named("upper")     = result.upper,

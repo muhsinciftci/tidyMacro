@@ -18,7 +18,7 @@
 
 BootstrapUhligResult
 fBootstrapUhlig_cpp(const arma::mat& y, const VARResult& var_result,
-                    int nboot, int horizon, int idx, double prc, double prc2,
+                    int nboot, int horizon, int idx, double conf, double conf2,
                     const arma::uvec& cumulate,
                     Rcpp::Nullable<arma::mat> exog,
                     int n_threads) {
@@ -101,10 +101,10 @@ fBootstrapUhlig_cpp(const arma::mat& y, const VARResult& var_result,
         bootuhlig_flat.col(b) = arma::vectorise(struct_irf);
     }
 
-    const double up_pct   = 50.0 + prc  * 0.5;
-    const double low_pct  = 50.0 - prc  * 0.5;
-    const double up_pct2  = 50.0 + prc2 * 0.5;
-    const double low_pct2 = 50.0 - prc2 * 0.5;
+    const double up_pct   = 50.0 + conf  * 0.5;
+    const double low_pct  = 50.0 - conf  * 0.5;
+    const double up_pct2  = 50.0 + conf2 * 0.5;
+    const double low_pct2 = 50.0 - conf2 * 0.5;
 
     arma::mat upper (N, H, arma::fill::zeros);
     arma::mat lower (N, H, arma::fill::zeros);
@@ -153,7 +153,7 @@ fBootstrapUhlig_cpp(const arma::mat& y, const VARResult& var_result,
 // [[Rcpp::export]]
 Rcpp::List fBootstrapUhlig(const arma::mat& y, const Rcpp::List& var_result,
                             int nboot, int horizon, int idx,
-                            double prc = 90.0, double prc2 = 68.0,
+                            double conf = 90.0, double conf2 = 68.0,
                             Rcpp::IntegerVector cumulate = Rcpp::IntegerVector(),
                             Rcpp::Nullable<arma::mat> exog = R_NilValue,
                             int n_threads = 0) {
@@ -170,7 +170,7 @@ Rcpp::List fBootstrapUhlig(const arma::mat& y, const Rcpp::List& var_result,
         ? arma::uvec()
         : Rcpp::as<arma::uvec>(cumulate) - 1;
     BootstrapUhligResult res = fBootstrapUhlig_cpp(y, vr, nboot, horizon,
-                                                   idx - 1, prc, prc2,
+                                                   idx - 1, conf, conf2,
                                                    cumulate_cpp, exog, n_threads);
 
     Rcpp::NumericVector bootuhlig_out(res.bootuhlig_flat.begin(), res.bootuhlig_flat.end());

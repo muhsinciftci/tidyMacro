@@ -28,3 +28,7 @@ AGENTS.md
 
 /.quarto/
 **/*.quarto_ipynb
+
+# Quarto renders here; sync-docs.sh mirrors it to docs/ (which IS tracked)
+_site/_output/
+_site/.quarto/

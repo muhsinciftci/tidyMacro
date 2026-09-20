@@ -42,7 +42,7 @@ BootHeteroResult fBootstrapHetero_cpp(const arma::mat& y,
                                       const arma::ivec& adjustu,
                                       int nboot, int blocksize,
                                       int hor, int nvar, double scale,
-                                      double prc, double prc2,
+                                      double conf, double conf2,
                                       int n_threads);
 
 // R wrapper: point estimate
@@ -60,6 +60,6 @@ Rcpp::List fBootstrapHetero(const arma::mat& y,
                              const arma::ivec& adjustu,
                              int nboot, int blocksize,
                              int hor, int nvar, double scale,
-                             double prc, double prc2, int n_threads);
+                             double conf, double conf2, int n_threads);
 
 #endif // FHETERORF_H

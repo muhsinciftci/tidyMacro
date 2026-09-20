@@ -80,14 +80,22 @@
   as.double(x)
 }
 
-# Validates 'conf': one or more confidence levels in (0, 1), e.g. 0.90 or
-# c(0.68, 0.95) for a double-band plot. Returned sorted descending (widest
-# first) so downstream band-building and plotting order is deterministic.
+# Validates 'conf': one or more confidence levels in PERCENT, e.g. 90 or
+# c(68, 95) for a double-band plot. Returned sorted descending (widest first)
+# so downstream band-building and plotting order is deterministic. Percent is
+# the package-wide convention; every band argument in tidyMacro uses it.
 .fLP_validate_conf_vector <- function(conf) {
   if (!is.numeric(conf) || length(conf) == 0L || anyNA(conf) ||
-      any(!is.finite(conf)) || any(conf <= 0) || any(conf >= 1)) {
-    stop("fLP: 'conf' must be one or more confidence levels in (0, 1), e.g. 0.90 or c(0.68, 0.95).")
+      any(!is.finite(conf)) || any(conf <= 0) || any(conf >= 100)) {
+    stop("fLP: 'conf' must be one or more confidence levels in (0, 100), e.g. 90 or c(68, 95).")
   }
+  # A fraction is the likeliest mistake now that the scale is percent, and
+  # 0.90 would otherwise pass as a 0.9% band. Reject it by name.
+  if (is.numeric(conf) && length(conf) && any(conf < 1))
+    stop("fLP: 'conf' is in percent, not a fraction. Use ",
+         paste(format(conf[conf < 1] * 100, trim = TRUE), collapse = ", "),
+         " instead of ", paste(format(conf[conf < 1], trim = TRUE), collapse = ", "),
+         ".", call. = FALSE)
   conf <- sort(unique(as.double(conf)), decreasing = TRUE)
   conf
 }
@@ -363,12 +371,12 @@
 #' @param shock Character. \strong{Required.} Name of the shock/impulse variable
 #'   (must appear on the RHS). This is the variable whose coefficient at each
 #'   horizon is returned as the IRF.
-#' @param conf Numeric in (0, 1). One or more confidence levels for bands, e.g.
-#'   \code{0.90} or \code{c(0.68, 0.95)}. When more than one level is supplied,
+#' @param conf Numeric in (0, 100), in percent. One or more confidence levels
+#'   for bands, e.g. \code{90} or \code{c(68, 95)}. When more than one is supplied,
 #'   \code{irfs_upper} and \code{irfs_lower} become named lists of matrices
 #'   (one per level, keyed by the level as a string) and \code{fPlotLP()} draws
 #'   one ribbon per level. Bands are always rebuilt in R from \code{irfs_se},
-#'   so multi-level fits cost the same as single-level fits. Default: 0.90.
+#'   so multi-level fits cost the same as single-level fits. Default: 90.
 #' @param nw_lags Integer or \code{NULL}. Base Newey-West bandwidth.
 #'   At horizon \eqn{h} the effective bandwidth is
 #'   \code{max(nw_lags + h + nw_offset, 0)} (Bartlett kernel).
@@ -435,7 +443,7 @@
 #' @export
 fLP <- function(formula, data, horizons = 12L,
                 shock,
-                conf         = 0.90,
+                conf         = 90,
                 nw_lags      = NULL,
                 nw_offset    = 1L,
                 store_full   = FALSE,
@@ -626,7 +634,7 @@ fLP <- function(formula, data, horizons = 12L,
     X            = X,
     H            = H,
     shock_col    = as.integer(shock_col),
-    conf_level   = as.double(conf[1L]),   # any level works; bands rebuilt below
+    conf_level   = as.double(conf[1L]) / 100,  # C++ wants a fraction
     nw_lags_base = as.integer(nw_lags),
     store_full   = isTRUE(store_full),
     cumulative   = isTRUE(cumulative),
@@ -640,10 +648,10 @@ fLP <- function(formula, data, horizons = 12L,
   # Rebuild bands from irfs_se so multiple confidence levels come from a
   # single fit. Single conf: irfs_upper/lower stay matrices (unchanged
   # from the C++ output shape). Multi conf: they become named lists of
-  # matrices keyed by the level printed as a string ("0.68", "0.95", ...).
+  # matrices keyed by the level printed as a string ("68", "95", ...).
   # ---------------------------------------------------------------------
   .build_band <- function(cl) {
-    z <- stats::qnorm(0.5 * (1.0 + cl))
+    z <- stats::qnorm(0.5 * (1.0 + cl / 100))
     list(upper = res_cpp$irfs + z * res_cpp$irfs_se,
          lower = res_cpp$irfs - z * res_cpp$irfs_se)
   }
@@ -738,7 +746,7 @@ print.fLP <- function(x, digits = 4L, ...) {
   cat("Horizons         : 0 to", max(x$horizons),     "\n")
   cat("Cumulative       : ", isTRUE(x$cumulative),     "\n")
   cat("Confidence       : ",
-      paste0(format(x$conf * 100, trim = TRUE), "%", collapse = ", "), "\n")
+      paste0(format(x$conf, trim = TRUE), "%", collapse = ", "), "\n")
   nw_off <- if (!is.null(x$nw_offset)) x$nw_offset else 1L
   cat("NW lags          : base =", x$nw_lags,
       sprintf(", offset = %d -> effective at horizon h: max(base + h + %d, 0)\n",

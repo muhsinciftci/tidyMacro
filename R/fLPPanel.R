@@ -197,8 +197,8 @@
 #'   RHS-main is treated as a control. Must match the term label exactly
 #'   (after macro / lag expansion); interactions are labelled with
 #'   \code{":"}, e.g. \code{"shock:size"}.
-#' @param conf Numeric in (0, 1). One or more confidence levels, e.g.
-#'   \code{0.90} or \code{c(0.68, 0.95)}. Bands are rebuilt from the raw
+#' @param conf Numeric in (0, 100), in percent. One or more confidence levels,
+#'   e.g. \code{90} or \code{c(68, 95)}. Bands are rebuilt from the raw
 #'   SEs, so multi-level fits cost the same as single-level fits.
 #' @param small_sample Logical. If \code{TRUE}, apply the Imbens-Kolesar
 #'   (2016, REStat) small-sample refinement. Default \code{FALSE}.
@@ -238,7 +238,7 @@ fLPPanel <- function(formula, data,
                      panel_id,
                      horizons     = 12L,
                      shock,
-                     conf         = 0.90,
+                     conf         = 90,
                      small_sample = FALSE,
                      cumulative   = FALSE,
                      p_max        = 0L,
@@ -483,7 +483,7 @@ fLPPanel <- function(formula, data,
     q <- matrix(0, H + 1L, length(irf_names))
     for (i in seq_len(H + 1L))
       for (j in seq_along(irf_names))
-        q[i, j] <- stats::qt(0.5 * (1 + cl), df = res$df[i, j])
+        q[i, j] <- stats::qt(0.5 * (1 + cl / 100), df = res$df[i, j])
     list(upper = res$estimate + q * res$SE,
          lower = res$estimate - q * res$SE)
   }
@@ -494,9 +494,9 @@ fLPPanel <- function(formula, data,
     a[, , 2L] <- b$upper
     a
   }
-  CI90 <- build_fixed_ci(0.90)
-  CI95 <- build_fixed_ci(0.95)
-  CI99 <- build_fixed_ci(0.99)
+  CI90 <- build_fixed_ci(90)
+  CI95 <- build_fixed_ci(95)
+  CI99 <- build_fixed_ci(99)
   # Two-sided p-values from |t| under t(df).
   t_stat <- abs(res$estimate / res$SE)
   pval   <- matrix(NA_real_, H + 1L, length(irf_names))
@@ -586,7 +586,7 @@ print.fLPPanel <- function(x, digits = 4L, ...) {
       else                "asymptotic time-clustered (LAHR)",
       "\n")
   cat("Confidence       : ",
-      paste0(format(x$conf * 100, trim = TRUE), "%", collapse = ", "), "\n")
+      paste0(format(x$conf, trim = TRUE), "%", collapse = ", "), "\n")
   cat("Observations     : ", x$nobs, "\n")
   cat("Lag order p_max  : ", x$p_max, "\n")
   cat("\nIRF (shock = '", x$shock, "'):\n", sep = "")

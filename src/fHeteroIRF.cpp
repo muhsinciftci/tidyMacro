@@ -104,7 +104,7 @@ BootHeteroResult fBootstrapHetero_cpp(const arma::mat& y,
                                       const arma::ivec& adjustu,
                                       int nboot, int blocksize,
                                       int hor, int nvar, double scale,
-                                      double prc, double prc2,
+                                      double conf, double conf2,
                                       int n_threads) {
     const arma::mat& beta      = var_result.beta;
     const arma::mat& residuals = var_result.residuals;
@@ -193,10 +193,10 @@ BootHeteroResult fBootstrapHetero_cpp(const arma::mat& y,
     const arma::mat& irf_pt = pt.IRF;
 
     // Percentile bounds
-    const double up_pct   = 50.0 + prc  * 0.5;
-    const double low_pct  = 50.0 - prc  * 0.5;
-    const double up_pct2  = 50.0 + prc2 * 0.5;
-    const double low_pct2 = 50.0 - prc2 * 0.5;
+    const double up_pct   = 50.0 + conf  * 0.5;
+    const double low_pct  = 50.0 - conf  * 0.5;
+    const double up_pct2  = 50.0 + conf2 * 0.5;
+    const double low_pct2 = 50.0 - conf2 * 0.5;
 
     arma::mat upper(N, H),   lower(N, H);
     arma::mat upper2(N, H),  lower2(N, H);
@@ -321,8 +321,8 @@ Rcpp::List fHeteroIRF(const Rcpp::List& var_result,
 //' @param hor        IRF horizon.
 //' @param nvar       1-based normalization variable.
 //' @param scale      Shock size.
-//' @param prc        Primary confidence level (e.g. 90).
-//' @param prc2       Secondary confidence level (e.g. 68).
+//' @param conf        Primary confidence level (e.g. 90).
+//' @param conf2       Secondary confidence level (e.g. 68).
 //' @param n_threads  OpenMP threads (0 = all available - 1).
 //'
 //' @return A list with \code{upper}, \code{lower}, \code{upper2},
@@ -339,8 +339,8 @@ Rcpp::List fBootstrapHetero(const arma::mat& y,
                              int hor        = 48,
                              int nvar       = 1,
                              double scale   = 10.0,
-                             double prc     = 90.0,
-                             double prc2    = 68.0,
+                             double conf     = 90.0,
+                             double conf2    = 68.0,
                              int n_threads  = 0) {
 
     VARResult vr;
@@ -353,7 +353,7 @@ Rcpp::List fBootstrapHetero(const arma::mat& y,
 
     BootHeteroResult res = fBootstrapHetero_cpp(y, vr, Z, indsR1, adjustu,
                                                  nboot, blocksize, hor,
-                                                 nvar, scale, prc, prc2,
+                                                 nvar, scale, conf, conf2,
                                                  n_threads);
 
     return Rcpp::List::create(

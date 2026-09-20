@@ -40,7 +40,7 @@ static arma::vec lr_max_solve(const arma::cube& wold, const arma::mat& S,
 
 BootstrapMaxResult
 fBootstrapMax_cpp(const arma::mat& y, const VARResult& var_result,
-                  int nboot, int horizon, int var_idx, double prc, double prc2,
+                  int nboot, int horizon, int var_idx, double conf, double conf2,
                   const arma::uvec& cumulate,
                   Rcpp::Nullable<arma::vec> scaling,
                   Rcpp::Nullable<arma::mat> exog,
@@ -135,10 +135,10 @@ fBootstrapMax_cpp(const arma::mat& y, const VARResult& var_result,
         bootmax_flat.col(b) = arma::vectorise(struct_irf);
     }
 
-    const double up_pct   = 50.0 + prc  * 0.5;
-    const double low_pct  = 50.0 - prc  * 0.5;
-    const double up_pct2  = 50.0 + prc2 * 0.5;
-    const double low_pct2 = 50.0 - prc2 * 0.5;
+    const double up_pct   = 50.0 + conf  * 0.5;
+    const double low_pct  = 50.0 - conf  * 0.5;
+    const double up_pct2  = 50.0 + conf2 * 0.5;
+    const double low_pct2 = 50.0 - conf2 * 0.5;
 
     arma::mat upper (N, H, arma::fill::zeros);
     arma::mat lower (N, H, arma::fill::zeros);
@@ -187,7 +187,7 @@ fBootstrapMax_cpp(const arma::mat& y, const VARResult& var_result,
 // [[Rcpp::export]]
 Rcpp::List fBootstrapMax(const arma::mat& y, const Rcpp::List& var_result,
                          int nboot, int horizon, int var_idx,
-                         double prc = 90.0, double prc2 = 68.0,
+                         double conf = 90.0, double conf2 = 68.0,
                          Rcpp::IntegerVector cumulate = Rcpp::IntegerVector(),
                          Rcpp::Nullable<arma::vec> scaling = R_NilValue,
                          Rcpp::Nullable<arma::mat> exog    = R_NilValue,
@@ -205,7 +205,7 @@ Rcpp::List fBootstrapMax(const arma::mat& y, const Rcpp::List& var_result,
         ? arma::uvec()
         : Rcpp::as<arma::uvec>(cumulate) - 1;
     BootstrapMaxResult res = fBootstrapMax_cpp(y, vr, nboot, horizon,
-                                               var_idx - 1, prc, prc2,
+                                               var_idx - 1, conf, conf2,
                                                cumulate_cpp, scaling,
                                                exog, n_threads);
 

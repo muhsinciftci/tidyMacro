@@ -91,6 +91,9 @@ S <- t(chol(sigma))
 horizon   <- 48
 wold      <- fWoldIRF(var_bloom, horizon = horizon)
 point_irf <- fCholeskyIRF(wold, S)
+
+# Check Stability
+fCheckStability(var_model = var_bloom)
 ```
 
 ------------------------------------------------------------------------

@@ -224,7 +224,7 @@ boot_hd <- fBootstrapHDIV(
     adjustZ    = adjustZ,
     adjustu    = adjustu,
     policyvar  = 1L,
-    prc        = 90,
+    conf        = 90,
     n_threads  = 3
 )
 toc()

@@ -109,7 +109,7 @@ The four engines share more arguments than differ. The list below shows what eve
 
 ### 2.1 · Multi-level confidence bands from one fit
 
-Every engine accepts a **vector** `conf`, e.g. `conf = c(0.68, 0.95)`, and rebuilds every band from the same raw SE in R. There is no re-estimation cost and no multiple-testing story — bands are just alternative visualizations of the same variance. `fPlotLP()` draws one ribbon per level automatically.
+Every engine accepts a **vector** `conf`, e.g. `conf = c(68, 95)`, and rebuilds every band from the same raw SE in R. There is no re-estimation cost and no multiple-testing story — bands are just alternative visualizations of the same variance. `fPlotLP()` draws one ribbon per level automatically.
 
 ### 2.2 · Impulse units (`shock_size`)
 

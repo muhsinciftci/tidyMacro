@@ -116,11 +116,11 @@ arma::cube fBootstrapIVInvertible_cpp(
 //' @param c Integer (0/1): include intercept.
 //' @param hor Impulse-response horizon.
 //' @param cumu 1-indexed integer vector of variable positions to cumulate.
-//' @param prc Primary confidence level (e.g. 90). Default 90.
-//' @param prc2 Secondary confidence level (e.g. 68). Default 68.
+//' @param conf Primary confidence level (e.g. 90). Default 90.
+//' @param conf2 Secondary confidence level (e.g. 68). Default 68.
 //'
-//' @return List with N x (hor+1) matrices: upper, lower (at \code{prc}),
-//'   upper2, lower2 (at \code{prc2}), median.
+//' @return List with N x (hor+1) matrices: upper, lower (at \code{conf}),
+//'   upper2, lower2 (at \code{conf2}), median.
 //'
 //' @seealso \code{\link{fBootstrapIVRecover}}, \code{\link{fGetBands}}
 //'
@@ -132,7 +132,7 @@ Rcpp::List fBootstrapIVInvertible(
     const Rcpp::List& var_result,
     int nboot, int p, int c, int hor,
     const arma::ivec& cumu,
-    double prc = 90.0, double prc2 = 68.0)
+    double conf = 90.0, double conf2 = 68.0)
 {
     VARResult vr;
     vr.beta      = Rcpp::as<arma::mat>(var_result["beta"]);
@@ -147,7 +147,7 @@ Rcpp::List fBootstrapIVInvertible(
         y, instr, vr, nboot, p, c, hor, cumu);
 
     // Sort once, extract both confidence bands in a single pass
-    FGetBands2Result bands = fGetBands2_cpp(bootirf, prc, prc2);
+    FGetBands2Result bands = fGetBands2_cpp(bootirf, conf, conf2);
 
     return Rcpp::List::create(
         Rcpp::Named("upper")   = bands.upper,

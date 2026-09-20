@@ -51,7 +51,7 @@ A ggplot object, or a tibble if \code{return_data = TRUE}.
 \description{
 Plots impulse responses and confidence bands from an object returned by
 \code{fLP()}. Handles both single-band and multi-band fits transparently:
-if \code{fLP()} was called with \code{conf = c(0.68, 0.95)} the plot
+if \code{fLP()} was called with \code{conf = c(68, 95)} the plot
 automatically draws one ribbon per level (widest ribbon is drawn first with
 lowest opacity so the tighter band is visually on top).
 }

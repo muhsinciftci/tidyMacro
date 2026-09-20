@@ -15,8 +15,8 @@ fBootstrapHetero(
   hor = 48L,
   nvar = 1L,
   scale = 10,
-  prc = 90,
-  prc2 = 68,
+  conf = 90,
+  conf2 = 68,
   n_threads = 0L
 )
 }
@@ -41,9 +41,9 @@ fBootstrapHetero(
 
 \item{scale}{Shock size.}
 
-\item{prc}{Primary confidence level (e.g. 90).}
+\item{conf}{Primary confidence level (e.g. 90).}
 
-\item{prc2}{Secondary confidence level (e.g. 68).}
+\item{conf2}{Secondary confidence level (e.g. 68).}
 
 \item{n_threads}{OpenMP threads (0 = all available - 1).}
 }

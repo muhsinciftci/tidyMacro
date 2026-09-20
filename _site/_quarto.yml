@@ -1,6 +1,10 @@
 project:
   type: website
-  output-dir: ../docs
+  # Quarto renders into its own project directory (no path warnings, and stale
+  # pages get cleaned properly); sync-docs.sh then mirrors _output/ to ../docs,
+  # which is what the published site is served from.
+  output-dir: _output
+  post-render: ./sync-docs.sh
   render:
     - index.qmd
     - 01_Bloom2009.qmd
@@ -10,6 +14,7 @@ project:
     - 03_3_Kaenzig2021_InternalIV.qmd
     - 03_2_Kaenzig2021_Hetero.qmd
     - 04_ForniGambettiRicco.qmd
+    - 04_2_sign_narrative_external.qmd
     - 05_01_lp_primer.qmd
     - 05_2_lp_syntax_primer.qmd
     - 05_JordaTaylor2025.qmd
@@ -79,6 +84,9 @@ website:
         
       - href: 04_ForniGambettiRicco.qmd
         text: Identifcation via Noninvertible shocks
+
+      - href: 04_2_sign_narrative_external.qmd
+        text: Identifcation via Sign, Narrative and Sign+IV restrictions
         
       - href: 03_3_Kaenzig2021_InternalIV.qmd
         text: Identifcation via Internal instruments

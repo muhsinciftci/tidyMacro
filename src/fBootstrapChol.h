@@ -7,10 +7,10 @@
 // Struct to hold bootstrap Cholesky results
 struct BootstrapCholResult {
   arma::mat bootchol_flat; // slice_sz x nboot matrix (flattened)
-  arma::cube upper;        // N x N x (horizon+1) upper confidence bands (prc)
-  arma::cube lower;        // N x N x (horizon+1) lower confidence bands (prc)
-  arma::cube upper2;       // N x N x (horizon+1) upper confidence bands (prc2)
-  arma::cube lower2;       // N x N x (horizon+1) lower confidence bands (prc2)
+  arma::cube upper;        // N x N x (horizon+1) upper confidence bands (conf)
+  arma::cube lower;        // N x N x (horizon+1) lower confidence bands (conf)
+  arma::cube upper2;       // N x N x (horizon+1) upper confidence bands (conf2)
+  arma::cube lower2;       // N x N x (horizon+1) lower confidence bands (conf2)
   arma::cube boot_beta;    // N x n_coef x nboot bootstrapped coefficients
   int N;                   // Number of variables
   int H;                   // Horizon + 1
@@ -19,13 +19,13 @@ struct BootstrapCholResult {
 // Internal C++ function (for use in other C++ code)
 BootstrapCholResult
 fBootstrapChol_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
-                   int horizon, double prc, double prc2,
+                   int horizon, double conf, double conf2,
                    const std::string &bootscheme,
                    Rcpp::Nullable<arma::mat> exog, int n_threads);
 
 // R wrapper function (for calling from R)
 Rcpp::List fBootstrapChol(const arma::mat &y, const Rcpp::List &var_result,
-                          int nboot, int horizon, double prc, double prc2,
+                          int nboot, int horizon, double conf, double conf2,
                           const std::string &bootscheme,
                           Rcpp::Nullable<arma::mat> exog, int n_threads);
 

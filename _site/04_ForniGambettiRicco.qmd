@@ -302,7 +302,7 @@ boot_rec <- fBootstrapIVRecover(
   nboot     = nboot,
   p = p, c = c, r = r, hor = hor,
   cumu      = cumu,
-  prc = 90, prc2 = 68
+  conf = 90, conf2 = 68
 )
 ```
 
@@ -364,7 +364,7 @@ boot_inv <- fBootstrapIVInvertible(
   nboot      = nboot,
   p = p, c = c, hor = hor,
   cumu       = cumu,
-  prc = 90, prc2 = 68
+  conf = 90, conf2 = 68
 )
 ```
 

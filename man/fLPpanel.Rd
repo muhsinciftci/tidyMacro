@@ -10,7 +10,7 @@ fLPPanel(
   panel_id,
   horizons = 12L,
   shock,
-  conf = 0.9,
+  conf = 90,
   small_sample = FALSE,
   cumulative = FALSE,
   p_max = 0L,
@@ -49,8 +49,8 @@ RHS-main is treated as a control. Must match the term label exactly
 (after macro / lag expansion); interactions are labelled with
 \code{":"}, e.g. \code{"shock:size"}.}
 
-\item{conf}{Numeric in (0, 1). One or more confidence levels, e.g.
-\code{0.90} or \code{c(0.68, 0.95)}. Bands are rebuilt from the raw
+\item{conf}{Numeric in (0, 100), in percent. One or more confidence levels,
+e.g. \code{90} or \code{c(68, 95)}. Bands are rebuilt from the raw
 SEs, so multi-level fits cost the same as single-level fits.}
 
 \item{small_sample}{Logical. If \code{TRUE}, apply the Imbens-Kolesar

@@ -128,7 +128,7 @@
 #'   weights \code{1/(1-p_t)} (exogenous/absorbing case; with covariates
 #'   this is an approximation — the regression-adjustment version is not
 #'   yet implemented in C++).
-#' @param conf Confidence level for the reported bands (default 0.95).
+#' @param conf Confidence level for the reported bands, in percent (default 90).
 #' @param n_threads OpenMP threads (\code{-1} = all available).
 #'
 #' @return A tibble of class \code{"fLPDID"} with columns
@@ -162,7 +162,7 @@ fLPDID <- function(formula, data,
                    cluster = NULL,
                    nonabsorbing = FALSE, L = NULL, ccc = 1L,
                    pmd = FALSE, reweight = FALSE,
-                   conf = 0.95, n_threads = -1L) {
+                   conf = 90, n_threads = -1L) {
 
   env <- parent.frame()
 
@@ -221,8 +221,13 @@ fLPDID <- function(formula, data,
   if (!pmd && pre < 2L)
     stop("fLPDID: `pre` must be >= 2 (event_time -1 is the normalization).",
          call. = FALSE)
-  if (!is.numeric(conf) || length(conf) != 1L || conf <= 0 || conf >= 1)
-    stop("fLPDID: 'conf' must be a single number in (0, 1).", call. = FALSE)
+  if (!is.numeric(conf) || length(conf) != 1L || conf <= 0 || conf >= 100)
+    stop("fLPDID: 'conf' must be a single number in (0, 100), in percent.",
+         call. = FALSE)
+  if (conf < 1)
+    stop("fLPDID: 'conf' is in percent, not a fraction. Use ",
+         format(conf * 100, trim = TRUE), " instead of ",
+         format(conf, trim = TRUE), ".", call. = FALSE)
 
   # Reweight + controls is NOT the DDCG `teffects ra` regression-adjustment
   # estimator — surface that at runtime, not only in docs.
@@ -433,7 +438,7 @@ fLPDID <- function(formula, data,
   # applied in C++), not a normal quantile.
   crit <- rep(NA_real_, nrow(res))
   ok   <- !is.na(res$nclust) & res$nclust > 1L
-  crit[ok] <- stats::qt(1 - (1 - conf) / 2, res$nclust[ok] - 1L)
+  crit[ok] <- stats::qt(1 - (1 - conf / 100) / 2, res$nclust[ok] - 1L)
   res$conf_low  <- res$estimate - crit * res$se
   res$conf_high <- res$estimate + crit * res$se
   # The normalized event_time == -1 point is exactly zero by construction.

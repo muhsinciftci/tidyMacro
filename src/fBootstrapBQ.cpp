@@ -21,7 +21,7 @@
 // Calls _cpp versions of internal functions - no list overhead!
 BootstrapBQResult
 fBootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
-                 int horizon, double prc, double prc2, const std::string &bootscheme,
+                 int horizon, double conf, double conf2, const std::string &bootscheme,
                  const arma::uvec &cumulate,
                  Rcpp::Nullable<arma::vec> scaling, int n_threads = 0) {
 
@@ -120,10 +120,10 @@ fBootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
   }
 
   // Compute percentile bands
-  const double up_pct   = 50.0 + prc  * 0.5;
-  const double low_pct  = 50.0 - prc  * 0.5;
-  const double up_pct2  = 50.0 + prc2 * 0.5;
-  const double low_pct2 = 50.0 - prc2 * 0.5;
+  const double up_pct   = 50.0 + conf  * 0.5;
+  const double low_pct  = 50.0 - conf  * 0.5;
+  const double up_pct2  = 50.0 + conf2 * 0.5;
+  const double low_pct2 = 50.0 - conf2 * 0.5;
 
   arma::vec upper_vec(slice_sz);
   arma::vec lower_vec(slice_sz);
@@ -177,7 +177,7 @@ fBootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
 //' @param var_result List from \code{fVAR()}.
 //' @param nboot Number of bootstrap replications.
 //' @param horizon Maximum IRF horizon.
-//' @param prc Confidence level in percent (e.g. 68).
+//' @param conf Confidence level in percent (e.g. 68).
 //' @param bootscheme \code{"residual"} or \code{"wild"}.
 //' @param cumulate Integer vector (1-based) of variable indices whose IRFs
 //'   should be cumulated along the horizon. Typically used when the VAR is
@@ -224,14 +224,14 @@ fBootstrapBQ_cpp(const arma::mat &y, const VARResult &var_result, int nboot,
 //'
 //' # Bootstrap with cumulation of both variables (VAR in first differences)
 //' boot <- fBootstrapBQ(y, var_result, nboot = 1000, horizon = 40,
-//'                      prc = 68, bootscheme = "residual",
+//'                      conf = 68, bootscheme = "residual",
 //'                      cumulate = c(1L, 2L))
 //' }
 //'
 //' @export
 // [[Rcpp::export]]
 Rcpp::List fBootstrapBQ(const arma::mat &y, const Rcpp::List &var_result,
-                        int nboot, int horizon, double prc = 90.0, double prc2 = 68.0,
+                        int nboot, int horizon, double conf = 90.0, double conf2 = 68.0,
                         const std::string &bootscheme = "residual",
                         Rcpp::IntegerVector cumulate = Rcpp::IntegerVector(),
                         Rcpp::Nullable<arma::vec> scaling = R_NilValue,
@@ -254,7 +254,7 @@ Rcpp::List fBootstrapBQ(const arma::mat &y, const Rcpp::List &var_result,
       : Rcpp::as<arma::uvec>(cumulate) - 1;
 
   BootstrapBQResult result = fBootstrapBQ_cpp(y, var_result_struct, nboot,
-                                              horizon, prc, prc2, bootscheme,
+                                              horizon, conf, conf2, bootscheme,
                                               cumulate_cpp, scaling, n_threads);
 
   Rcpp::NumericVector bootbq_out(result.bootbq_flat.begin(),
