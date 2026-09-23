@@ -22,7 +22,7 @@ the instrument-subsample covariance.}
 \value{
 A list with \code{b1} (identified impact column), \code{B}
   (completed N x N impact matrix with \code{B \%*\% t(B) = sigma} and
-  \code{B[, 1] = b1}), \code{sigma_b} (instrument-subsample covariance),
+  first column proportional to \code{b1}), \code{sigma_b} (instrument-subsample covariance),
   \code{fs_beta}, \code{fs_F} and \code{fs_r2} (first-stage coefficients,
   F statistic on the excluded instruments, and R-squared), \code{shock_sd}
   (the implied shock standard deviation) and \code{n_iv}.

@@ -42,7 +42,9 @@ to exclude it.}
 
 \item{sign}{An N x ds matrix of sign restrictions: \code{+1} the response must
 be non-negative, \code{-1} non-positive, \code{0} unrestricted. \code{ds}
-must equal N when no instrument is used, and N - 1 with one.}
+must equal N when no instrument is used, and N - k with a k-column
+instrument (\code{k = ncol(instrument$Z)}), since shocks 1:k are the
+instrumented ones.}
 
 \item{nsteps}{Integer number of horizons to report, impact included
 (default 40).}
@@ -63,7 +65,7 @@ Uhlig (2005) and Antolin-Diaz and Rubio-Ramirez (2018) report 68, so pass
 \code{conf = 68} to match them).
 A vector requests several levels at once, e.g. \code{c(68, 90)}: the first
 is reported in \code{IRinf}/\code{IRsup} and every level is returned in
-\code{bands}. Extra levels need \code{store_draws = TRUE}.}
+\code{bands}. Extra levels do not require storing the draws.}
 
 \item{inference}{Integer: 1 (default) draws reduced-form parameters from the
 posterior; 0 holds them at OLS, leaving only rotation uncertainty.}
@@ -80,9 +82,13 @@ rather than as row numbers.}
 
 \item{instrument}{Optional list with component \code{Z}, a T x k instrument
 matrix aligned with the rows of \code{y}, missing values allowed. Selects
-the \code{sign+iv} scheme. The identified column is held at its OLS value
-across draws, as the VAR Toolbox does, so the bands do not carry the
-instrument's own sampling uncertainty.}
+the \code{sign+iv} scheme. With \code{k = 1} the single shock is identified
+by \code{\link{fRecoverBIV_cpp}} (Gertler-Karadi/Mertens-Ravn); with
+\code{k > 1} the k shocks are jointly identified by
+\code{\link{fRecoverBIVMulti_cpp}}, following the block generalisation in
+\code{VARiriv_B.m} (Cesa-Bianchi & Sokol 2022). Either way the identified
+column(s) are held at their OLS value across draws, as the VAR Toolbox
+does, so the bands do not carry the instrument's own sampling uncertainty.}
 
 \item{narr_weight_mc}{Integer. Positive values switch on the ADRR importance
 reweighting, using this many Monte Carlo replications per draw. \code{0}
@@ -99,7 +105,7 @@ the residuals implied by each parameter draw.}
 
 \item{varnames}{Optional character vector of length N.}
 
-\item{n_threads}{Integer; 0 (default) uses all cores but one.}
+\item{n_threads}{Integer; 0 (default) uses all available OpenMP threads.}
 
 \item{seed}{Integer base seed (default 42).}
 
@@ -127,8 +133,9 @@ each draw is paired with a Haar-uniform rotation.
 Impulse responses are indexed \code{[variable, shock, horizon]} and FEVD
 shares are on the \code{[0, 1]} scale.
 
-With an instrument, the first column of \code{sign} corresponds to the second
-structural shock: shock 1 is the instrumented one and is not sign-restricted.
+With a k-column instrument, the first column of \code{sign} corresponds to
+structural shock k + 1: shocks 1:k are the instrumented ones and are not
+sign-restricted.
 }
 \section{Methods (by generic)}{
 \itemize{
@@ -143,5 +150,6 @@ Review}, 108(10), 2802--2829.
 }
 \seealso{
 \code{\link{fSR_cpp}}, \code{\link{fPlotIRFSign}},
-  \code{\link{fRecoverBIV_cpp}}, \code{\link{fHDShock_cpp}}
+  \code{\link{fRecoverBIV_cpp}}, \code{\link{fRecoverBIVMulti_cpp}},
+  \code{\link{fHDShock_cpp}}
 }

@@ -13,8 +13,8 @@
 //                       |B(i,j) e(t*,j)| > sum_{k != j} |B(i,k) e(t*,k)|.
 //
 // Structural shocks are e_t = B^{-1} u_t.  Only the dated rows are ever
-// formed: B is inverted once and applied to the handful of required residual
-// vectors, rather than solving for the whole sample.
+// formed: solve B * E = dated residuals for the handful of required dates,
+// rather than constructing B inverse or solving for the whole sample.
 
 // Restrictions in 0-based internal form, with the dated residual rows
 // de-duplicated so each is transformed only once per draw.
@@ -28,7 +28,7 @@ struct NarrativeRestrictions {
 
 // Per-worker scratch for the narrative check.
 struct NarrativeScratch {
-    arma::mat Binv;   // N x N
+    arma::mat dated;  // N x n_periods, selected residual vectors
     arma::mat E;      // N x n_periods, column s = shocks at periods(s)
 };
 

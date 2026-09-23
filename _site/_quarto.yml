@@ -6,7 +6,7 @@ project:
   output-dir: _output
   post-render: ./sync-docs.sh
   render:
-    - index.qmd
+    - 00_index.qmd
     - 01_Bloom2009.qmd
     - 02_1_Gali1999.qmd
     - 02_2_BeaudryPortier2014.qmd
@@ -14,7 +14,9 @@ project:
     - 03_3_Kaenzig2021_InternalIV.qmd
     - 03_2_Kaenzig2021_Hetero.qmd
     - 04_ForniGambettiRicco.qmd
-    - 04_2_sign_narrative_external.qmd
+    - 04_2_sign_restrictions.qmd
+    - 04_3_narrative_restrictions.qmd
+    - 04_4_sign_external_instruments.qmd
     - 05_01_lp_primer.qmd
     - 05_2_lp_syntax_primer.qmd
     - 05_JordaTaylor2025.qmd
@@ -44,7 +46,7 @@ website:
 
   navbar:
     left:
-      - href: index.qmd
+      - href: 00_index.qmd
         text: Home
       - href: faq.qmd
         text: FAQ
@@ -67,32 +69,38 @@ website:
     search: true
     collapse-level: 1
     contents:
-      - href: index.qmd
-        text: Welcome
+      - href: 00_index.qmd
+        text: Main
         
       - href: 01_Bloom2009.qmd
-        text: Identifcation via Short-run restrictions
+        text: Short-run restrictions
         
       - href: 02_1_Gali1999.qmd
-        text: Identifcation via Long-run restrictions
+        text: Long-run restrictions
         
       - href: 02_2_BeaudryPortier2014.qmd
-        text: Identifcation via Mixed restrictions
+        text: Mixed restrictions
         
       - href: 03_1_Kaenzig2021_ExternalIV.qmd
-        text: Identifcation via External Instruments and Weak IV
+        text: External Instruments and Weak IV
         
       - href: 04_ForniGambettiRicco.qmd
-        text: Identifcation via Noninvertible shocks
+        text: Noninvertible shocks
 
-      - href: 04_2_sign_narrative_external.qmd
-        text: Identifcation via Sign, Narrative and Sign+IV restrictions
+      - href: 04_2_sign_restrictions.qmd
+        text: Sign restrictions
+
+      - href: 04_3_narrative_restrictions.qmd
+        text: Narrative restrictions
+
+      - href: 04_4_sign_external_instruments.qmd
+        text: Sign restrictions and External instruments
         
       - href: 03_3_Kaenzig2021_InternalIV.qmd
-        text: Identifcation via Internal instruments
+        text: Internal instruments
         
       - href: 03_2_Kaenzig2021_Hetero.qmd
-        text: Identifcation via Heteroskedasticity
+        text: Heteroskedasticity
         
       - href: 05_01_lp_primer.qmd
         text: LP Primer
@@ -101,7 +109,7 @@ website:
         text: LP Syntax Primer
         
       - href: 05_JordaTaylor2025.qmd
-        text: LP with Shocks and IV
+        text: LP with Exogenous Shocks and IV
         
       - href: 06_AlmuzaraSancibrian2024.qmd
         text: LP Panel

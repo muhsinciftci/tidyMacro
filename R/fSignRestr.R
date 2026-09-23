@@ -13,7 +13,9 @@
 #'   to exclude it.
 #' @param sign An N x ds matrix of sign restrictions: \code{+1} the response must
 #'   be non-negative, \code{-1} non-positive, \code{0} unrestricted. \code{ds}
-#'   must equal N when no instrument is used, and N - 1 with one.
+#'   must equal N when no instrument is used, and N - k with a k-column
+#'   instrument (\code{k = ncol(instrument$Z)}), since shocks 1:k are the
+#'   instrumented ones.
 #' @param nsteps Integer number of horizons to report, impact included
 #'   (default 40).
 #' @param ndraws Integer number of accepted draws (default 500).
@@ -28,7 +30,7 @@
 #'   \code{conf = 68} to match them).
 #'   A vector requests several levels at once, e.g. \code{c(68, 90)}: the first
 #'   is reported in \code{IRinf}/\code{IRsup} and every level is returned in
-#'   \code{bands}. Extra levels need \code{store_draws = TRUE}.
+#'   \code{bands}. Extra levels do not require storing the draws.
 #' @param inference Integer: 1 (default) draws reduced-form parameters from the
 #'   posterior; 0 holds them at OLS, leaving only rotation uncertainty.
 #' @param narrative Optional list of narrative restrictions with components
@@ -41,9 +43,13 @@
 #'   rather than as row numbers.
 #' @param instrument Optional list with component \code{Z}, a T x k instrument
 #'   matrix aligned with the rows of \code{y}, missing values allowed. Selects
-#'   the \code{sign+iv} scheme. The identified column is held at its OLS value
-#'   across draws, as the VAR Toolbox does, so the bands do not carry the
-#'   instrument's own sampling uncertainty.
+#'   the \code{sign+iv} scheme. With \code{k = 1} the single shock is identified
+#'   by \code{\link{fRecoverBIV_cpp}} (Gertler-Karadi/Mertens-Ravn); with
+#'   \code{k > 1} the k shocks are jointly identified by
+#'   \code{\link{fRecoverBIVMulti_cpp}}, following the block generalisation in
+#'   \code{VARiriv_B.m} (Cesa-Bianchi & Sokol 2022). Either way the identified
+#'   column(s) are held at their OLS value across draws, as the VAR Toolbox
+#'   does, so the bands do not carry the instrument's own sampling uncertainty.
 #' @param narr_weight_mc Integer. Positive values switch on the ADRR importance
 #'   reweighting, using this many Monte Carlo replications per draw. \code{0}
 #'   (default) uses plain rejection sampling, as the VAR Toolbox does.
@@ -54,7 +60,7 @@
 #'   (default TRUE).
 #' @param exog Optional T x M matrix of exogenous regressors.
 #' @param varnames Optional character vector of length N.
-#' @param n_threads Integer; 0 (default) uses all cores but one.
+#' @param n_threads Integer; 0 (default) uses all available OpenMP threads.
 #' @param seed Integer base seed (default 42).
 #' @param verbose Logical; print progress diagnostics (default FALSE).
 #'
@@ -67,8 +73,9 @@
 #' Impulse responses are indexed \code{[variable, shock, horizon]} and FEVD
 #' shares are on the \code{[0, 1]} scale.
 #'
-#' With an instrument, the first column of \code{sign} corresponds to the second
-#' structural shock: shock 1 is the instrumented one and is not sign-restricted.
+#' With a k-column instrument, the first column of \code{sign} corresponds to
+#' structural shock k + 1: shocks 1:k are the instrumented ones and are not
+#' sign-restricted.
 #'
 #' @references
 #' Uhlig, H. (2005). \emph{Journal of Monetary Economics}, 52(2), 381--419.
@@ -77,7 +84,8 @@
 #' Review}, 108(10), 2802--2829.
 #'
 #' @seealso \code{\link{fSR_cpp}}, \code{\link{fPlotIRFSign}},
-#'   \code{\link{fRecoverBIV_cpp}}, \code{\link{fHDShock_cpp}}
+#'   \code{\link{fRecoverBIV_cpp}}, \code{\link{fRecoverBIVMulti_cpp}},
+#'   \code{\link{fHDShock_cpp}}
 #'
 #' @export
 fSignRestr <- function(y, p, c = 1, sign,
@@ -102,11 +110,27 @@ fSignRestr <- function(y, p, c = 1, sign,
 
     y <- as.matrix(y)
     if (!is.numeric(y)) stop("`y` must be numeric.")
-    if (anyNA(y))       stop("`y` must not contain missing values.")
+    if (any(!is.finite(y))) stop("`y` must contain only finite values.")
 
     N <- ncol(y)
-    p <- as.integer(p)
-    c <- as.integer(c)
+    integer_arg <- function(value, name, minimum = 0L) {
+        if (length(value) != 1L || !is.numeric(value) || !is.finite(value) ||
+            value != trunc(value) || value < minimum || value > .Machine$integer.max)
+            stop(sprintf("`%s` must be a finite integer >= %d.", name, minimum))
+        as.integer(value)
+    }
+    p <- integer_arg(p, "p", 1L)
+    c <- integer_arg(c, "c")
+    ndraws <- integer_arg(ndraws, "ndraws", 1L)
+    nsteps <- integer_arg(nsteps, "nsteps", 1L)
+    sr_hor <- integer_arg(sr_hor, "sr_hor", 1L)
+    sr_rot <- integer_arg(sr_rot, "sr_rot", 1L)
+    max_post_draws <- integer_arg(max_post_draws, "max_post_draws", 1L)
+    narr_weight_mc <- integer_arg(narr_weight_mc, "narr_weight_mc")
+    inference <- integer_arg(inference, "inference")
+    if (!inference %in% 0:1) stop("`inference` must be 0 or 1.")
+    if (!is.null(dates) && length(dates) != nrow(y))
+        stop("`dates` must have nrow(y) entries.")
     if (p < 1L)              stop("`p` must be at least 1.")
     if (!c %in% c(0L, 1L))   stop("`c` must be 0 or 1.")
 
@@ -126,8 +150,6 @@ fSignRestr <- function(y, p, c = 1, sign,
              " instead of ",
              paste(format(conf[conf < 1], trim = TRUE), collapse = ", "), ".")
     conf <- unique(conf)
-    if (length(conf) > 1L && !isTRUE(store_draws))
-        stop("Several `conf` levels require `store_draws = TRUE`.")
 
     if (is.null(varnames)) {
         varnames <- colnames(y)
@@ -138,8 +160,14 @@ fSignRestr <- function(y, p, c = 1, sign,
 
     if (!is.null(exog)) exog <- as.matrix(exog)
 
-    var_ols <- fVAR(y, p = p, c = c, exog = exog)
-    nobs    <- nrow(var_ols$residuals)
+    var_ols <- NULL
+    nobs <- nrow(y) - p
+    nexog <- if (is.null(exog)) 0L else ncol(exog)
+    if (N < 1L || nobs <= N * p + c + nexog)
+        stop("Too few observations for the VAR coefficients.")
+    if (!is.null(exog) && (nrow(exog) != nrow(y) || !is.numeric(exog) ||
+                          any(!is.finite(exog))))
+        stop("`exog` must be numeric and finite with nrow(y) rows.")
 
     ## ---- external instrument -------------------------------------------
     Bfix <- NULL; iv_info <- NULL
@@ -161,8 +189,9 @@ fSignRestr <- function(y, p, c = 1, sign,
         if (nrow(Z) != nrow(y))
             stop("`instrument$Z` must have as many rows as `y`.")
 
-        ## Align the instrument with the residual sample and keep the longest
-        ## run of rows where every instrument column is observed.
+        if (!is.numeric(Z) || ncol(Z) < 1L || ncol(Z) >= N || any(is.infinite(Z)))
+            stop("`instrument$Z` must be numeric, have 1 to N-1 columns, and contain no infinite values.")
+        ## Align to the residual sample and require one contiguous observed span.
         Zres  <- Z[(p + 1L):nrow(Z), , drop = FALSE]
         okrow <- stats::complete.cases(Zres)
         if (!any(okrow)) stop("`instrument$Z` has no observations inside the VAR sample.")
@@ -172,17 +201,29 @@ fSignRestr <- function(y, p, c = 1, sign,
             stop("`instrument$Z` has gaps inside its sample; only a contiguous span is supported.")
 
         Z_sub <- Zres[lo:hi, , drop = FALSE]
+        var_ols <- fVAR(y, p = p, c = c, exog = exog)
 
-        iv_info <- fRecoverBIV_cpp(
-            resid_sub = var_ols$residuals[lo:hi, , drop = FALSE],
-            Z_sub     = Z_sub,
-            sigma     = var_ols$sigma,
-            ntotcoeff = nrow(var_ols$beta))
-        Bfix <- matrix(iv_info$b1, ncol = 1L)
+        k <- ncol(Z_sub)
+        if (k == 1L) {
+            iv_info <- fRecoverBIV_cpp(
+                resid_sub = var_ols$residuals[lo:hi, , drop = FALSE],
+                Z_sub     = Z_sub,
+                sigma     = var_ols$sigma,
+                ntotcoeff = nrow(var_ols$beta))
+            Bfix <- matrix(iv_info$b1, ncol = 1L)
+        } else {
+            ## Joint identification of k > 1 shocks from k instruments
+            ## (VARiriv_B.m block generalisation); see fRecoverBIVMulti_cpp.
+            iv_info <- fRecoverBIVMulti_cpp(
+                resid_sub = var_ols$residuals[lo:hi, , drop = FALSE],
+                Z_sub     = Z_sub,
+                ntotcoeff = nrow(var_ols$beta))
+            Bfix <- iv_info$B
+        }
 
-        if (ncol(sign) != N - 1L)
-            stop(sprintf("With an instrument, `sign` must have %d columns (shock 1 is the instrumented one).",
-                         N - 1L))
+        if (ncol(sign) != N - k)
+            stop(sprintf("With a %d-column instrument, `sign` must have %d columns (shocks 1:%d are the instrumented ones).",
+                         k, N - k, k))
     } else if (ncol(sign) != N) {
         stop(sprintf("`sign` must have %d columns.", N))
     }
@@ -206,7 +247,8 @@ fSignRestr <- function(y, p, c = 1, sign,
                    resid_from_draw  = isTRUE(resid_from_draw),
                    store_draws      = isTRUE(store_draws),
                    exog = exog, n_threads = as.integer(n_threads),
-                   seed = as.integer(seed), verbose = isTRUE(verbose))
+                   seed = as.integer(seed), verbose = isTRUE(verbose),
+                   bands_conf = conf, fitted_var = var_ols)
 
     nkeep <- dim(res$Ball)[3]
     if (!is.null(res$IRall)) {
@@ -218,14 +260,13 @@ fSignRestr <- function(y, p, c = 1, sign,
     res$weights <- as.numeric(res$weights)
     res$n_tried <- as.integer(res$n_tried)
 
-    res$var      <- var_ols
     res$varnames <- varnames
     res$ident    <- ident
     res$p        <- p
     res$c        <- c
     res$nsteps   <- as.integer(nsteps)
     res$conf    <- conf
-    res$bands    <- .fSR_bands(res, conf)
+    names(res$bands) <- format(conf)
     res$iv       <- iv_info
     res$narrative_active <- nr$active
 
@@ -259,6 +300,8 @@ fSignRestr <- function(y, p, c = 1, sign,
                 stop(sprintf("Date(s) %s not found in `dates`.",
                              paste(sQuote(key[is.na(pos)]), collapse = ", ")))
         } else {
+            if (!is.numeric(period) || any(!is.finite(period)) || any(period != trunc(period)))
+                stop(sprintf("`narrative$%s$period` must contain integer rows or dates.", what))
             pos <- as.integer(period)
         }
         idx <- pos - p
@@ -276,7 +319,7 @@ fSignRestr <- function(y, p, c = 1, sign,
             stop("`narrative$sign` needs components `shock`, `period` and `sign`.")
         if (!all(s$sign %in% c(-1, 1)))
             stop("`narrative$sign$sign` entries must be -1 or 1.")
-        if (any(s$shock < 1L | s$shock > N)) stop("`narrative$sign$shock` is out of range.")
+        if (!is.numeric(s$shock) || any(!is.finite(s$shock)) || any(s$shock != trunc(s$shock)) || any(s$shock < 1L | s$shock > N)) stop("`narrative$sign$shock` is out of range.")
         out$ns_shock  <- as.integer(s$shock)
         out$ns_period <- resolve(s$period, "sign")
         out$ns_sign   <- as.numeric(s$sign)
@@ -285,8 +328,8 @@ fSignRestr <- function(y, p, c = 1, sign,
         d <- narrative$dom
         if (!all(c("shock", "period", "var") %in% names(d)))
             stop("`narrative$dom` needs components `shock`, `period` and `var`.")
-        if (any(d$shock < 1L | d$shock > N)) stop("`narrative$dom$shock` is out of range.")
-        if (any(d$var   < 1L | d$var   > N)) stop("`narrative$dom$var` is out of range.")
+        if (!is.numeric(d$shock) || any(!is.finite(d$shock)) || any(d$shock != trunc(d$shock)) || any(d$shock < 1L | d$shock > N)) stop("`narrative$dom$shock` is out of range.")
+        if (!is.numeric(d$var) || any(!is.finite(d$var)) || any(d$var != trunc(d$var)) || any(d$var < 1L | d$var > N)) stop("`narrative$dom$var` is out of range.")
         out$nd_shock  <- as.integer(d$shock)
         out$nd_period <- resolve(d$period, "dom")
         out$nd_var    <- as.integer(d$var)
@@ -314,10 +357,11 @@ print.fSignRestr <- function(x, ...) {
     if (x$narrative_active) cat("  Narrative restrictions: active\n")
     iv <- x[["iv"]]
     if (!is.null(iv)) {
-        cat("  Instrument     : first-stage F = ", sprintf("%.2f", iv$fs_F),
-            ", R2 = ", sprintf("%.3f", iv$fs_r2),
+        cat("  Instrument     : first-stage F = ",
+            paste(sprintf("%.2f", iv$fs_F), collapse = ", "),
+            ", R2 = ", paste(sprintf("%.3f", iv$fs_r2), collapse = ", "),
             ", n = ", iv$n_iv, "\n", sep = "")
-        cat("  IV column      : fixed at OLS (VAR Toolbox convention)\n", sep = "")
+        cat("  IV column(s)   : fixed at OLS (VAR Toolbox convention)\n", sep = "")
     }
     invisible(x)
 }

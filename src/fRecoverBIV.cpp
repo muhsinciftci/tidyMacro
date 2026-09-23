@@ -28,7 +28,6 @@ arma::mat fCompleteB_cpp(const arma::vec& b1, const arma::mat& sigma) {
     if (arma::dot(Q.col(0), q1) < 0.0) Q.col(0) *= -1.0;
 
     arma::mat B = P * Q;    // B B' = P Q Q' P' = sigma, exactly
-    B.col(0) = b1;          // restore the exact identified column
     return B;
 }
 
@@ -127,7 +126,7 @@ IVColumnResult fIVColumn_cpp(const arma::mat& resid_sub,
 //'
 //' @return A list with \code{b1} (identified impact column), \code{B}
 //'   (completed N x N impact matrix with \code{B \%*\% t(B) = sigma} and
-//'   \code{B[, 1] = b1}), \code{sigma_b} (instrument-subsample covariance),
+//'   first column proportional to \code{b1}), \code{sigma_b} (instrument-subsample covariance),
 //'   \code{fs_beta}, \code{fs_F} and \code{fs_r2} (first-stage coefficients,
 //'   F statistic on the excluded instruments, and R-squared), \code{shock_sd}
 //'   (the implied shock standard deviation) and \code{n_iv}.

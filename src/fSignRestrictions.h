@@ -21,7 +21,12 @@ struct SignRotScratch {
     arma::mat  rotated;      // N x m   rotated free block
     arma::mat  termaa;       // N x N   candidate B before column reordering
     arma::mat  Qs, Rs, Gs;   //         Haar-rotation scratch
-    arma::cube irfchk;       // N x m x sr_hor  responses used by the sign check
+    std::vector<arma::mat> signed_basis; // restricted rows x free columns, by shock
+    std::vector<arma::uword> n_restr;      // constrained variables per shock
+    std::vector<double> orientation;
+    bool restrictions_ready = false;
+    bool infeasible = false;
+    bool impact_match_first = false; // Bianchi-Sokol VARirSR: match at h=0, screen later
     std::vector<char>       used;   // free column already matched to a shock
     std::vector<arma::uword> order; // column permutation applied at the end
 };

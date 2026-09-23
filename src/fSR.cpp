@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <vector>
+#include <limits>
 
 namespace {
 
@@ -49,11 +50,6 @@ double nth_pct(std::vector<double>& v, double pct) {
 double nth_pct_w(const std::vector<double>& v, const std::vector<double>& w,
                  std::vector<int>& idx, double pct) {
     const int n = static_cast<int>(v.size());
-    idx.resize(n);
-    for (int i = 0; i < n; ++i) idx[i] = i;
-    std::sort(idx.begin(), idx.end(),
-              [&](int a, int b) { return v[a] < v[b]; });
-
     double total = 0.0;
     for (int i = 0; i < n; ++i) total += w[idx[i]];
     if (!(total > 0.0)) return v[idx[n / 2]];
@@ -130,7 +126,7 @@ void ir_and_vd(const arma::cube& wold, const arma::mat& B, int nsteps,
 //' @param max_post_draws Integer maximum parameter draws attempted per accepted
 //'   draw before that slot is abandoned (default 1000).
 //' @param conf Numeric coverage of the reported credible bands, in percent
-//'   (default 68).
+//'   (default 90).
 //' @param inference Integer. \code{1} (default) draws reduced-form parameters
 //'   from the posterior, so bands reflect both parameter and identification
 //'   uncertainty; \code{0} holds them at OLS, leaving only the set of admissible
@@ -156,12 +152,17 @@ void ir_and_vd(const arma::cube& wold, const arma::mat& B, int nsteps,
 //'   and bands, which avoids copying two
 //'   \code{(N * N * nsteps) x ndraws} matrices back into R.
 //' @param exog Optional T x M matrix of exogenous regressors (default NULL).
-//' @param n_threads Integer. \code{0} (default) uses all cores but one.
+//' @param n_threads Integer. \code{0} (default) uses all available OpenMP threads.
 //' @param seed Integer base seed. Accepted draw \code{d} uses a stream derived
 //'   from \code{seed} and \code{d}, so results are independent of the thread
 //'   count.
 //' @param verbose Logical; print thread count and acceptance diagnostics
 //'   (default FALSE).
+//'
+//' @param bands_conf Optional vector of confidence levels, with the first equal
+//'   to conf. All bands are computed in the same C++ summary pass.
+//' @param fitted_var Optional precomputed fVAR result on exactly y, p, c and
+//'   exog, supplied by the R wrapper to reuse its IV first-stage VAR fit.
 //'
 //' @return A list with medians and credible bands for the IRFs (\code{IRmed},
 //'   \code{IRinf}, \code{IRsup}) and the FEVD (\code{VDmed}, \code{VDinf},
@@ -229,7 +230,9 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
                    Rcpp::Nullable<arma::mat> exog = R_NilValue,
                    int n_threads = 0,
                    int seed = 42,
-                   bool verbose = false) {
+                   bool verbose = false,
+                   Rcpp::Nullable<arma::vec> bands_conf = R_NilValue,
+                   Rcpp::Nullable<Rcpp::List> fitted_var = R_NilValue) {
 
     // ---- 0. validation ------------------------------------------------
     if (nsteps < 1)          Rcpp::stop("nsteps must be at least 1.");
@@ -239,6 +242,17 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
     if (max_post_draws < 1)  Rcpp::stop("max_post_draws must be at least 1.");
     if (conf <= 0.0 || conf >= 100.0) Rcpp::stop("conf must lie strictly between 0 and 100.");
     if (inference != 0 && inference != 1) Rcpp::stop("inference must be 0 or 1.");
+    if (p < 1 || (c != 0 && c != 1) || y.n_cols < 1 ||
+        y.n_rows <= static_cast<arma::uword>(p))
+        Rcpp::stop("Invalid VAR dimensions, lag order or intercept.");
+    if (!std::isfinite(conf)) Rcpp::stop("conf must be finite.");
+    if (!SIGN.is_finite() || arma::any(arma::vectorise((SIGN != -1.0) % (SIGN != 0.0) % (SIGN != 1.0))))
+        Rcpp::stop("SIGN must contain only -1, 0 or 1.");
+    arma::vec levels = bands_conf.isNotNull() ? Rcpp::as<arma::vec>(bands_conf)
+                                             : arma::vec{conf};
+    if (levels.is_empty() || !levels.is_finite() || arma::any(levels <= 0.0) ||
+        arma::any(levels >= 100.0)) Rcpp::stop("Invalid band coverage levels.");
+    if (levels(0) != conf) Rcpp::stop("The first bands_conf level must equal conf.");
     if (!y.is_finite())      Rcpp::stop("y contains non-finite values.");
 
     const arma::uword N = y.n_cols;
@@ -259,14 +273,31 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
     }
 
     // ---- 1. OLS VAR and posterior factorisation -----------------------
-    VARResult var_ols = exog.isNotNull() ? fVAR_cpp(y, p, c, exog_mat)
-                                         : fVAR_cpp(y, p, c, R_NilValue);
+    if (exog.isNotNull() && (exog_mat.n_rows != y.n_rows || !exog_mat.is_finite()))
+        Rcpp::stop("exog must be finite and have nrow(y) rows.");
+    if (y.n_rows - p <= N * p + c + exog_mat.n_cols)
+        Rcpp::stop("Too few observations for the VAR coefficients.");
+    VARResult var_ols;
+    if (fitted_var.isNotNull()) {
+        const Rcpp::List fit(fitted_var.get());
+        var_ols.beta = Rcpp::as<arma::mat>(fit["beta"]);
+        var_ols.residuals = Rcpp::as<arma::mat>(fit["residuals"]);
+        var_ols.sigma = Rcpp::as<arma::mat>(fit["sigma"]);
+        var_ols.p = p; var_ols.c = c; var_ols.n_exog = exog_mat.n_cols;
+        if (var_ols.beta.n_rows != N*p+c+exog_mat.n_cols || var_ols.beta.n_cols != N ||
+            var_ols.residuals.n_rows != y.n_rows-p || var_ols.residuals.n_cols != N ||
+            var_ols.sigma.n_rows != N || var_ols.sigma.n_cols != N ||
+            !var_ols.beta.is_finite() || !var_ols.residuals.is_finite() || !var_ols.sigma.is_finite())
+            Rcpp::stop("fitted_var has incompatible dimensions or non-finite values.");
+    } else {
+        var_ols = exog.isNotNull() ? fVAR_cpp(y, p, c, exog_mat)
+                                  : fVAR_cpp(y, p, c, R_NilValue);
+    }
     arma::mat Y, X;
     fVARDesign_cpp(y, p, c, exog_mat, Y, X);
 
     const int nobs      = static_cast<int>(X.n_rows);
     const int k         = static_cast<int>(X.n_cols);
-    const int ntotcoeff = k;
     const int H_wold    = std::max(nsteps, sr_hor);
 
     NIWPosterior post;
@@ -293,20 +324,28 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
     if (inference == 0) wold_fixed = fWoldIRF_cpp(var_ols, H_wold - 1).irfwold;
 
     // ---- 4. storage ---------------------------------------------------
-    const int slice_sz = static_cast<int>(N) * static_cast<int>(N) * nsteps;
-    arma::mat  IRall(slice_sz, ndraws, arma::fill::zeros);
-    arma::mat  VDall(slice_sz, ndraws, arma::fill::zeros);
+    const double size_needed = static_cast<double>(N) * N * nsteps;
+    if (size_needed > std::numeric_limits<int>::max())
+        Rcpp::stop("Requested horizon exceeds the matrix dimension limit.");
+    const int slice_sz = static_cast<int>(size_needed);
+    // R owns these buffers: workers write through Armadillo views, and returning
+    // stored draws does not create a second copy of the two largest arrays.
+    Rcpp::NumericMatrix IR_storage(Rcpp::no_init(slice_sz, ndraws));
+    Rcpp::NumericMatrix VD_storage(Rcpp::no_init(slice_sz, ndraws));
+    arma::mat IRall(IR_storage.begin(), slice_sz, ndraws, false, true);
+    arma::mat VDall(VD_storage.begin(), slice_sz, ndraws, false, true);
     arma::cube Ball(N, N, ndraws, arma::fill::zeros);
     arma::cube beta_all(k, N, ndraws, arma::fill::zeros);
     arma::vec  weights(ndraws, arma::fill::ones);
     arma::ivec n_tried_v(ndraws, arma::fill::zeros);
     std::vector<char> slot_ok(ndraws, 0);
+    std::vector<std::string> slot_error(ndraws);
 
     int actual_threads = 1;
 #ifdef _OPENMP
-    actual_threads = (n_threads <= 0) ? std::max(1, omp_get_max_threads() - 1)
+    actual_threads = (n_threads <= 0) ? omp_get_max_threads()
                                       : n_threads;
-    omp_set_num_threads(actual_threads);
+    actual_threads = std::max(1, std::min(actual_threads, ndraws));
     if (verbose) std::printf("Using %d thread(s) for sign-restriction draws...\n",
                              actual_threads);
 #else
@@ -317,23 +356,24 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
 
     // ---- 5. draw loop -------------------------------------------------
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic) reduction(+ : total_rot)
+#pragma omp parallel num_threads(actual_threads) reduction(+ : total_rot)
 #endif
-    for (int d = 0; d < ndraws; ++d) {
-
-        // Each slot owns its stream, so the result is scheduling-invariant.
-        tidymacro::RNG rng(static_cast<std::uint64_t>(seed) * 1000003ULL +
-                           static_cast<std::uint64_t>(d) * 7919ULL + 1ULL);
-
+    {
         NIWScratch     niw_scr;
         SignRotScratch rot_scr;
         NarrativeScratch narr_scr;
         arma::mat G, sigma_d, beta_d, B, resid_draw, cum_sq, E_mc;
         arma::cube wold_local, irf, vd;
 
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (int d = 0; d < ndraws; ++d) {
+        // Each slot owns its stream; scratch is reused by the worker.
+        tidymacro::RNG rng(static_cast<std::uint64_t>(seed) * 1000003ULL +
+                           static_cast<std::uint64_t>(d) * 7919ULL + 1ULL);
         beta_d = var_ols.beta;
         sigma_d = var_ols.sigma;
-
         bool accepted = false;
         try {
         for (int t = 0; t < max_post_draws && !accepted; ++t) {
@@ -344,20 +384,11 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
                 VARResult vd_draw;
                 vd_draw.beta = beta_d;
                 vd_draw.p = p; vd_draw.c = c; vd_draw.n_exog = var_ols.n_exog;
-                wold_local = fWoldIRF_cpp(vd_draw, H_wold - 1).irfwold;
+                wold_local = fWoldIRF_cpp(vd_draw, sr_hor - 1).irfwold;
                 woldp = &wold_local;
             } else {
                 woldp = &wold_fixed;
             }
-
-            // The narrative screen follows `resid_from_draw`: the toolbox
-            // screens on OLS residuals even when the coefficients have been
-            // redrawn.
-            if (resid_from_draw && inference == 1) {
-                resid_draw = Y - X * beta_d;
-            }
-            const arma::mat& resid_narr =
-                (resid_from_draw && inference == 1) ? resid_draw : var_ols.residuals;
 
             fSignRotationPrep_cpp(sigma_d, Bfix_mat, rng, rot_scr);
 
@@ -368,8 +399,24 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
             n_tried_v(d) += n_rot;
             if (!found) continue;
 
+            // The narrative screen follows `resid_from_draw`: the toolbox
+            // screens on OLS residuals even when the coefficients have been
+            // redrawn.
+            if (narr.active && resid_from_draw && inference == 1) {
+                resid_draw = Y - X * beta_d;
+            }
+            const arma::mat& resid_narr =
+                (resid_from_draw && inference == 1) ? resid_draw : var_ols.residuals;
+
             if (narr.active && !fNarrativeCheck_cpp(B, resid_narr, narr, narr_scr)) continue;
 
+            // Only accepted draws need the full reporting horizon.
+            if (inference == 1 && nsteps > sr_hor) {
+                VARResult vd_draw;
+                vd_draw.beta = beta_d; vd_draw.p = p; vd_draw.c = c;
+                vd_draw.n_exog = var_ols.n_exog;
+                wold_local = fWoldIRF_cpp(vd_draw, nsteps - 1).irfwold;
+            }
             // ---- accepted ---------------------------------------------
             ir_and_vd(*woldp, B, nsteps, irf, vd, cum_sq, true);
             IRall.col(d)      = arma::vectorise(irf);
@@ -382,12 +429,18 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
             slot_ok[d] = 1;
             accepted   = true;
         }
+        } catch (const std::exception& e) {
+            slot_error[d] = e.what();
+            slot_ok[d] = 0;
         } catch (...) {
+            slot_error[d] = "Unknown numerical error";
             // Numerically degenerate slot: leave it unaccepted and report it
             // through n_failed.  Throwing out of an OpenMP region is not safe.
             slot_ok[d] = 0;
         }
     }
+
+    } // worker scratch
 
     // ---- 6. drop failed slots -----------------------------------------
     std::vector<arma::uword> keep_v;
@@ -395,6 +448,15 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
     for (int d = 0; d < ndraws; ++d) if (slot_ok[d]) keep_v.push_back(static_cast<arma::uword>(d));
 
     const int n_ok = static_cast<int>(keep_v.size());
+    int n_errors = 0;
+    std::string first_error;
+    for (const auto& error : slot_error) if (!error.empty()) {
+        if (first_error.empty()) first_error = error;
+        ++n_errors;
+    }
+    if (n_ok == 0 && n_errors > 0)
+        Rcpp::stop("No accepted draw; %d slots failed numerically. First error: %s",
+                   n_errors, first_error.c_str());
     if (n_ok == 0) {
         Rcpp::stop("No draw satisfied the restrictions. Loosen them, or raise "
                    "sr_rot / max_post_draws.");
@@ -403,8 +465,13 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
 
     if (n_failed > 0) {
         const arma::uvec keep(keep_v);
-        IRall = IRall.cols(keep);
-        VDall = VDall.cols(keep);
+        // Pack successful columns in place; their order is unchanged.
+        for (int i = 0; i < n_ok; ++i) {
+            if (keep_v[i] != static_cast<arma::uword>(i)) {
+                std::copy_n(IRall.colptr(keep_v[i]), slice_sz, IRall.colptr(i));
+                std::copy_n(VDall.colptr(keep_v[i]), slice_sz, VDall.colptr(i));
+            }
+        }
 
         arma::cube Ball_k(N, N, n_ok, arma::fill::none);
         arma::cube beta_k(k, N, n_ok, arma::fill::none);
@@ -423,37 +490,43 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
     }
 
     // ---- 7. medians, bands, Fry-Pagan ---------------------------------
-    const double pct_inf = (100.0 - conf) / 2.0;
-    const double pct_sup = 100.0 - pct_inf;
-
-    arma::cube IRmed(N, N, nsteps), IRinf(N, N, nsteps), IRsup(N, N, nsteps);
-    arma::cube VDmed(N, N, nsteps), VDinf(N, N, nsteps), VDsup(N, N, nsteps);
-
+    arma::cube IRmed(N, N, nsteps), VDmed(N, N, nsteps);
+    std::vector<arma::cube> IRlo(levels.n_elem), IRhi(levels.n_elem),
+                            VDlo(levels.n_elem), VDhi(levels.n_elem);
+    for (arma::uword l = 0; l < levels.n_elem; ++l) {
+        IRlo[l].set_size(N, N, nsteps); IRhi[l].set_size(N, N, nsteps);
+        VDlo[l].set_size(N, N, nsteps); VDhi[l].set_size(N, N, nsteps);
+    }
     std::vector<double> wv(weights.begin(), weights.end());
-
 #ifdef _OPENMP
-#pragma omp parallel for schedule(static)
+#pragma omp parallel num_threads(actual_threads)
 #endif
-    for (int i = 0; i < slice_sz; ++i) {
-        std::vector<double> ir(IRall.n_cols), vdv(VDall.n_cols);
-        for (arma::uword d = 0; d < IRall.n_cols; ++d) { ir[d] = IRall(i, d); vdv[d] = VDall(i, d); }
-
-        if (use_weights) {
-            std::vector<int> idx;
-            IRmed.at(i) = nth_pct_w(ir, wv, idx, 50.0);
-            IRinf.at(i) = nth_pct_w(ir, wv, idx, pct_inf);
-            IRsup.at(i) = nth_pct_w(ir, wv, idx, pct_sup);
-            VDmed.at(i) = nth_pct_w(vdv, wv, idx, 50.0);
-            VDinf.at(i) = nth_pct_w(vdv, wv, idx, pct_inf);
-            VDsup.at(i) = nth_pct_w(vdv, wv, idx, pct_sup);
-        } else {
-            std::vector<double> tmp = ir;
-            IRmed.at(i) = nth_pct(tmp, 50.0);      tmp = ir;
-            IRinf.at(i) = nth_pct(tmp, pct_inf);   tmp = ir;
-            IRsup.at(i) = nth_pct(tmp, pct_sup);
-            tmp = vdv; VDmed.at(i) = nth_pct(tmp, 50.0);
-            tmp = vdv; VDinf.at(i) = nth_pct(tmp, pct_inf);
-            tmp = vdv; VDsup.at(i) = nth_pct(tmp, pct_sup);
+    {
+        std::vector<double> values(n_ok);
+        std::vector<int> idx(n_ok);
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+        for (int i = 0; i < slice_sz; ++i) {
+            for (int which = 0; which < 2; ++which) {
+                const arma::mat& draws = which == 0 ? IRall : VDall;
+                for (int d = 0; d < n_ok; ++d) values[d] = draws(i, d);
+                if (use_weights) {
+                    for (int d = 0; d < n_ok; ++d) idx[d] = d;
+                    std::sort(idx.begin(), idx.end(),
+                              [&](int a, int b) { return values[a] < values[b]; });
+                }
+                auto percentile = [&](double pct) {
+                    return use_weights ? nth_pct_w(values, wv, idx, pct)
+                                       : nth_pct(values, pct);
+                };
+                (which == 0 ? IRmed : VDmed).at(i) = percentile(50.0);
+                for (arma::uword l = 0; l < levels.n_elem; ++l) {
+                    const double lo = (100.0 - levels(l)) / 2.0;
+                    (which == 0 ? IRlo[l] : VDlo[l]).at(i) = percentile(lo);
+                    (which == 0 ? IRhi[l] : VDhi[l]).at(i) = percentile(100.0 - lo);
+                }
+            }
         }
     }
 
@@ -488,9 +561,9 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
     }
 
     Rcpp::List out = Rcpp::List::create(
-        Rcpp::Named("IRmed") = IRmed, Rcpp::Named("IRinf") = IRinf,
-        Rcpp::Named("IRsup") = IRsup, Rcpp::Named("VDmed") = VDmed,
-        Rcpp::Named("VDinf") = VDinf, Rcpp::Named("VDsup") = VDsup,
+        Rcpp::Named("IRmed") = IRmed, Rcpp::Named("IRinf") = IRlo[0],
+        Rcpp::Named("IRsup") = IRhi[0], Rcpp::Named("VDmed") = VDmed,
+        Rcpp::Named("VDinf") = VDlo[0], Rcpp::Named("VDsup") = VDhi[0],
         Rcpp::Named("Ball") = Ball, Rcpp::Named("beta_all") = beta_all,
         Rcpp::Named("Bmed") = Bmed, Rcpp::Named("Bfp") = Ball.slice(sel),
         Rcpp::Named("IRfp") = IRfp, Rcpp::Named("VDfp") = VDfp,
@@ -499,11 +572,28 @@ Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN,
         Rcpp::Named("n_tried") = n_tried_v,
         Rcpp::Named("accept_rate") = accept_rate,
         Rcpp::Named("ndraws_tried") = total_rot,
-        Rcpp::Named("n_failed") = n_failed);
+        Rcpp::Named("n_failed") = n_failed,
+        Rcpp::Named("n_errors") = n_errors,
+        Rcpp::Named("first_error") = first_error);
 
+    Rcpp::List bands(levels.n_elem);
+    for (arma::uword l = 0; l < levels.n_elem; ++l) {
+        bands[l] = Rcpp::List::create(Rcpp::Named("IRinf") = IRlo[l],
+            Rcpp::Named("IRsup") = IRhi[l], Rcpp::Named("VDinf") = VDlo[l],
+            Rcpp::Named("VDsup") = VDhi[l]);
+    }
+    out["bands"] = bands;
+    out["var"] = Rcpp::List::create(Rcpp::Named("beta") = var_ols.beta,
+        Rcpp::Named("residuals") = var_ols.residuals, Rcpp::Named("sigma") = var_ols.sigma,
+        Rcpp::Named("p") = p, Rcpp::Named("c") = c, Rcpp::Named("n_exog") = var_ols.n_exog);
     if (store_draws) {
-        out["IRall"] = IRall;
-        out["VDall"] = VDall;
+        if (n_failed == 0) {
+            out["IRall"] = IR_storage;
+            out["VDall"] = VD_storage;
+        } else {
+            out["IRall"] = arma::mat(IRall.cols(0, n_ok - 1));
+            out["VDall"] = arma::mat(VDall.cols(0, n_ok - 1));
+        }
     }
     return out;
 }

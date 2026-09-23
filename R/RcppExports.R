@@ -1305,7 +1305,7 @@ fPolyConvolve <- function(A, B, nlags) {
 #'
 #' @return A list with \code{b1} (identified impact column), \code{B}
 #'   (completed N x N impact matrix with \code{B \%*\% t(B) = sigma} and
-#'   \code{B[, 1] = b1}), \code{sigma_b} (instrument-subsample covariance),
+#'   first column proportional to \code{b1}), \code{sigma_b} (instrument-subsample covariance),
 #'   \code{fs_beta}, \code{fs_F} and \code{fs_r2} (first-stage coefficients,
 #'   F statistic on the excluded instruments, and R-squared), \code{shock_sd}
 #'   (the implied shock standard deviation) and \code{n_iv}.
@@ -1331,6 +1331,50 @@ fPolyConvolve <- function(A, B, nlags) {
 #' @export
 fRecoverBIV_cpp <- function(resid_sub, Z_sub, sigma, ntotcoeff) {
     .Call(`_tidyMacro_fRecoverBIV_cpp`, resid_sub, Z_sub, sigma, ntotcoeff)
+}
+
+#' Proxy-SVAR Impact Columns from k Jointly-Identified External Instruments
+#'
+#' Recovers the structural impact columns of k >= 1 instrumented shocks by
+#' the block generalisation of the Mertens-Ravn procedure used in
+#' \code{VARiriv_B.m} (Cesa-Bianchi & Sokol 2022 replication code): first-
+#' and second-stage regressions on the joint instrument set, followed by the
+#' block partition of the instrument-subsample covariance into
+#' \code{S11}/\code{S21}/\code{S22} blocks that pins down \code{b11} and
+#' \code{b21}. With \code{k = 1} this collapses to the same regressions as
+#' \code{\link{fRecoverBIV_cpp}}, but without that function's extra
+#' Gertler-Karadi sign/scale normalisation, so the two need not agree
+#' numerically at \code{k = 1}.
+#'
+#' @param resid_sub T x N matrix of reduced-form VAR residuals restricted to
+#'   the rows overlapping the instruments. The instrumented variables must be
+#'   the first k columns, in the same order as \code{Z_sub}.
+#' @param Z_sub T x k matrix of instruments, row-aligned with \code{resid_sub}.
+#' @param ntotcoeff Integer number of coefficients per VAR equation
+#'   (\code{N * p + c + n_exog}), used in the degrees-of-freedom correction of
+#'   the instrument-subsample covariance.
+#'
+#' @return A list with \code{B} (N x k identified impact columns, ready to
+#'   pass as \code{Bfix} to \code{\link{fSR_cpp}}), \code{sigma_b}
+#'   (instrument-subsample covariance), \code{fs_beta}, \code{fs_F} and
+#'   \code{fs_r2} (first-stage coefficients, F statistics and R-squared, one
+#'   per instrumented equation), \code{relEig} (eigenvalues of the
+#'   reliability matrix, descending) and \code{n_iv}.
+#'
+#' @references
+#' Mertens, K., & Ravn, M. O. (2013). The dynamic effects of personal and
+#' corporate income tax changes in the United States. \emph{American Economic
+#' Review}, 103(4), 1212--1247.
+#'
+#' Cesa-Bianchi, A., & Sokol, A. (2022). Financial shocks, credit spreads,
+#' and the international credit channel. \emph{Journal of International
+#' Economics}, 135, 103543.
+#'
+#' @seealso \code{\link{fSR_cpp}}, \code{\link{fRecoverBIV_cpp}}
+#'
+#' @export
+fRecoverBIVMulti_cpp <- function(resid_sub, Z_sub, ntotcoeff) {
+    .Call(`_tidyMacro_fRecoverBIVMulti_cpp`, resid_sub, Z_sub, ntotcoeff)
 }
 
 #' Remove Small-Sample Bias from VAR Coefficient Estimates
@@ -1398,7 +1442,7 @@ fRemoveBias <- function(beta, c, p, boot_beta) {
 #' @param max_post_draws Integer maximum parameter draws attempted per accepted
 #'   draw before that slot is abandoned (default 1000).
 #' @param conf Numeric coverage of the reported credible bands, in percent
-#'   (default 68).
+#'   (default 90).
 #' @param inference Integer. \code{1} (default) draws reduced-form parameters
 #'   from the posterior, so bands reflect both parameter and identification
 #'   uncertainty; \code{0} holds them at OLS, leaving only the set of admissible
@@ -1424,12 +1468,17 @@ fRemoveBias <- function(beta, c, p, boot_beta) {
 #'   and bands, which avoids copying two
 #'   \code{(N * N * nsteps) x ndraws} matrices back into R.
 #' @param exog Optional T x M matrix of exogenous regressors (default NULL).
-#' @param n_threads Integer. \code{0} (default) uses all cores but one.
+#' @param n_threads Integer. \code{0} (default) uses all available OpenMP threads.
 #' @param seed Integer base seed. Accepted draw \code{d} uses a stream derived
 #'   from \code{seed} and \code{d}, so results are independent of the thread
 #'   count.
 #' @param verbose Logical; print thread count and acceptance diagnostics
 #'   (default FALSE).
+#'
+#' @param bands_conf Optional vector of confidence levels, with the first equal
+#'   to conf. All bands are computed in the same C++ summary pass.
+#' @param fitted_var Optional precomputed fVAR result on exactly y, p, c and
+#'   exog, supplied by the R wrapper to reuse its IV first-stage VAR fit.
 #'
 #' @return A list with medians and credible bands for the IRFs (\code{IRmed},
 #'   \code{IRinf}, \code{IRsup}) and the FEVD (\code{VDmed}, \code{VDinf},
@@ -1475,8 +1524,8 @@ fRemoveBias <- function(beta, c, p, boot_beta) {
 #'   \code{\link{fRecoverBIV_cpp}}, \code{\link{fVARPosterior_cpp}}
 #'
 #' @export
-fSR_cpp <- function(y, p, c, SIGN, nsteps = 40L, ndraws = 500L, sr_hor = 1L, sr_rot = 500L, max_post_draws = 1000L, conf = 90.0, inference = 1L, Bfix = NULL, narr_sign_shock = NULL, narr_sign_period = NULL, narr_sign_sign = NULL, narr_dom_shock = NULL, narr_dom_period = NULL, narr_dom_var = NULL, narr_weight_mc = 0L, resid_from_draw = FALSE, store_draws = TRUE, exog = NULL, n_threads = 0L, seed = 42L, verbose = FALSE) {
-    .Call(`_tidyMacro_fSR_cpp`, y, p, c, SIGN, nsteps, ndraws, sr_hor, sr_rot, max_post_draws, conf, inference, Bfix, narr_sign_shock, narr_sign_period, narr_sign_sign, narr_dom_shock, narr_dom_period, narr_dom_var, narr_weight_mc, resid_from_draw, store_draws, exog, n_threads, seed, verbose)
+fSR_cpp <- function(y, p, c, SIGN, nsteps = 40L, ndraws = 500L, sr_hor = 1L, sr_rot = 500L, max_post_draws = 1000L, conf = 90.0, inference = 1L, Bfix = NULL, narr_sign_shock = NULL, narr_sign_period = NULL, narr_sign_sign = NULL, narr_dom_shock = NULL, narr_dom_period = NULL, narr_dom_var = NULL, narr_weight_mc = 0L, resid_from_draw = FALSE, store_draws = TRUE, exog = NULL, n_threads = 0L, seed = 42L, verbose = FALSE, bands_conf = NULL, fitted_var = NULL) {
+    .Call(`_tidyMacro_fSR_cpp`, y, p, c, SIGN, nsteps, ndraws, sr_hor, sr_rot, max_post_draws, conf, inference, Bfix, narr_sign_shock, narr_sign_period, narr_sign_sign, narr_dom_shock, narr_dom_period, narr_dom_var, narr_weight_mc, resid_from_draw, store_draws, exog, n_threads, seed, verbose, bands_conf, fitted_var)
 }
 
 #' Print SVAR Identification Steps
@@ -1559,6 +1608,27 @@ fSVARSteps <- function() {
 #' @export
 fSignRestrictions_cpp <- function(sigma, SIGN, sr_hor = 1L, sr_rot = 500L, Bfix = NULL, beta = NULL, p = 1L, c = 1L, seed = 42L) {
     .Call(`_tidyMacro_fSignRestrictions_cpp`, sigma, SIGN, sr_hor, sr_rot, Bfix, beta, p, c, seed)
+}
+
+#' Collect All Rotations Satisfying Sign Restrictions
+#'
+#' Runs a fixed number of Haar rotations and retains every impact matrix that
+#' satisfies the requested sign restrictions. This is the storage convention
+#' used by Cesa-Bianchi and Sokol's \code{signRestrictions.m}; most callers
+#' should use \code{\link{fSignRestrictions_cpp}}, which stops at the first
+#' admissible rotation.
+#'
+#' @inheritParams fSignRestrictions_cpp
+#'
+#' @return A list with \code{Ball}, an N x N x \code{n_found} array of
+#'   admissible impact matrices, \code{n_found}, \code{n_tried}, and
+#'   \code{found}.
+#'
+#' @seealso \code{\link{fSignRestrictions_cpp}}
+#'
+#' @export
+fSignRestrictionsAll_cpp <- function(sigma, SIGN, sr_hor = 1L, sr_rot = 500L, Bfix = NULL, beta = NULL, p = 1L, c = 1L, seed = 42L) {
+    .Call(`_tidyMacro_fSignRestrictionsAll_cpp`, sigma, SIGN, sr_hor, sr_rot, Bfix, beta, p, c, seed)
 }
 
 #' Spectral Forecast Error Variance Decomposition

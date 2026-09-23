@@ -92,7 +92,7 @@ NarrativeRestrictions fNarrativePrep_cpp(const arma::uvec& ns_shock,
     R.nd_var    = to0(nd_var,    "narr_dom var",     N);
 
     for (arma::uword k = 0; k < R.ns_sign.n_elem; ++k) {
-        if (R.ns_sign(k) == 0.0) Rcpp::stop("narr_sign sign entries must be +1 or -1.");
+        if (R.ns_sign(k) != 1.0 && R.ns_sign(k) != -1.0) Rcpp::stop("narr_sign sign entries must be +1 or -1.");
     }
 
     arma::uvec all = arma::join_cols(R.ns_period, R.nd_period);
@@ -118,12 +118,13 @@ bool fNarrativeCheck_cpp(const arma::mat&             B,
     const arma::uword N  = B.n_rows;
     const arma::uword ns = R.periods.n_elem;
 
-    if (!arma::inv(scr.Binv, B)) return false;   // singular draw: reject
-
-    if (scr.E.n_rows != N || scr.E.n_cols != ns) scr.E.set_size(N, ns);
-    for (arma::uword s = 0; s < ns; ++s) {
-        scr.E.col(s) = scr.Binv * resid.row(R.periods(s)).t();
-    }
+    // Solve only for the dated residuals, never form the full inverse of B.
+    scr.dated.set_size(N, ns);
+    for (arma::uword s = 0; s < ns; ++s)
+        scr.dated.col(s) = resid.row(R.periods(s)).t();
+    if (!arma::solve(scr.E, B, scr.dated,
+                     arma::solve_opts::fast + arma::solve_opts::no_approx) ||
+        !scr.E.is_finite()) return false;
 
     return restrictions_hold(B, R, scr.E);
 }
@@ -211,6 +212,10 @@ Rcpp::List fCheckNarrative_cpp(const arma::mat& B,
                                int n_mc = 0,
                                int seed = 42) {
 
+    if (B.n_rows == 0 || B.n_rows != B.n_cols || resid.n_cols != B.n_rows ||
+        !B.is_finite() || !resid.is_finite())
+        Rcpp::stop("B must be square and finite; residuals must be finite with matching columns.");
+    if (n_mc < 0) Rcpp::stop("n_mc must be non-negative.");
     NarrativeRestrictions R = fNarrativePrep_cpp(
         as_uvec_or_empty(narr_sign_shock), as_uvec_or_empty(narr_sign_period),
         as_vec_or_empty(narr_sign_sign),

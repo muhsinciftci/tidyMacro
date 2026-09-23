@@ -226,113 +226,146 @@
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html",
-    "href": "04_2_sign_narrative_external.html",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
+    "objectID": "04_4_sign_external_instruments.html",
+    "href": "04_4_sign_external_instruments.html",
+    "title": "Identification via sign restrictions and external instruments",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidyMacro)\n\ntheme_set(fThemeTidyMacro())\n\n# Instrumented shocks occupy the first structural columns.\niv_shock &lt;- 1",
+    "crumbs": [
+      "Home",
+      "Sign restrictions and External instruments"
+    ]
+  },
+  {
+    "objectID": "04_4_sign_external_instruments.html#setup",
+    "href": "04_4_sign_external_instruments.html#setup",
+    "title": "Identification via sign restrictions and external instruments",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidyMacro)\n\ntheme_set(fThemeTidyMacro())\n\n# Instrumented shocks occupy the first structural columns.\niv_shock &lt;- 1",
+    "crumbs": [
+      "Home",
+      "Sign restrictions and External instruments"
+    ]
+  },
+  {
+    "objectID": "04_4_sign_external_instruments.html#sign-restrictions-external-instruments-iv",
+    "href": "04_4_sign_external_instruments.html#sign-restrictions-external-instruments-iv",
+    "title": "Identification via sign restrictions and external instruments",
+    "section": "2 Sign restrictions + External Instruments (IV)",
+    "text": "2 Sign restrictions + External Instruments (IV)\nThe two strategies can be combined, as proposed by Cesa-Bianchi and Sokol (2022). The motivation is practical: a researcher often has a credible instrument for one shock, typically monetary policy, but nothing comparable for the others. Rather than discard the instrument or leave the remaining shocks unidentified, the instrument point-identifies its column of \\(B\\) and sign restrictions set-identify the rest.\nPartition \\(B = \\begin{bmatrix} B^{IV} & B^{SR} \\end{bmatrix}\\). The first block is point-identified by the proxy through the usual two-stage regression (Stock and Watson 2012; Mertens and Ravn 2013): regress the first variable’s residual on the instrument, then project the remaining residuals on the fitted values to recover the ratios \\(b_{i1}/b_{11}\\), and rescale to shock units. The second block is set identified. The difference from plain sign restrictions is how \\(Q_j\\) is built: sequentially rather than by QR:\n\nFind the unit vector \\(Q^{IV}\\) that rotates the first column of \\(P\\) into \\(B^{IV}\\), i.e. \\(PQ^{IV} = B^{IV}\\).\nGiven \\(Q^{IV}\\), complete the remaining columns by Gram-Schmidt on standard normal draws, so that \\(Q_j = \\begin{bmatrix} Q^{IV} & Q_j^{SR}\\end{bmatrix}\\) is orthonormal.\n\nThen \\(B_j = PQ_j\\) satisfies \\(\\Sigma_u = B_jB_j'\\) with its first column pinned at the IV estimate, and only the remaining columns are screened against the sign restrictions. The monetary policy shock is never touched by the rotation loop.\n\n\n\n\n\n\nNoteWhat the scheme looks like in its original application\n\n\n\nCesa-Bianchi and Sokol (2022) use sign+iv to identify a financial shock, and the shape of their design is worth knowing because it is more demanding than the illustration below.\nTheir US block is a five-variable monthly VAR(12) over 1979m7-2016m12 in the 1-year rate, the corporate bond yield, real GDP, the CPI and the excess bond premium. Two shocks are point-identified by external instruments, the monetary policy and central bank information surprises of Jarociński and Karadi (2020), and only one further shock is set-identified by sign restrictions. A contractionary financial shock is defined as one that lowers output, prices and the policy rate while raising the credit spread and the borrowing rate; the restriction that does the identifying work is the last one, since it is the response of the borrowing rate that separates a financial shock from an ordinary demand shock. Restrictions are imposed over three months, and inference is a wild bootstrap following Mertens and Ravn (2013) rather than the Normal-inverse-Wishart posterior used here.\nfSignRestr() accepts a \\(k\\)-column instrument and leaves \\(N-k\\) columns for sign restrictions. Its inference uses posterior VAR draws with an IV block estimated once. This differs from the paper’s wild bootstrap, which re-estimates the VAR and the IV block for each bootstrap sample. The C++ two-IV algebra follows VARiriv_B.m; the all-rotation collector follows signRestrictions.m and VARirSR.m in inst/Bianchi/BianchiSokol2021/codes/Additional Codes/.\n\n\n\n2.1 The uncertainty the toolbox leaves out\nThe IV column is recovered once on the OLS point estimate. The draw loop then redraws \\((\\Phi, \\Sigma_u)\\) from the posterior at every iteration but reads \\(B^{IV}\\) back from that fixed value, regardless of the inference flag. The instrument’s own sampling error, the first-stage uncertainty that weak-instrument diagnostics are about, never reaches the bands.\nThe VAR Toolbox keeps the first-stage estimate at OLS rather than re-estimating it during posterior draws. The covariance normalization described below still changes the impact column’s length. A joint likelihood, as in Caldara and Herbst (2019) or Arias et al. (2021), is one route to modelling instrument uncertainty. Another is resampling residuals and instruments together and re-estimating the first stage, as in the Bianchi-Sokol wild bootstrap; this does not automatically provide inference robust to weak instruments. fSignRestr() follows the toolbox, so the bands on the instrumented shock should be read as conditional on the first stage.\nThe fixed column is renormalised against each draw’s Cholesky factor, \\(b_1 / \\lVert L^{-1}b_1 \\rVert\\), so its direction is constant but its length is not. For multiple instruments, Gram-Schmidt also changes subsequent columns’ directions when the IV-sample and VAR-draw covariances differ. Thus “fixed” means that the first stage is not re-estimated; it does not mean that every numerical entry of the impact block is unchanged. The paper’s bootstrap uses the IV-sample covariance for both recovery and completion.\n\n\n2.2 Application: the Romer-Romer instrument\nACR2019 allows a version where both the data and the instrument come from published work: it is the six-variable monetary VAR of Arias et al. (2019), distributed in the replication package of Braun and Brüggemann (2023), together with the narrative monetary policy shock of Romer and Romer (2004) as the external instrument. The six endogenous variables are the same ones used on the sign and narrative pages. The local Braun-Bruggemann code (inst/Bruggemann2022) estimates a proxy-augmented likelihood model and also imposes restrictions on the inverse impact matrix. Its dataset is used here; its identification algorithm is not the fixed-IV-block rotation method illustrated below.\n\ndata(ACR2019)\n\n# The replication code takes 100 * log of everything except the policy rate.\nacr &lt;- ACR2019 |&gt;\n  mutate(across(-c(Date, `Fed. Funds Rate`, RR), \\(x) 100 * log(x)))                \n\nMonetary policy is pinned by the instrument; one further shock is set-identified as a contractionary demand shock, lowering output, prices and the policy rate. The remaining four are left free. That is the same shape as the design in Cesa-Bianchi and Sokol (2022): instrument for the shock you can instrument, sign restrictions for one more, silence about the rest.\n\n# The first-stage normalization equation is the policy rate.\nendo_acr &lt;- acr |&gt; select(`Fed. Funds Rate`, everything(), -Date, -RR)\n\n# Column 1 of `sign_acr` is structural shock 2, the demand shock.\nsign_acr &lt;- matrix(0, nrow = 6, ncol = 5, dimnames = list(names(endo_acr), NULL))\nsign_acr[c(\"Real GDP\", \"GDP Deflator\", \"Fed. Funds Rate\"), 1] &lt;- -1\n\nsr_acr &lt;- fSignRestr(\n    as.matrix(endo_acr), \n    p = 12, \n    c = 0, \n    sign = sign_acr,\n    store_draws = FALSE,\n    nsteps = 48, \n    ndraws = 500, \n    sr_hor = 6, \n    conf   = c(68, 90), \n    inference = 1,\n    instrument = list(Z = as.matrix(ACR2019$RR)),\n    varnames   = names(endo_acr), seed = 42\n)\n\nsr_acr\n#&gt; Sign-restricted SVAR (sign+iv)\n#&gt;   Variables      : Fed. Funds Rate, Real GDP, GDP Deflator, Commodity Price Idx., Total Reserves, Non-Borrowed Reserves\n#&gt;   Lags           : 12   Intercept: 0\n#&gt;   Accepted draws : 500 of 500 slots (0 failed)\n#&gt;   Rotations tried: 21,021   acceptance: 2.379%\n#&gt;   Horizons       : 48   bands: 68, 90%\n#&gt;   Instrument     : first-stage F = 93.46, R2 = 0.167, n = 468\n#&gt;   IV column(s)   : fixed at OLS (VAR Toolbox convention)\n\n\nfPlotIRFSign(\n    sr_acr, \n    shock = iv_shock, \n    labels = \"Sign + IV (Romer-Romer)\",\n    conf = c(68, 90), \n    facet_ncol = 2\n)\n\n\n\n\n\n\n\nFigure 1: Responses to a monetary policy shock identified by the Romer-Romer narrative instrument, with a sign-identified demand shock alongside. Median with 68% and 90% credible bands, six-variable VAR(12) without constant, monthly US data 1965m1-2007m12.\n\n\n\n\n\nCheck instrument relevance in the normalization equation used by the model.\n\ntibble(\n  instrument = \"RR (Romer-Romer)\",\n  F  = sr_acr$iv$fs_F,\n  R2 = sr_acr$iv$fs_r2,\n  n  = sr_acr$iv$n_iv\n) |&gt;\n  mutate(across(where(is.numeric), \\(x) round(x, 3))) |&gt;\n  gt::gt()\n\n\n\n\n\n\n\ninstrument\nF\nR2\nn\n\n\n\n\nRR (Romer-Romer)\n93.458\n0.167\n468\n\n\n\n\n\n\n\nThe table reports relevance for the policy-rate equation used in this fit. Changing the first variable changes that diagnostic; a first-stage statistic previously computed for GDP cannot be reused for the policy-rate equation.\nBecause the impact column is held at its first-stage estimate, none of that weakness reaches the credible bands, for the reason set out above. These conditional credible bands are not weak-instrument-robust confidence sets.",
+    "crumbs": [
+      "Home",
+      "Sign restrictions and External instruments"
+    ]
+  },
+  {
+    "objectID": "04_4_sign_external_instruments.html#cesa-bianchi-and-sokol-2022",
+    "href": "04_4_sign_external_instruments.html#cesa-bianchi-and-sokol-2022",
+    "title": "Identification via sign restrictions and external instruments",
+    "section": "3 Cesa-Bianchi and Sokol (2022)",
+    "text": "3 Cesa-Bianchi and Sokol (2022)\nCesa-Bianchi and Sokol (2022) reports the domestic responses to an adverse US financial shock. The model is a five-variable monthly VAR(12) with a constant, estimated from 1979:M7 through 2016:M12. The endogenous variables are ordered as the one-year Treasury rate, corporate bond yield, real GDP, CPI and the excess bond premium. Monetary policy and central-bank-information shocks are jointly identified by the two high-frequency surprises of Jarociński and Karadi (2020). Conditional on those two columns, the financial shock is the first shock left for sign identification.\nThe financial shock lowers the policy rate, real GDP and CPI while raising the borrowing rate and the excess bond premium. These signs hold on impact and for the following two months. The remaining demand and supply shocks are unrestricted. The supplied MATLAB driver (main/CS_allFigures.m and scripts/STEP1_US_VAR_baseline.m) requests 2,000,000 wild-bootstrap samples and up to 10,000 rotations per stable VAR, and reports the mean response with 68% and 90% percentile bands. These settings are separate from fSignRestr()’s Bayesian draw count.\nFor the supplied US data at the OLS estimate, the impact signs have no nonzero direction in the complement of the two IV columns. More rotations of that fixed model cannot help. The all-rotation C++ collector now checks for a well-conditioned linear certificate of this incompatibility in small free subspaces, returning infeasible = TRUE, n_tried = 0 and the excluded rotation budget in n_ruled_out. Every bootstrap VAR must be checked separately: this OLS finding is not a claim that the entire bootstrap has no admissible models.\n\n3.1 Replication code\n\ndata(\"CBS2022\", package = \"tidyMacro\")\n\nus &lt;- CBS2022 |&gt;\n  dplyr::filter(Date &gt;= as.Date(\"1979-07-01\"), Date &lt;= as.Date(\"2016-12-01\"))\n\ny &lt;- us |&gt;\n  select(i_1YR, BondYield, lnRGDP, CPI, EBP)\n\nz &lt;- us |&gt;\n  select(MPshockSign, CBIshockSign)\n\n# Shocks 1 and 2 are identified by the instruments. Column 1 identifies\n# shock 3, the adverse financial shock; demand and supply remain unrestricted.\nsign_financial      &lt;- matrix(0, nrow = 5, ncol = 3)\nsign_financial[, 1] &lt;- c(-1, 1, -1, -1, 1)\n\nbs_us &lt;- fSignRestr(\n    y = y,\n    p = 12,\n    c = 1,\n    sign = sign_financial,\n    instrument = list(Z = z),\n    nsteps = 36,\n    ndraws = 2000,\n    sr_hor = 3,\n    sr_rot = 10000,\n    conf = c(68, 90),\n    store_draws = FALSE,\n    varnames    = c(\"1-year rate\", \"Bond yield\", \"Real GDP\", \"CPI\", \"EBP\"),\n    seed = 2022\n)\n\nfPlotIRFSign(\n  bs_us,\n  shock = 3,\n  labels = \"Financial shock\",\n  conf = c(68, 90),\n  scale = 100,\n  facet_ncol = 3\n)",
+    "crumbs": [
+      "Home",
+      "Sign restrictions and External instruments"
+    ]
+  },
+  {
+    "objectID": "04_4_sign_external_instruments.html#references",
+    "href": "04_4_sign_external_instruments.html#references",
+    "title": "Identification via sign restrictions and external instruments",
+    "section": "4 References",
+    "text": "4 References\n\n\nArias, Jonas E., Dario Caldara, and Juan F. Rubio-Ramírez. 2019. “The Systematic Component of Monetary Policy in SVARs: An Agnostic Identification Procedure.” Journal of Monetary Economics 101: 1–13. https://doi.org/10.1016/j.jmoneco.2018.07.011.\n\n\nArias, Jonas E., Juan F. Rubio-Ramírez, and Daniel F. Waggoner. 2021. “Inference in Bayesian Proxy-SVARs.” Journal of Econometrics 225 (1): 88–106.\n\n\nBraun, Robin, and Ralf Brüggemann. 2023. “Identification of SVAR Models by Combining Sign Restrictions with External Instruments.” Journal of Business & Economic Statistics 41 (4): 1077–89. https://doi.org/10.1080/07350015.2022.2104857.\n\n\nCaldara, Dario, and Edward Herbst. 2019. “Monetary Policy, Real Activity, and Credit Spreads: Evidence from Bayesian Proxy SVARs.” American Economic Journal: Macroeconomics 11 (1): 157–92.\n\n\nCesa-Bianchi, Ambrogio, and Andrej Sokol. 2022. “Financial Shocks, Credit Spreads, and the International Credit Channel.” Journal of International Economics 135: 103543. https://doi.org/10.1016/j.jinteco.2021.103543.\n\n\nJarociński, Marek, and Peter Karadi. 2020. “Deconstructing Monetary Policy Surprises: The Role of Information Shocks.” American Economic Journal: Macroeconomics 12 (2): 1–43. https://doi.org/10.1257/mac.20180090.\n\n\nMertens, Karel, and Morten O. Ravn. 2013. “The Dynamic Effects of Personal and Corporate Income Tax Changes in the United States.” American Economic Review 103 (4): 1212–47.\n\n\nRomer, Christina D., and David H. Romer. 2004. “A New Measure of Monetary Shocks: Derivation and Implications.” American Economic Review 94 (4): 1055–84. https://doi.org/10.1257/0002828042002651.\n\n\nStock, James H., and Mark W. Watson. 2012. “Disentangling the Channels of the 2007-09 Recession.” Brookings Papers on Economic Activity 43 (1): 81–135.",
+    "crumbs": [
+      "Home",
+      "Sign restrictions and External instruments"
+    ]
+  },
+  {
+    "objectID": "04_2_sign_restrictions.html",
+    "href": "04_2_sign_restrictions.html",
+    "title": "Identification via sign restrictions",
     "section": "",
     "text": "The reduced-form residuals of VAR: \\(u_t\\) are a linear combination of orthogonal structural shocks \\(\\varepsilon_t\\) with unit variance, so their covariance matrix is\n\\[\\Sigma_u = \\mathbb{E}\\left[u_t u_t'\\right] = B\\,\\mathbb{E}\\left[\\varepsilon_t \\varepsilon_t'\\right] B' = BB'.\\]\nIdentification amounts to finding a \\(B\\) that satisfies \\(\\Sigma_u = BB'\\). Because \\(\\Sigma_u\\) is symmetric it delivers only \\(k(k+1)/2\\) independent equations for the \\(k^2\\) unknowns in \\(B\\), so the system is underdetermined. The shortfall has a clean geometric structure: fix any \\(B_0\\) with \\(\\Sigma_u = B_0B_0'\\), and for any orthogonal \\(Q\\) with \\(QQ' = I_k\\),\n\\[(B_0Q)(B_0Q)' = B_0\\,\\underbrace{QQ'}_{=\\,I_k}\\,B_0' = B_0B_0' = \\Sigma_u .\\]\nThe solution set is therefore the whole orbit \\(\\{B_0Q : QQ' = I_k\\}\\), with \\(k(k-1)/2\\) free parameters. Every identification scheme is a rule for picking one \\(Q\\). The data pin down the shape of the residual covariance ellipse but not the directions of the structural axes inside it; identification anchors those directions.",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#the-identification-problem",
-    "href": "04_2_sign_narrative_external.html#the-identification-problem",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
+    "objectID": "04_2_sign_restrictions.html#the-identification-problem",
+    "href": "04_2_sign_restrictions.html#the-identification-problem",
+    "title": "Identification via sign restrictions",
     "section": "",
     "text": "The reduced-form residuals of VAR: \\(u_t\\) are a linear combination of orthogonal structural shocks \\(\\varepsilon_t\\) with unit variance, so their covariance matrix is\n\\[\\Sigma_u = \\mathbb{E}\\left[u_t u_t'\\right] = B\\,\\mathbb{E}\\left[\\varepsilon_t \\varepsilon_t'\\right] B' = BB'.\\]\nIdentification amounts to finding a \\(B\\) that satisfies \\(\\Sigma_u = BB'\\). Because \\(\\Sigma_u\\) is symmetric it delivers only \\(k(k+1)/2\\) independent equations for the \\(k^2\\) unknowns in \\(B\\), so the system is underdetermined. The shortfall has a clean geometric structure: fix any \\(B_0\\) with \\(\\Sigma_u = B_0B_0'\\), and for any orthogonal \\(Q\\) with \\(QQ' = I_k\\),\n\\[(B_0Q)(B_0Q)' = B_0\\,\\underbrace{QQ'}_{=\\,I_k}\\,B_0' = B_0B_0' = \\Sigma_u .\\]\nThe solution set is therefore the whole orbit \\(\\{B_0Q : QQ' = I_k\\}\\), with \\(k(k-1)/2\\) free parameters. Every identification scheme is a rule for picking one \\(Q\\). The data pin down the shape of the residual covariance ellipse but not the directions of the structural axes inside it; identification anchors those directions.",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#sign-restrictions1",
-    "href": "04_2_sign_narrative_external.html#sign-restrictions1",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
+    "objectID": "04_2_sign_restrictions.html#sign-restrictions1",
+    "href": "04_2_sign_restrictions.html#sign-restrictions1",
+    "title": "Identification via sign restrictions",
     "section": "2 Sign restrictions1",
     "text": "2 Sign restrictions1\nZero restrictions can be motivated by theory, but theory rarely implies them directly, and the implied zeros are often hard to defend. Sign restrictions exploit a weaker prior: beliefs about the sign that certain shocks should have on certain variables (Faust 1998; Canova and De Nicoló 2002; Uhlig 2005). The restrictions narrow the parameter space without selecting a unique structural model, so sign-restricted VARs are set-identified.\nThe algorithm has three steps.\n\nDraw an orthogonal matrix \\(Q_j\\). Generated as the QR factorization of a \\(k \\times k\\) matrix of i.i.d. standard normals, with the sign of each column of \\(Q\\) flipped so that the corresponding diagonal element of \\(R\\) is positive. That normalization makes the factorization unique and spreads draws uniformly over the rotation group (Haar measure).\nForm a candidate impact matrix. Let \\(\\Sigma_u = PP'\\) be the Cholesky factorization. Then \\[\\Sigma_u = PP' = PQ_jQ_j'P' = \\underbrace{(PQ_j)}_{B_j}\\underbrace{(PQ_j)'}_{B_j'},\\] so \\(B_j = PQ_j\\) solves the identification problem for any orthogonal \\(Q_j\\). The implied shocks \\(\\varepsilon_{jt} = B_j^{-1}u_t\\) are orthogonal with unit variance, since \\(B_j^{-1}\\Sigma_u(B_j^{-1})' = I_k\\). Note \\(B_j\\) is no longer triangular.\nCheck the restrictions. Retain \\(B_j\\) if the implied impulse responses satisfy the imposed signs over the constrained horizons; otherwise discard and draw again.\n\nAfter collecting many accepted draws you have a distribution of \\(B_j\\), and of the implied impulse responses, variance decompositions and historical decompositions, that summarizes the identified set.\n\n\n\n\n\n\nNoteSet identification versus point identification\n\n\n\nCholesky and long-run schemes are point-identified: a unique \\(B\\) satisfies the restrictions, and the only source of uncertainty is sampling variability. Sign restrictions are set-identified: many \\(B_j\\) are simultaneously consistent with the restrictions and the data, and they represent genuinely different structural models. Two consequences follow.\nFirst, the median response across accepted draws need not converge to a unique value as \\(T \\to \\infty\\), because the identified set remains non-singleton even in the population. It describes the location of the identified set, not a point estimate of a structural parameter.\nSecond, the width of a credible band reflects both sampling uncertainty and the width of the identified set. The two cannot be disentangled without further restrictions (Arias et al. 2018; Giacomini and Kitagawa 2021).\n\n\n\n2.1 Inference\nParameter uncertainty for sign-restricted models is handled the Bayesian way, following Uhlig (2005). The prior over \\((\\Phi, \\Sigma_u)\\) is conjugate Normal-inverse-Wishart, which yields a closed-form posterior in the same family. For each accepted draw \\(d\\):\n\nDraw \\(\\Sigma_u^{(d)}\\) from the marginal inverse-Wishart posterior.\nConditional on \\(\\Sigma_u^{(d)}\\), draw \\(\\Phi^{(d)}\\) from the normal conditional posterior.\nCompute the Cholesky factor \\(P^{(d)}\\) and draw a Haar-uniform \\(Q_j\\).\nForm \\(B_j^{(d)} = P^{(d)}Q_j\\) and check the sign restrictions.\nRetain if satisfied; otherwise return to step 3.\n\nSteps 1–2 run only when inference = 1. With inference = 0 the reduced form stays at its OLS values and only steps 3–5 execute, so the spread of accepted draws reflects identification uncertainty alone. Frequentist alternatives exist (Granziera et al. 2018; Giacomini and Kitagawa 2021) but are not implemented here, and in set-identified models Bayesian and frequentist inference do not coincide even asymptotically, because the prior on \\(Q\\) is never updated by the data (Moon and Schorfheide 2012).",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#setup",
-    "href": "04_2_sign_narrative_external.html#setup",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
+    "objectID": "04_2_sign_restrictions.html#setup",
+    "href": "04_2_sign_restrictions.html#setup",
+    "title": "Identification via sign restrictions",
     "section": "3 Setup",
-    "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\n\ntheme_set(fThemeTidyMacro())\n\nTwo small helpers keep the rest of the page tidy: one turns a data tibble into the numeric matrix the estimator expects, the other unpacks the accepted draws of an fSignRestr object into a long tibble.\n\n# Drop the date column and hand the estimator a plain T x k matrix.\nas_var_matrix &lt;- function(data) {data |&gt; select(-Date) |&gt; as.matrix()}",
+    "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\n\ntheme_set(fThemeTidyMacro())\n\nThis helper turns a data tibble into the numeric matrix the estimator expects.\n\n# Drop the date column and hand the estimator a plain T x k matrix.\nas_var_matrix &lt;- function(data) {data |&gt; select(-Date) |&gt; as.matrix()}",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#uhlig-2005-sign-restrictions",
-    "href": "04_2_sign_narrative_external.html#uhlig-2005-sign-restrictions",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
+    "objectID": "04_2_sign_restrictions.html#uhlig-2005-sign-restrictions",
+    "href": "04_2_sign_restrictions.html#uhlig-2005-sign-restrictions",
+    "title": "Identification via sign restrictions",
     "section": "4 Uhlig (2005): sign restrictions",
-    "text": "4 Uhlig (2005): sign restrictions\nWhat are the effects of monetary policy on output? Uhlig (2005) revisits the question with a deliberately agnostic approach: rather than timing assumptions or long-run restrictions, he imposes only sign restrictions that capture conventional wisdom about monetary transmission, and lets the data speak about output.\nThe model is a VAR(12) with a constant on monthly US data, 1965m1–2003m12, in six variables: real GDP (log, interpolated to monthly), the GDP deflator (log), a commodity price index (log), total reserves (log), non-borrowed reserves (log) and the federal funds rate (percent). Log-level variables are scaled by 100 so every response reads in percent.\n\ndata(Uhlig2005)\n\nuhlig &lt;- Uhlig2005 |&gt;\n  mutate(across(-c(Date, `Fed. Funds Rate`), \\(x) 100 * x))\n\nuhlig |&gt; head(3)\n#&gt; # A tibble: 3 × 7\n#&gt;   Date       `Real GDP` `GDP Deflator` `Commodity Price Idx.` `Total Reserves`\n#&gt;   &lt;date&gt;          &lt;dbl&gt;          &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;\n#&gt; 1 1965-01-01       826.           292.                  2019.             248.\n#&gt; 2 1965-02-01       826.           292.                  2018.             248.\n#&gt; 3 1965-03-01       827.           292.                  2016.             248.\n#&gt; # ℹ 2 more variables: `Non-Borrowed Reserves` &lt;dbl&gt;, `Fed. Funds Rate` &lt;dbl&gt;\n\nA contractionary shock raises the funds rate and lowers the price level, commodity prices and non-borrowed reserves for six months. Real GDP, the variable of interest, and total reserves are left free. That is the whole point of the exercise: no restriction is placed on the response the paper is asking about. Package design: Rows are variables, columns are shocks. +1 the response must be non-negative, -1 non-positive, 0 unrestricted (not zero restriction).\n\n# `ff_rate` is the matching address on the row side: rows follow the data\nff_rate &lt;- 6\n\n# The address of the shock: which column of `sign` carries the monetary policy restrictions, and therefore which structural shock is the monetary policy shock. Nothing makes column 1 special; the sign pattern written into it is what does the identifying.\n\nmp_shock &lt;- 1\n\nsign_uhlig &lt;- matrix(0, nrow = 6, ncol = 6,                     dimnames = list(names(uhlig)[-1], NULL))\n\nsign_uhlig[, mp_shock] &lt;- c(\n    `Real GDP`               =  0,\n    `GDP Deflator`           = -1,\n    `Commodity Price Idx.`   = -1,\n    `Total Reserves`         =  0,\n    `Non-Borrowed Reserves`  = -1,\n    `Fed. Funds Rate`        =  1\n)\n\nsign_uhlig[, , drop = FALSE]\n#&gt;                       [,1] [,2] [,3] [,4] [,5] [,6]\n#&gt; Real GDP                 0    0    0    0    0    0\n#&gt; GDP Deflator            -1    0    0    0    0    0\n#&gt; Commodity Price Idx.    -1    0    0    0    0    0\n#&gt; Total Reserves           0    0    0    0    0    0\n#&gt; Non-Borrowed Reserves   -1    0    0    0    0    0\n#&gt; Fed. Funds Rate          1    0    0    0    0    0\n\nOnly the first column carries non-zero entries; the other five shocks are left unrestricted. sr_hor = 6 enforces the restrictions at horizons \\(h = 0,\\dots,5\\).\nThe monetary policy shock sits in the first column purely as a labeling convention. Rows are ordered, because they follow the variables in the data, which is why the funds rate appears in row 6; columns are not, because sign restrictions impose no recursive ordering on the shocks, so shock 1 is “monetary policy” only in the sense that the sign pattern we wrote into that column is the one we are willing to defend for a monetary policy shock.\n\nsr_uhlig &lt;- fSignRestr(\n  as_var_matrix(uhlig), \n  p = 12, \n  c = 1, \n  sign      = sign_uhlig,\n  nsteps    = 60,   # 5-year horizon, impact included\n  ndraws    = 500,  # accepted draws\n  sr_hor    = 6,    # restrictions bind at horizons 0-5\n  conf      = c(68, 90),  # 68% is the paper's convention; 90% also reported\n  inference = 1,    # draw the reduced form from the posterior\n  seed      = 42\n)\n\n\nfPlotIRFSign(sr_uhlig, shock = mp_shock, labels = \"Sign restrictions\", conf = c(68, 90), facet_ncol = 2, facet_scales = \"free\")\n\n\n\n\n\n\n\nFigure 1: Responses to a contractionary monetary policy shock identified by sign restrictions. Element-wise median with 68% and 90% credible bands across 500 accepted draws. Six-variable VAR(12) with constant, monthly US data 1965m1-2003m12. Replicates Figure 6 of Uhlig (2005).\n\n\n\n\n\nThe key finding is that the output response is ambiguous. The restricted variables behave as assumed (the funds rate rises, prices and non-borrowed reserves fall), but the real GDP band spans both positive and negative values throughout. Under minimal identifying restrictions the data do not deliver a clear verdict on the output effects of monetary policy.\nconf accepts several coverage levels at once. The default is 68%, the convention of both Uhlig (2005) and Antolín-Díaz and Rubio-Ramírez (2018); asking for c(68, 90) adds the wider band and leaves IRinf/IRsup at the first level, so existing code is unaffected. Every requested level is stored in sr_uhlig$bands, and fPlotIRFSign() refuses to draw a level that was not requested rather than silently showing the wrong coverage.\nTwo things are worth keeping straight when reading the figure. The restricted responses carry their imposed sign over \\(h = 0,\\dots,5\\) by construction; their behaviour at longer horizons, and the whole path of real GDP, is governed by the estimated reduced-form dynamics. And the bands are not confidence intervals around a point estimate: they summarize identification uncertainty and, because inference = 1, sampling uncertainty as well.\n\n4.1 Two ways to summarize the set\n\n\n\n\n\n\nNoteThe Fry-Pagan median-target rotation\n\n\n\nIRmed is the element-wise median: each entry, the response of variable \\(i\\) to shock \\(j\\) at horizon \\(h\\), is the median of that entry across accepted draws. It is a convenient summary of central tendency, but the associated impact matrix Bmed is a Frankenstein object. It corresponds to no accepted draw and will in general not satisfy \\(\\Sigma_u = B_{\\text{med}}B_{\\text{med}}'\\), so it is not a valid structural model: FEVD shares need not sum to one, and historical decompositions need not reproduce the data.\nFry and Pagan (2011) proposed instead selecting the single accepted draw closest to the element-wise median. That median-target rotation, stored in Bfp / IRfp / VDfp, is a genuine structural representation: it satisfies all the sign restrictions and \\(\\Sigma_u = B_{j^*}B_{j^*}'\\) by construction. The cost is a different arbitrariness: it picks one draw out of the set.\nThe two differ for a geometric reason. Admissible impact matrices lie on a curved set (the orthonormal rotations of a fixed Cholesky factor); a coordinate-wise median is generally not a point of that set. The gap grows with the dimension of the VAR and the width of the identified set, and it is not an artefact of parameter uncertainty: it persists with inference = 0.\ntidyMacro minimizes \\(\\lVert B_j - B_{\\text{med}} \\rVert_F\\) over the impact matrices, which is what the toolbox code does.\n\n\n\ntibble(\n  variable = sr_uhlig$varnames,\n  Bmed     = sr_uhlig$Bmed[, mp_shock],\n  Bfp      = sr_uhlig$Bfp[, mp_shock]\n) |&gt;\n  mutate(difference = Bfp - Bmed)\n#&gt; # A tibble: 6 × 4\n#&gt;   variable                 Bmed     Bfp difference\n#&gt;   &lt;chr&gt;                   &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;\n#&gt; 1 Real GDP               0.154   0.161     0.00728\n#&gt; 2 GDP Deflator          -0.0481 -0.0240    0.0241 \n#&gt; 3 Commodity Price Idx.  -0.873  -1.63     -0.758  \n#&gt; 4 Total Reserves        -0.544  -1.61     -1.07   \n#&gt; 5 Non-Borrowed Reserves -0.975  -1.54     -0.567  \n#&gt; 6 Fed. Funds Rate        0.236   0.0971   -0.139\n\nThe claim that Bmed is not a valid structural model is easiest to see with parameter uncertainty switched off, where every draw shares the same OLS \\(\\hat\\Sigma_u\\) and the only thing varying across draws is the rotation:\n\nsr_fixed &lt;- fSignRestr(\n  as_var_matrix(uhlig), \n  p = 12, \n  c = 1, \n  sign = sign_uhlig,\n  nsteps = 60, \n  ndraws = 500, \n  sr_hor = 6, \n  conf = 68,\n  inference = 0, # rotations only, reduced form held at OLS\n  seed = 42\n)\n\ntibble(\n  matrix      = c(\"Bmed\", \"Bfp\"),\n  max_abs_dev = c(max(abs(sr_fixed$Bmed %*% t(sr_fixed$Bmed) - sr_fixed$var$sigma)),\n                  max(abs(sr_fixed$Bfp  %*% t(sr_fixed$Bfp)  - sr_fixed$var$sigma)))\n)\n#&gt; # A tibble: 2 × 2\n#&gt;   matrix max_abs_dev\n#&gt;   &lt;chr&gt;        &lt;dbl&gt;\n#&gt; 1 Bmed      7.13e+ 0\n#&gt; 2 Bfp       2.66e-15\n\nBfp reproduces \\(\\Sigma_u\\) to machine precision; Bmed misses it by an amount of the same order as \\(\\Sigma_u\\) itself. The gap is not an artefact of parameter uncertainty: it is there even when the reduced form is fixed, because a coordinate-wise median of points on a curved set need not lie on that set.",
+    "text": "4 Uhlig (2005): sign restrictions\nThe implementation follows the supplied inst/Bianchi/Replic/Uhlig2005/GO_Uhlig2005.m example and the VAR Toolbox’s SR.m, SignRestrictions.m and VARdrawpost.m. The C++ sampler uses independent random streams, so draws are not seed-for-seed identical to MATLAB. Percentiles use R’s type 7 convention; MATLAB’s default prctile convention differs in finite samples.\nWhat are the effects of monetary policy on output? Uhlig (2005) revisits the question with a deliberately agnostic approach: rather than timing assumptions or long-run restrictions, he imposes only sign restrictions that capture conventional wisdom about monetary transmission, and lets the data speak about output.\nThe model is a VAR(12) with a constant on monthly US data, 1965m1–2003m12, in six variables: real GDP (log, interpolated to monthly), the GDP deflator (log), a commodity price index (log), total reserves (log), non-borrowed reserves (log) and the federal funds rate (percent). Log-level variables are scaled by 100 so every response reads in percent.\n\ndata(Uhlig2005)\n\nuhlig &lt;- Uhlig2005 |&gt;\n  mutate(across(-c(Date, `Fed. Funds Rate`), \\(x) 100 * x))\n\nuhlig |&gt; head(3)\n#&gt; # A tibble: 3 × 7\n#&gt;   Date       `Real GDP` `GDP Deflator` `Commodity Price Idx.` `Total Reserves`\n#&gt;   &lt;date&gt;          &lt;dbl&gt;          &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;\n#&gt; 1 1965-01-01       826.           292.                  2019.             248.\n#&gt; 2 1965-02-01       826.           292.                  2018.             248.\n#&gt; 3 1965-03-01       827.           292.                  2016.             248.\n#&gt; # ℹ 2 more variables: `Non-Borrowed Reserves` &lt;dbl&gt;, `Fed. Funds Rate` &lt;dbl&gt;\n\nA contractionary shock raises the funds rate and lowers the price level, commodity prices and non-borrowed reserves for six months. Real GDP, the variable of interest, and total reserves are left free. That is the whole point of the exercise: no restriction is placed on the response the paper is asking about. Package design: Rows are variables, columns are shocks. +1 the response must be non-negative, -1 non-positive, 0 unrestricted (not zero restriction).\n\n# `ff_rate` is the matching address on the row side: rows follow the data\nff_rate &lt;- 6\n\n# The address of the shock: which column of `sign` carries the monetary policy restrictions, and therefore which structural shock is the monetary policy shock. Nothing makes column 1 special; the sign pattern written into it is what does the identifying.\n\nmp_shock &lt;- 1\n\nsign_uhlig &lt;- matrix(0, nrow = 6, ncol = 6,                     dimnames = list(names(uhlig)[-1], NULL))\n\nsign_uhlig[, mp_shock] &lt;- c(\n    `Real GDP`               =  0,\n    `GDP Deflator`           = -1,\n    `Commodity Price Idx.`   = -1,\n    `Total Reserves`         =  0,\n    `Non-Borrowed Reserves`  = -1,\n    `Fed. Funds Rate`        =  1\n)\n\nsign_uhlig[, , drop = FALSE]\n#&gt;                       [,1] [,2] [,3] [,4] [,5] [,6]\n#&gt; Real GDP                 0    0    0    0    0    0\n#&gt; GDP Deflator            -1    0    0    0    0    0\n#&gt; Commodity Price Idx.    -1    0    0    0    0    0\n#&gt; Total Reserves           0    0    0    0    0    0\n#&gt; Non-Borrowed Reserves   -1    0    0    0    0    0\n#&gt; Fed. Funds Rate          1    0    0    0    0    0\n\nOnly the first column carries non-zero entries; the other five shocks are left unrestricted. sr_hor = 6 enforces the restrictions at horizons \\(h = 0,\\dots,5\\).\nThe monetary policy shock sits in the first column purely as a labeling convention. Rows are ordered, because they follow the variables in the data, which is why the funds rate appears in row 6; columns are not, because sign restrictions impose no recursive ordering on the shocks, so shock 1 is “monetary policy” only in the sense that the sign pattern we wrote into that column is the one we are willing to defend for a monetary policy shock.\n\nsr_uhlig &lt;- fSignRestr(\n  as_var_matrix(uhlig), \n  p = 12, \n  c = 1, \n  sign      = sign_uhlig,\n  store_draws = FALSE, # medians/bands and structural draws suffice for this page\n  nsteps    = 60,   # 5-year horizon, impact included\n  ndraws    = 500,  # accepted draws\n  sr_hor    = 6,    # restrictions bind at horizons 0-5\n  conf      = c(68, 90),  # 68% is the paper's convention; 90% also reported\n  inference = 1,    # draw the reduced form from the posterior\n  seed      = 42\n)\n\n\nfPlotIRFSign(sr_uhlig, shock = mp_shock, labels = \"Sign restrictions\", conf = c(68, 90), facet_ncol = 2, facet_scales = \"free\")\n\n\n\n\n\n\n\nFigure 1: Responses to a contractionary monetary policy shock identified by sign restrictions. Element-wise median with 68% and 90% credible bands across 500 accepted draws. Six-variable VAR(12) with constant, monthly US data 1965m1-2003m12. Replicates Figure 6 of Uhlig (2005).\n\n\n\n\n\nThe key finding is that the output response is ambiguous. The restricted variables behave as assumed (the funds rate rises, prices and non-borrowed reserves fall), but the real GDP band spans both positive and negative values throughout. Under minimal identifying restrictions the data do not deliver a clear verdict on the output effects of monetary policy.\nconf accepts several coverage levels at once. The package default is 90%; both Uhlig (2005) and Antolín-Díaz and Rubio-Ramírez (2018) use 68%, which is requested explicitly here; asking for c(68, 90) adds the wider band and leaves IRinf/IRsup at the first level, so existing code is unaffected. All requested bands are computed together in C++, including when store_draws = FALSE. Every requested level is stored in sr_uhlig$bands, and fPlotIRFSign() refuses to draw a level that was not requested rather than silently showing the wrong coverage.\nTwo things are worth keeping straight when reading the figure. The restricted responses carry their imposed sign over \\(h = 0,\\dots,5\\) by construction; their behaviour at longer horizons, and the whole path of real GDP, is governed by the estimated reduced-form dynamics. And the bands are not confidence intervals around a point estimate: they summarize identification uncertainty and, because inference = 1, sampling uncertainty as well.\n\n4.1 Two ways to summarize the set\n\n\n\n\n\n\nNoteThe Fry-Pagan median-target rotation\n\n\n\nIRmed is the element-wise median: each entry, the response of variable \\(i\\) to shock \\(j\\) at horizon \\(h\\), is the median of that entry across accepted draws. It is a convenient summary of central tendency, but the associated impact matrix Bmed is a Frankenstein object. It corresponds to no accepted draw and will in general not satisfy \\(\\Sigma_u = B_{\\text{med}}B_{\\text{med}}'\\), so it is not a valid structural model: FEVD shares need not sum to one, and historical decompositions need not reproduce the data.\nFry and Pagan (2011) proposed instead selecting the single accepted draw closest to the element-wise median. That median-target rotation, stored in Bfp / IRfp / VDfp, is a genuine structural representation: it satisfies all the sign restrictions and \\(\\Sigma_u = B_{j^*}B_{j^*}'\\) by construction. The cost is a different arbitrariness: it picks one draw out of the set.\nThe two differ for a geometric reason. Admissible impact matrices lie on a curved set (the orthonormal rotations of a fixed Cholesky factor); a coordinate-wise median is generally not a point of that set. The gap grows with the dimension of the VAR and the width of the identified set, and it is not an artefact of parameter uncertainty: it persists with inference = 0.\ntidyMacro minimizes \\(\\lVert B_j - B_{\\text{med}} \\rVert_F\\) over the impact matrices, which is what the toolbox code does.\n\n\n\ntibble(\n  variable = sr_uhlig$varnames,\n  Bmed     = sr_uhlig$Bmed[, mp_shock],\n  Bfp      = sr_uhlig$Bfp[, mp_shock]\n) |&gt;\n  mutate(difference = Bfp - Bmed)\n#&gt; # A tibble: 6 × 4\n#&gt;   variable                 Bmed     Bfp difference\n#&gt;   &lt;chr&gt;                   &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;\n#&gt; 1 Real GDP               0.154   0.161     0.00728\n#&gt; 2 GDP Deflator          -0.0481 -0.0240    0.0241 \n#&gt; 3 Commodity Price Idx.  -0.873  -1.63     -0.758  \n#&gt; 4 Total Reserves        -0.544  -1.61     -1.07   \n#&gt; 5 Non-Borrowed Reserves -0.975  -1.54     -0.567  \n#&gt; 6 Fed. Funds Rate        0.236   0.0971   -0.139\n\nThe claim that Bmed is not a valid structural model is easiest to see with parameter uncertainty switched off, where every draw shares the same OLS \\(\\hat\\Sigma_u\\) and the only thing varying across draws is the rotation:\n\nsr_fixed &lt;- fSignRestr(\n  as_var_matrix(uhlig), \n  p = 12, \n  c = 1, \n  sign = sign_uhlig,\n  store_draws = FALSE,\n  nsteps = 60, \n  ndraws = 500, \n  sr_hor = 6, \n  conf = 68,\n  inference = 0, # rotations only, reduced form held at OLS\n  seed = 42\n)\n\ntibble(\n  matrix      = c(\"Bmed\", \"Bfp\"),\n  max_abs_dev = c(max(abs(sr_fixed$Bmed %*% t(sr_fixed$Bmed) - sr_fixed$var$sigma)),\n                  max(abs(sr_fixed$Bfp  %*% t(sr_fixed$Bfp)  - sr_fixed$var$sigma)))\n)\n#&gt; # A tibble: 2 × 2\n#&gt;   matrix max_abs_dev\n#&gt;   &lt;chr&gt;        &lt;dbl&gt;\n#&gt; 1 Bmed      7.13e+ 0\n#&gt; 2 Bfp       2.66e-15\n\nBfp reproduces \\(\\Sigma_u\\) to machine precision; Bmed misses it by an amount of the same order as \\(\\Sigma_u\\) itself. The gap is not an artefact of parameter uncertainty: it is there even when the reduced form is fixed, because a coordinate-wise median of points on a curved set need not lie on that set.",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#narrative-restrictions",
-    "href": "04_2_sign_narrative_external.html#narrative-restrictions",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
-    "section": "5 Narrative restrictions",
-    "text": "5 Narrative restrictions\nA large set of rotations can satisfy sign restrictions, producing wide credible sets. Antolín-Díaz and Rubio-Ramírez (2018) sharpen identification by adding narrative restrictions, constraints tied to specific, well-documented historical episodes. The insight is that the historical record (policy announcements, oil supply disruptions, fiscal interventions) carries information about the sign or relative magnitude of a structural shock at a particular date, and that restricting the model to be consistent with it shrinks the set of admissible rotations.\nLet \\(\\varepsilon_{jt} = B_j^{-1}u_t\\) be the structural shocks under candidate \\(B_j\\). Two restriction types are defined.\nType 1, sign of the shock. At date \\(t^*\\) the \\(m\\)-th shock must have a specified sign, \\[s \\cdot \\varepsilon_{j,m,t^*} &gt; 0, \\qquad s \\in \\{+1,-1\\}.\\]\nType 2, dominance. At date \\(t^*\\) the contribution of shock \\(m\\) to the unexpected movement in variable \\(i\\) must exceed the combined contribution of all other shocks, \\[\\bigl|b_{j,im}\\,\\varepsilon_{j,m,t^*}\\bigr| &gt; \\sum_{k \\neq m}\\bigl|b_{j,ik}\\,\\varepsilon_{j,k,t^*}\\bigr|.\\]\nBoth are applied as additional acceptance criteria after a rotation satisfying the sign constraints has been found. A draw that passes the signs but fails a narrative constraint is discarded, so the acceptance rate can only fall. How far it falls is itself informative: a large drop means the historical episodes genuinely narrow the identified set; little or no drop means they add nothing beyond the sign constraints.\nThe application keeps Uhlig’s sign restrictions, extends the sample to 1965m1–2007m11, and estimates without a constant, following the paper, which demeans the data before estimation. The extra information comes from October 1979, the month of the Volcker announcement. Two facts are beyond serious dispute: the monetary policy shock was strongly positive, and monetary policy was the dominant driver of the unexpected move in the funds rate that month.\n\ndata(ADRR2018)\n\nadrr &lt;- ADRR2018\n\nadrr |&gt; head(3)\n#&gt; # A tibble: 3 × 7\n#&gt;   Date       `Real GDP` `GDP Deflator` `Commodity Price Idx.` `Total Reserves`\n#&gt;   &lt;date&gt;          &lt;dbl&gt;          &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;\n#&gt; 1 1965-01-01       8.26           2.92                   20.2             2.48\n#&gt; 2 1965-02-01       8.26           2.92                   20.2             2.48\n#&gt; 3 1965-03-01       8.27           2.92                   20.2             2.48\n#&gt; # ℹ 2 more variables: `Non-Borrowed Reserves` &lt;dbl&gt;, `Fed. Funds Rate` &lt;dbl&gt;\n\n\nvolcker &lt;- ym(\"1979-10\")\n\nspec_adrr &lt;- list(p = 12, c = 0, sign = sign_uhlig, nsteps = 60, ndraws = 500, sr_hor = 6, conf = 68, inference = 1, max_post_draws = 5000, dates = adrr$Date, seed = 42)\n\nsr_adrr &lt;- do.call(fSignRestr, c(list(as_var_matrix(adrr)), spec_adrr))\n\nnsr_adrr &lt;- do.call(fSignRestr, c(list(as_var_matrix(adrr)), spec_adrr, list(\n  narrative = list(\n    # Type 1: the MP shock was positive in October 1979. `sign = 1` here is a\n    # direction, not an address.\n    sign = list(shock = mp_shock, period = volcker, sign = 1),\n    # Type 2: the MP shock dominated the funds-rate residual that month.\n    dom  = list(shock = mp_shock, period = volcker, var = ff_rate)\n  ))))\n\ntibble(\n  model       = c(\"Sign only\", \"Sign + narrative\"),\n  accept_rate = c(sr_adrr$accept_rate, nsr_adrr$accept_rate),\n  rotations   = c(sr_adrr$ndraws_tried, nsr_adrr$ndraws_tried)\n)\n#&gt; # A tibble: 2 × 3\n#&gt;   model            accept_rate rotations\n#&gt;   &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt;\n#&gt; 1 Sign only             0.290       1723\n#&gt; 2 Sign + narrative      0.0289     17322\n\nThe narrative screen costs roughly an order of magnitude in acceptance rate. One well-documented month does a lot of work, and the cost of that work is exactly why the draw loop is worth writing in parallel C++.\nResponses are normalised to a 25 basis point impact on the funds rate, as in the paper’s replication code: one scalar per model, computed from the median impact response and applied to every draw before percentiles are taken.\n\nnorm_25bp &lt;- function(sr, ff_var = ff_rate, shock = mp_shock) {\n  # IRall is [variable, shock, horizon, draw]; the 1 is impact.\n  100 * 0.25 / median(sr$IRall[ff_var, shock, 1, ])\n}\n\nscale_sr  &lt;- norm_25bp(sr_adrr)\nscale_nsr &lt;- norm_25bp(nsr_adrr)\n\ntibble(model = c(\"Sign only\", \"Sign + narrative\"),\n       scale = c(scale_sr, scale_nsr))\n#&gt; # A tibble: 2 × 2\n#&gt;   model            scale\n#&gt;   &lt;chr&gt;            &lt;dbl&gt;\n#&gt; 1 Sign only        116. \n#&gt; 2 Sign + narrative  64.4\n\n\nfPlotIRFSign(\n    sr_adrr, shock = mp_shock, compare = nsr_adrr,\n    labels        = c(\"Sign\", \"Sign + narrative\"),\n    scale         = scale_sr,\n    scale_compare = scale_nsr,\n    facet_ncol    = 2,\n    facet_scales  = \"free\"\n)\n\n\n\n\n\n\n\nFigure 2: Sign restrictions alone (blue) versus sign plus narrative restrictions (red). 68% credible bands, normalised to a 25bp impact on the funds rate. Six-variable VAR(12) without constant, monthly US data 1965m1-2007m11. Replicates Figure 6 of Antolin-Diaz and Rubio-Ramirez (2018).\n\n\n\n\n\nAdding the October 1979 restrictions narrows the identified set and shifts the central estimates. Both effects come from the same mechanism: candidates that satisfy the signs but are inconsistent with the Volcker episode are discarded, leaving a smaller and differently located set. The substantive payoff is in the top-left panel. The sign-only output response is positive or indeterminate; the narrative restrictions push the median below zero at medium and long horizons, so a contractionary shock now lowers output, resolving the ambiguity left by Uhlig’s agnostic identification.\n\n5.1 Where the restrictions bite\nThe mechanism is clearest in the distribution of the identified shock at the targeted date itself.\n\n# eps_t = B^-1 u_t, evaluated at the Volcker month for every accepted draw.\n# The first p rows are absorbed as initial conditions, so the residual-sample\n# index is the data row minus the lag order.\nvolcker_row &lt;- which(adrr$Date == volcker) - spec_adrr$p\n\nshock_at &lt;- function(sr, row, shock = mp_shock) {\n  u &lt;- sr$var$residuals[row, ]\n  apply(sr$Ball, 3, \\(B) solve(B, u)[shock])\n}\n\nshock_dist &lt;- bind_rows(\n  tibble(model = \"Sign\",             eps = shock_at(sr_adrr,  volcker_row)),\n  tibble(model = \"Sign + narrative\", eps = shock_at(nsr_adrr, volcker_row))\n) |&gt;\n  mutate(model = factor(model, levels = c(\"Sign\", \"Sign + narrative\")))\n\nshock_dist |&gt;\n  group_by(model) |&gt;\n  summarise(min = min(eps), median = median(eps), max = max(eps),\n            share_positive = mean(eps &gt; 0))\n#&gt; # A tibble: 2 × 5\n#&gt;   model               min median   max share_positive\n#&gt;   &lt;fct&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt;\n#&gt; 1 Sign             -0.990   1.45  3.78          0.896\n#&gt; 2 Sign + narrative  2.39    3.10  4.06          1\n\n\nggplot(shock_dist, aes(eps, fill = model)) +\n  geom_histogram(bins = 30, position = \"identity\", alpha = 0.5,\n                 colour = \"white\", linewidth = 0.2) +\n  geom_vline(xintercept = 0, linetype = \"dashed\", colour = \"#707372\") +\n  labs(x = expression(epsilon[\"MonPol, 1979m10\"]), y = \"Accepted draws\")\n\n\n\n\n\n\n\nFigure 3: Distribution of the structural monetary policy shock in October 1979 across accepted draws, in shock units. Overlapping histograms, 30 bins. The dashed line at zero is the boundary imposed by the Type 1 restriction. Replicates Figure 5 of Antolin-Diaz and Rubio-Ramirez (2018).\n\n\n\n\n\nBoth restrictions bite, but differently. Under sign restrictions alone the shock is already mostly positive (the sign constraints on their own go some way toward placing the Volcker month in contractionary territory), yet a non-negligible left tail survives, of draws that satisfy every sign restriction while implying an expansionary monetary impulse in October 1979. Type 1 removes exactly that tail. Type 2 then does the heavier lifting: it discards draws that attribute the funds-rate move mainly to other shocks, and the surviving mass concentrates on large positive values well away from zero. The tighter bands in the previous figure are the downstream consequence of this reshaping.\n\n\n5.2 Rejection sampling versus reweighting\nThe VAR Toolbox imposes the narrative restrictions by equal-weight acceptance-rejection: every accepted draw enters with the same weight. When parameter uncertainty is switched on this is not the posterior of Antolín-Díaz and Rubio-Ramírez (2018). Because the probability that a sign-admissible rotation also satisfies the narrative restrictions varies with \\((\\Phi, \\Sigma_u)\\), plain rejection sampling reweights the reduced-form posterior toward regions where the narrative restrictions are easier to satisfy.\nThe correct posterior is recovered by importance sampling: each accepted draw gets a weight proportional to the reciprocal of that probability, estimated by Monte Carlo over rotations at each reduced-form draw. The two schemes coincide when inference = 0, since the weight is then constant across draws.\nfSignRestr() does rejection sampling by default, matching the toolbox, and switches to the ADRR weights when narr_weight_mc is positive.\n\nnsr_weighted &lt;- do.call(fSignRestr, c(list(as_var_matrix(adrr)), spec_adrr, list(\n  narrative = list(sign = list(shock = mp_shock, period = volcker, sign = 1),\n                   dom  = list(shock = mp_shock, period = volcker, var = ff_rate)),\n  narr_weight_mc = 2000)))\n\ntibble(weight = nsr_weighted$weights) |&gt;\n  summarise(min = min(weight), median = median(weight),\n            mean = mean(weight), max = max(weight))\n#&gt; # A tibble: 1 × 4\n#&gt;     min median  mean   max\n#&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n#&gt; 1  2.72   7.26  7.66  23.5\n\n\nfPlotIRFSign(\n    nsr_adrr, \n    shock   = mp_shock, \n    compare = nsr_weighted,\n    labels  = c(\"Rejection sampling\", \"ADRR reweighting\"),\n    scale         = scale_nsr,\n    scale_compare = norm_25bp(nsr_weighted),\n    facet_ncol    = 2,\n    facet_scales  = \"free\"\n)\n\n\n\n\n\n\n\nFigure 4: Rejection sampling (the toolbox convention) versus ADRR importance reweighting, under the same narrative restrictions.",
+    "objectID": "04_2_sign_restrictions.html#historical-decomposition",
+    "href": "04_2_sign_restrictions.html#historical-decomposition",
+    "title": "Identification via sign restrictions",
+    "section": "5 Historical decomposition",
+    "text": "5 Historical decomposition\nOnce a single impact matrix is selected, the usual structural objects follow. fHDShock() defaults to the Fry-Pagan draw for exactly this reason: because it is a genuine structural representation, its contributions reproduce the observed series exactly, which the element-wise median would not.\n\nhd &lt;- fHDShock(sr_uhlig, y = as_var_matrix(uhlig))\n\n\ntibble(Date = uhlig$Date, contribution = hd$shock[, ff_rate, mp_shock]) |&gt;\n  drop_na() |&gt;\n  ggplot(aes(Date, contribution)) +\n  geom_col(fill = \"#407EC9\", width = 40) +\n  geom_hline(yintercept = 0, colour = \"#707372\") +\n  labs(x = NULL, y = \"Percentage points\")\n\n\n\n\n\n\n\nFigure 2: Contribution of the sign-identified monetary policy shock to the federal funds rate, Fry-Pagan draw.",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#gertler-and-karadi-2015-sign-restrictions-iv",
-    "href": "04_2_sign_narrative_external.html#gertler-and-karadi-2015-sign-restrictions-iv",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
-    "section": "6 Gertler and Karadi (2015): sign restrictions + IV",
-    "text": "6 Gertler and Karadi (2015): sign restrictions + IV\nThe two strategies can be combined, as proposed by Cesa-Bianchi and Sokol (2022). The motivation is practical: a researcher often has a credible instrument for one shock, typically monetary policy, but nothing comparable for the others. Rather than discard the instrument or leave the remaining shocks unidentified, the instrument point-identifies its column of \\(B\\) and sign restrictions set-identify the rest.\nPartition \\(B = \\begin{bmatrix} B^{IV} & B^{SR} \\end{bmatrix}\\). The first block is point-identified by the proxy through the usual two-stage regression (Stock and Watson 2012; Mertens and Ravn 2013): regress the first variable’s residual on the instrument, then project the remaining residuals on the fitted values to recover the ratios \\(b_{i1}/b_{11}\\), and rescale to shock units. The second block is set identified. The difference from plain sign restrictions is how \\(Q_j\\) is built: sequentially rather than by QR:\n\nFind the unit vector \\(Q^{IV}\\) that rotates the first column of \\(P\\) into \\(B^{IV}\\), i.e. \\(PQ^{IV} = B^{IV}\\).\nGiven \\(Q^{IV}\\), complete the remaining columns by Gram-Schmidt on standard normal draws, so that \\(Q_j = \\begin{bmatrix} Q^{IV} & Q_j^{SR}\\end{bmatrix}\\) is orthonormal.\n\nThen \\(B_j = PQ_j\\) satisfies \\(\\Sigma_u = B_jB_j'\\) with its first column pinned at the IV estimate, and only the remaining columns are screened against the sign restrictions. The monetary policy shock is never touched by the rotation loop.\nGertler and Karadi (2015) estimate a VAR(12) with a constant on monthly US data, 1979m7–2012m6, in four variables: the 1-year Treasury rate (percent), the CPI (log), industrial production (log), and the excess bond premium of Gilchrist and Zakrajšek (2012) (percent). The policy rate is ordered first because the implementation instruments the first variable’s residual; this is a coding convention, not a theoretical restriction. The instrument is the FF4 federal funds futures surprise in a 30-minute window around FOMC announcements.\nOne caveat on provenance. Gertler and Karadi (2015) do not use sign restrictions, and the VAR Toolbox replication of that paper compares Cholesky with a pure proxy SVAR; the handbook illustrates sign+iv on a two-variable teaching example with a deliberately artificial instrument. The example below is therefore a combination assembled here to demonstrate the mechanics: the monetary policy column is the paper’s, while the restrictions on the other three shocks are illustrative and carry no authority.\n\n\n\n\n\n\nNoteWhat the scheme looks like in its original application\n\n\n\nCesa-Bianchi and Sokol (2022) use sign+iv to identify a financial shock, and the shape of their design is worth knowing because it is more demanding than the illustration below.\nTheir US block is a five-variable monthly VAR(12) over 1979m7-2016m12 in the 1-year rate, the corporate bond yield, real GDP, the CPI and the excess bond premium. Two shocks are point-identified by external instruments, the monetary policy and central bank information surprises of Jarociński and Karadi (2020), and only one further shock is set-identified by sign restrictions. A contractionary financial shock is defined as one that lowers output, prices and the policy rate while raising the credit spread and the borrowing rate; the restriction that does the identifying work is the last one, since it is the response of the borrowing rate that separates a financial shock from an ordinary demand shock. Restrictions are imposed over three months, and inference is a wild bootstrap following Mertens and Ravn (2013) rather than the Normal-inverse-Wishart posterior used here.\nTwo of those features are outside what fSignRestr() currently does. It pins a single IV column, not two, and it is Bayesian rather than bootstrap-based. Replicating the paper would require both extensions.\n\n\n\ndata(GK2015_2)\n\ngk &lt;- GK2015_2\n\nendo_gk &lt;- gk |&gt;\n  select(Date, `1-year T-Bill`, `Consumer Price Index`,          `Industrial Production`, EBP)\n\n# The instrument is observed over a shorter sample than the macro series.\ngk |&gt; summarise(macro_obs = n(),\n                instrument_obs = sum(!is.na(FF4)),\n                instrument_start = min(Date[!is.na(FF4)]))\n#&gt; # A tibble: 1 × 3\n#&gt;   macro_obs instrument_obs instrument_start\n#&gt;       &lt;int&gt;          &lt;int&gt; &lt;date&gt;          \n#&gt; 1       396            270 1990-01-01\n\nWith an instrument, the first column of sign refers to the second structural shock: shock 1 is the instrumented one and carries no sign restriction of its own, so the matrix is \\(k \\times (k-1)\\) rather than \\(k \\times k\\).\n\n# A different address space from the Uhlig section: shock 1 is pinned by the\n# instrument, and `sign` describes only the shocks left over, so column j of\n# `sign_gk` is shock j + 1. `mp_shock` would be actively misleading here.\niv_shock &lt;- 1\n\nsign_gk &lt;- matrix(0, nrow = 4, ncol = 3,\n                  dimnames = list(names(endo_gk)[-1], NULL))\nsign_gk[, 1] &lt;- c(0, -1, -1, 0)   # column 1 = shock 2: CPI and IP fall\n\nsr_gk &lt;- fSignRestr(\n  as_var_matrix(endo_gk), p = 12, c = 1, sign = sign_gk,\n  nsteps     = 48, ndraws = 500, sr_hor = 3, conf = 68, inference = 1,\n  instrument = list(Z = gk |&gt; select(FF4) |&gt; as.matrix()),\n  seed       = 42\n)\n\nsr_gk\n#&gt; Sign-restricted SVAR (sign+iv)\n#&gt;   Variables      : 1-year T-Bill, Consumer Price Index, Industrial Production, EBP\n#&gt;   Lags           : 12   Intercept: 1\n#&gt;   Accepted draws : 500 of 500 slots (0 failed)\n#&gt;   Rotations tried: 504   acceptance: 99.206%\n#&gt;   Horizons       : 48   bands: 68%\n#&gt;   Instrument     : first-stage F = 21.52, R2 = 0.074, n = 270\n#&gt;   IV column      : fixed at OLS (VAR Toolbox convention)\n\n\nfPlotIRFSign(sr_gk, shock = iv_shock, labels = \"Sign + IV\", facet_ncol = 2)\n\n\n\n\n\n\n\nFigure 5: Monetary policy shock identified by the FF4 instrument, with sign restrictions on the remaining shocks. 68% credible bands, 48-month horizon.\n\n\n\n\n\n\n6.1 The uncertainty the toolbox leaves out\nThe IV column is recovered once on the OLS point estimate. The draw loop then redraws \\((\\Phi, \\Sigma_u)\\) from the posterior at every iteration but reads \\(B^{IV}\\) back from that fixed value, regardless of the inference flag. The instrument’s own sampling error, the first-stage uncertainty that weak-instrument diagnostics are about, never reaches the bands.\nThis is a property of the scheme, not an oversight of the implementation: the VAR Toolbox handbook states it explicitly, noting that Bmed(:,1) is always the OLS IV point estimate and is not updated by the posterior draws, whatever inference is set to. Embedding parameter uncertainty for the IV-identified shock properly requires integrating the instrument into the model likelihood, as in Caldara and Herbst (2019) or Arias et al. (2021), which is a different class of model rather than a switch to flip. fSignRestr() follows the toolbox, so the bands on the instrumented shock should be read as conditional on the first stage.\nOne further detail, easy to miss. The fixed column is renormalised against each draw’s Cholesky factor, \\(b_1 / \\lVert L^{-1}b_1 \\rVert\\), so its direction is constant across draws but its length is not. That is what the toolbox does, and tidyMacro follows it.\n\n\n6.2 A second application: the Romer-Romer instrument\nThe example above pairs a real instrument with sign restrictions of my own choosing. ACR2019 allows a version where both the data and the instrument come from published work: it is the six-variable monetary VAR of Arias et al. (2019), distributed in the replication package of Braun and Brüggemann (2023), together with the narrative monetary policy shock of Romer and Romer (2004) as the external instrument. The six endogenous variables are the same ones used in the Uhlig and Antolin-Diaz sections, so this application sits directly alongside them.\n\ndata(ACR2019)\n\n# The replication code takes 100 * log of everything except the policy rate.\nacr &lt;- ACR2019 |&gt;\n  mutate(across(-c(Date, `Fed. Funds Rate`, RR), \\(x) 100 * log(x)))\n\nacr |&gt; summarise(macro_obs        = n(),\n                 instrument_obs   = sum(!is.na(RR)),\n                 instrument_start = min(Date[!is.na(RR)]),\n                 narrative_zeros  = sum(RR == 0, na.rm = TRUE))\n#&gt; # A tibble: 1 × 4\n#&gt;   macro_obs instrument_obs instrument_start narrative_zeros\n#&gt;       &lt;int&gt;          &lt;int&gt; &lt;date&gt;                     &lt;int&gt;\n#&gt; 1       516            468 1969-01-01                   118\n\nMonetary policy is pinned by the instrument; one further shock is set-identified as a contractionary demand shock, lowering output, prices and the policy rate. The remaining four are left free. That is the same shape as the design in Cesa-Bianchi and Sokol (2022): instrument for the shock you can instrument, sign restrictions for one more, silence about the rest.\n\nendo_acr &lt;- acr |&gt; select(-Date, -RR)\n\n# Same offset as above: column 1 of `sign_acr` is shock 2, the demand shock.\nsign_acr &lt;- matrix(0, nrow = 6, ncol = 5,\n                   dimnames = list(names(endo_acr), NULL))\nsign_acr[, 1] &lt;- c(`Real GDP`              = -1,\n                   `GDP Deflator`          = -1,\n                   `Commodity Price Idx.`  =  0,\n                   `Total Reserves`        =  0,\n                   `Non-Borrowed Reserves` =  0,\n                   `Fed. Funds Rate`       = -1)\n\nsr_acr &lt;- fSignRestr(\n  as.matrix(endo_acr), p = 12, c = 0, sign = sign_acr,\n  nsteps     = 48, ndraws = 500, sr_hor = 6, conf = c(68, 90), inference = 1,\n  instrument = list(Z = as.matrix(ACR2019$RR)),\n  varnames   = names(endo_acr), seed = 42\n)\n\nsr_acr\n#&gt; Sign-restricted SVAR (sign+iv)\n#&gt;   Variables      : Real GDP, GDP Deflator, Commodity Price Idx., Total Reserves, Non-Borrowed Reserves, Fed. Funds Rate\n#&gt;   Lags           : 12   Intercept: 0\n#&gt;   Accepted draws : 500 of 500 slots (0 failed)\n#&gt;   Rotations tried: 21,088   acceptance: 2.371%\n#&gt;   Horizons       : 48   bands: 68, 90%\n#&gt;   Instrument     : first-stage F = 3.01, R2 = 0.006, n = 468\n#&gt;   IV column      : fixed at OLS (VAR Toolbox convention)\n\n\nfPlotIRFSign(sr_acr, shock = iv_shock, labels = \"Sign + IV (Romer-Romer)\",\n             conf = c(68, 90), facet_ncol = 2)\n\n\n\n\n\n\n\nFigure 6: Responses to a monetary policy shock identified by the Romer-Romer narrative instrument, with a sign-identified demand shock alongside. Median with 68% and 90% credible bands, six-variable VAR(12) without constant, monthly US data 1965m1-2007m12.\n\n\n\n\n\nThe instrument is weak, and the page should say so rather than bury it.\n\ntibble(\n  instrument = c(\"FF4 (Gertler-Karadi)\", \"RR (Romer-Romer)\"),\n  F          = c(sr_gk$iv$fs_F,   sr_acr$iv$fs_F),\n  R2         = c(sr_gk$iv$fs_r2,  sr_acr$iv$fs_r2),\n  n          = c(sr_gk$iv$n_iv,   sr_acr$iv$n_iv)\n) |&gt;\n  mutate(across(where(is.numeric), \\(x) round(x, 3)))\n#&gt; # A tibble: 2 × 4\n#&gt;   instrument               F    R2     n\n#&gt;   &lt;chr&gt;                &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n#&gt; 1 FF4 (Gertler-Karadi) 21.5  0.074   270\n#&gt; 2 RR (Romer-Romer)      3.01 0.006   468\n\nA first-stage \\(F\\) of about 3 is far below any conventional threshold, so the impact column it delivers should be read as illustrative. High-frequency surprises are simply better proxies for this purpose than narrative dates, which is the comparison the table is there to make.\nBecause the impact column is held at its first-stage estimate, none of that weakness reaches the credible bands, for the reason set out above. Genuine weak-instrument inference needs the instrument inside the likelihood, as in Caldara and Herbst (2019) or Arias et al. (2021); nothing on this page substitutes for it.",
+    "objectID": "04_2_sign_restrictions.html#references",
+    "href": "04_2_sign_restrictions.html#references",
+    "title": "Identification via sign restrictions",
+    "section": "6 References",
+    "text": "6 References\n\n\nAntolín-Díaz, Juan, and Juan F. Rubio-Ramírez. 2018. “Narrative Sign Restrictions for SVARs.” American Economic Review 108 (10): 2802–29.\n\n\nArias, Jonas E., Juan F. Rubio-Ramírez, and Daniel F. Waggoner. 2018. “Inference Based on Structural Vector Autoregressions Identified with Sign and Zero Restrictions.” Econometrica 86 (2): 685–720.\n\n\nCanova, Fabio, and Gianni De Nicoló. 2002. “Monetary Disturbances Matter for Business Fluctuations in the G-7.” Journal of Monetary Economics 49 (6): 1131–59.\n\n\nFaust, Jon. 1998. “The Robustness of Identified VAR Conclusions about Money.” Carnegie-Rochester Conference Series on Public Policy 49: 207–44.\n\n\nFry, Renee, and Adrian Pagan. 2011. “Sign Restrictions in Structural Vector Autoregressions: A Critical Review.” Journal of Economic Literature 49 (4): 938–60.\n\n\nGiacomini, Raffaella, and Toru Kitagawa. 2021. “Robust Bayesian Inference for Set-Identified Models.” Econometrica 89 (4): 1519–56.\n\n\nGranziera, Eleonora, Hyungsik Roger Moon, and Frank Schorfheide. 2018. “Inference for VARs Identified with Sign Restrictions.” Quantitative Economics 9 (3): 1087–121.\n\n\nMoon, Hyungsik Roger, and Frank Schorfheide. 2012. “Bayesian and Frequentist Inference in Partially Identified Models.” Econometrica 80 (2): 755–82.\n\n\nUhlig, Harald. 2005. “What Are the Effects of Monetary Policy on Output? Results from an Agnostic Identification Procedure.” Journal of Monetary Economics 52 (2): 381–419.",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
-    "objectID": "04_2_sign_narrative_external.html#historical-decomposition",
-    "href": "04_2_sign_narrative_external.html#historical-decomposition",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
-    "section": "7 Historical decomposition",
-    "text": "7 Historical decomposition\nOnce a single impact matrix is selected, the usual structural objects follow. fHDShock() defaults to the Fry-Pagan draw for exactly this reason: because it is a genuine structural representation, its contributions reproduce the observed series exactly, which the element-wise median would not.\n\nhd &lt;- fHDShock(sr_uhlig, y = as_var_matrix(uhlig))\n\n# All components sum back to the data over the estimation sample.\nmax(abs(hd$endo[-(1:12), ] - as_var_matrix(uhlig)[-(1:12), ]))\n#&gt; [1] 1.461444e-10\n\n\ntibble(Date = uhlig$Date, contribution = hd$shock[, ff_rate, mp_shock]) |&gt;\n  drop_na() |&gt;\n  ggplot(aes(Date, contribution)) +\n  geom_col(fill = \"#407EC9\", width = 40) +\n  geom_hline(yintercept = 0, colour = \"#707372\") +\n  labs(x = NULL, y = \"Percentage points\")\n\n\n\n\n\n\n\nFigure 7: Contribution of the sign-identified monetary policy shock to the federal funds rate, Fry-Pagan draw.",
-    "crumbs": [
-      "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
-    ]
-  },
-  {
-    "objectID": "04_2_sign_narrative_external.html#references",
-    "href": "04_2_sign_narrative_external.html#references",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
-    "section": "8 References",
-    "text": "8 References\n\n\nAntolín-Díaz, Juan, and Juan F. Rubio-Ramírez. 2018. “Narrative Sign Restrictions for SVARs.” American Economic Review 108 (10): 2802–29.\n\n\nArias, Jonas E., Dario Caldara, and Juan F. Rubio-Ramírez. 2019. “The Systematic Component of Monetary Policy in SVARs: An Agnostic Identification Procedure.” Journal of Monetary Economics 101: 1–13. https://doi.org/10.1016/j.jmoneco.2018.07.011.\n\n\nArias, Jonas E., Juan F. Rubio-Ramírez, and Daniel F. Waggoner. 2018. “Inference Based on Structural Vector Autoregressions Identified with Sign and Zero Restrictions.” Econometrica 86 (2): 685–720.\n\n\nArias, Jonas E., Juan F. Rubio-Ramírez, and Daniel F. Waggoner. 2021. “Inference in Bayesian Proxy-SVARs.” Journal of Econometrics 225 (1): 88–106.\n\n\nBraun, Robin, and Ralf Brüggemann. 2023. “Identification of SVAR Models by Combining Sign Restrictions with External Instruments.” Journal of Business & Economic Statistics 41 (4): 1077–89. https://doi.org/10.1080/07350015.2022.2104857.\n\n\nCaldara, Dario, and Edward Herbst. 2019. “Monetary Policy, Real Activity, and Credit Spreads: Evidence from Bayesian Proxy SVARs.” American Economic Journal: Macroeconomics 11 (1): 157–92.\n\n\nCanova, Fabio, and Gianni De Nicoló. 2002. “Monetary Disturbances Matter for Business Fluctuations in the G-7.” Journal of Monetary Economics 49 (6): 1131–59.\n\n\nCesa-Bianchi, Ambrogio, and Andrej Sokol. 2022. “Financial Shocks, Credit Spreads, and the International Credit Channel.” Journal of International Economics 135: 103543. https://doi.org/10.1016/j.jinteco.2021.103543.\n\n\nFaust, Jon. 1998. “The Robustness of Identified VAR Conclusions about Money.” Carnegie-Rochester Conference Series on Public Policy 49: 207–44.\n\n\nFry, Renee, and Adrian Pagan. 2011. “Sign Restrictions in Structural Vector Autoregressions: A Critical Review.” Journal of Economic Literature 49 (4): 938–60.\n\n\nGertler, Mark, and Peter Karadi. 2015. “Monetary Policy Surprises, Credit Costs, and Economic Activity.” American Economic Journal: Macroeconomics 7 (1): 44–76. https://doi.org/10.1257/mac.20130329.\n\n\nGiacomini, Raffaella, and Toru Kitagawa. 2021. “Robust Bayesian Inference for Set-Identified Models.” Econometrica 89 (4): 1519–56.\n\n\nGilchrist, Simon, and Egon Zakrajšek. 2012. “Credit Spreads and Business Cycle Fluctuations.” American Economic Review 102 (4): 1692–720.\n\n\nGranziera, Eleonora, Hyungsik Roger Moon, and Frank Schorfheide. 2018. “Inference for VARs Identified with Sign Restrictions.” Quantitative Economics 9 (3): 1087–121.\n\n\nJarociński, Marek, and Peter Karadi. 2020. “Deconstructing Monetary Policy Surprises: The Role of Information Shocks.” American Economic Journal: Macroeconomics 12 (2): 1–43. https://doi.org/10.1257/mac.20180090.\n\n\nMertens, Karel, and Morten O. Ravn. 2013. “The Dynamic Effects of Personal and Corporate Income Tax Changes in the United States.” American Economic Review 103 (4): 1212–47.\n\n\nMoon, Hyungsik Roger, and Frank Schorfheide. 2012. “Bayesian and Frequentist Inference in Partially Identified Models.” Econometrica 80 (2): 755–82.\n\n\nRomer, Christina D., and David H. Romer. 2004. “A New Measure of Monetary Shocks: Derivation and Implications.” American Economic Review 94 (4): 1055–84. https://doi.org/10.1257/0002828042002651.\n\n\nStock, James H., and Mark W. Watson. 2012. “Disentangling the Channels of the 2007-09 Recession.” Brookings Papers on Economic Activity 43 (1): 81–135.\n\n\nUhlig, Harald. 2005. “What Are the Effects of Monetary Policy on Output? Results from an Agnostic Identification Procedure.” Journal of Monetary Economics 52 (2): 381–419.",
-    "crumbs": [
-      "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
-    ]
-  },
-  {
-    "objectID": "04_2_sign_narrative_external.html#footnotes",
-    "href": "04_2_sign_narrative_external.html#footnotes",
-    "title": "Identification via sign, narrative and sign + IV restrictions",
+    "objectID": "04_2_sign_restrictions.html#footnotes",
+    "href": "04_2_sign_restrictions.html#footnotes",
+    "title": "Identification via sign restrictions",
     "section": "Footnotes",
-    "text": "Footnotes\n\n\nSing restrictions mostly follow from the MATLAB Toolbox of Cesa-Bianchi: https://ambrogiocesabianchi.com/var-toolbox.html↩︎",
+    "text": "Footnotes\n\n\nSign restrictions mostly follow from the MATLAB Toolbox of Cesa-Bianchi: https://ambrogiocesabianchi.com/var-toolbox.html↩︎",
     "crumbs": [
       "Home",
-      "Identifcation via Sign, Narrative and Sign+IV restrictions"
+      "Sign restrictions"
     ]
   },
   {
@@ -343,7 +376,7 @@
     "text": "This chapter identifies the same oil supply news shock as in Känzig (2021), but instead of using the high-frequency instrument as a proxy it exploits the shift in the variance of structural shocks around OPEC announcement months, following Rigobon (2003). OPEC-announcement months serve as the high-variance regime.",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -354,7 +387,7 @@
     "text": "This chapter identifies the same oil supply news shock as in Känzig (2021), but instead of using the high-frequency instrument as a proxy it exploits the shift in the variance of structural shocks around OPEC announcement months, following Rigobon (2003). OPEC-announcement months serve as the high-variance regime.",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -365,7 +398,7 @@
     "text": "2 Model and Identification\nWith two variance regimes indexed by \\(z_t \\in \\{0, 1\\}\\), the impact vector \\(s\\) satisfies\n\\[\\Sigma_1 - \\Sigma_0 = s s' (\\lambda_1 - \\lambda_0), \\qquad \\lambda_j &gt; 0,\\]\nwhich identifies \\(s\\) up to sign and scale without exclusion restrictions.",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -376,7 +409,7 @@
     "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\nlibrary(tictoc)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -387,7 +420,7 @@
     "text": "4 Data\n\ndata(\"Kaenzig2021\")\n\nfinaldata &lt;- Kaenzig2021 |&gt;\n    select(Oil_Price, World_Oil_Prod, World_Oil_Inven, World_IP, US_IP, US_CPI) |&gt;\n    as.matrix()\n\n# The instrument is used only to build the regime indicator\niv_oil &lt;- Kaenzig2021 |&gt;\n    select(iv_kanzig_final) |&gt;\n    drop_na() |&gt;\n    as.matrix()\n\nvarnames &lt;- c(\"Oil Price\", \"World Oil Prod.\", \"World Oil Inven.\",\n              \"World IP\", \"US IP\", \"US CPI\")",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -398,7 +431,7 @@
     "text": "5 VAR Estimation\n\np &lt;- 12\nc &lt;- 1\n\nvar_result &lt;- fVAR(finaldata, p, c)\nresiduals  &lt;- var_result$residuals\n\nhor     &lt;- 48\nadjustu &lt;- c(nrow(residuals) - nrow(iv_oil) + 1, nrow(residuals))",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -409,7 +442,7 @@
     "text": "6 Point Estimate\nThe regime indicator is 1 in OPEC-announcement months and 0 otherwise.\n\nindsR1 &lt;- as.integer(iv_oil[, 1] != 0)\ncat(\"OPEC announcement months:\", sum(indsR1), \"of\", length(indsR1), \"\\n\")\n#&gt; OPEC announcement months: 117 of 417\n\nhetero_pt &lt;- fHeteroIRF(\n    var_result = var_result,\n    Z          = iv_oil,\n    adjustu    = adjustu,\n    indsR1     = indsR1,\n    hor        = hor,\n    nvar       = 1,\n    scale      = 1\n)",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -417,10 +450,10 @@
     "href": "03_2_Kaenzig2021_Hetero.html#bootstrap",
     "title": "Identification via Heteroskedasticity",
     "section": "7 Bootstrap",
-    "text": "7 Bootstrap\n\ntic()\nboot_hetero &lt;- fBootstrapHetero(\n    y          = finaldata,\n    var_result = var_result,\n    Z          = iv_oil,\n    indsR1     = indsR1,\n    adjustu    = adjustu,\n    nboot      = 10000,\n    blocksize  = 0,\n    hor        = hor,\n    nvar       = 1,\n    scale      = 1,\n    n_threads  = 3\n)\n#&gt; Using 3 thread(s) for heteroskedasticity bootstrap...\ntoc()\n#&gt; 11.818 sec elapsed",
+    "text": "7 Bootstrap\n\ntic()\nboot_hetero &lt;- fBootstrapHetero(\n    y          = finaldata,\n    var_result = var_result,\n    Z          = iv_oil,\n    indsR1     = indsR1,\n    adjustu    = adjustu,\n    nboot      = 10000,\n    blocksize  = 0,\n    hor        = hor,\n    nvar       = 1,\n    scale      = 1,\n    n_threads  = 3\n)\n#&gt; Using 3 thread(s) for heteroskedasticity bootstrap...\ntoc()\n#&gt; 11.476 sec elapsed",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -431,7 +464,7 @@
     "text": "8 Impulse Response Functions\n\nfPlotIRFHetero(\n    result     = boot_hetero,\n    varnames   = varnames,\n    shockname  = \"Oil Shock (Hetero)\",\n    scale      = 10,\n    facet_ncol = 3\n) +\n  labs(x = NULL, y = NULL)\n\n\n\n\n\n\n\nFigure 1: IRFs identified via heteroskedasticity — OPEC-announcement months as the high-variance regime (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Heteroskedasticity"
+      "Heteroskedasticity"
     ]
   },
   {
@@ -442,7 +475,7 @@
     "text": "This document replicates the main empirical results of Känzig (2021), which identifies oil supply news shocks using a high-frequency external instrument (proxy SVAR). The instrument captures exogenous variation in oil supply driven by OPEC production decisions, measured as oil futures price changes in a narrow window around OPEC announcements.",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -453,7 +486,7 @@
     "text": "This document replicates the main empirical results of Känzig (2021), which identifies oil supply news shocks using a high-frequency external instrument (proxy SVAR). The instrument captures exogenous variation in oil supply driven by OPEC production decisions, measured as oil futures price changes in a narrow window around OPEC announcements.",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -464,7 +497,7 @@
     "text": "2 Model and Identification\nOrdering the shock of interest first, a valid instrument \\(z_t\\) satisfies relevance and exogeneity:\n\\[\\mathbb{E}[z_t \\varepsilon_{1t}] = \\alpha \\neq 0,\n\\qquad\n\\mathbb{E}[z_t \\varepsilon_{kt}] = 0, \\quad k = 2, \\dots, K.\\]\nThese conditions imply \\(\\mathbb{E}[z_t u_t] = \\alpha\\, b_1\\), so the impact column is recovered up to scale from covariance ratios (a two-stage regression of the residuals on \\(z_t\\)):\n\\[\\frac{b_{i1}}{b_{11}} = \\frac{\\mathbb{E}[z_t u_{it}]}{\\mathbb{E}[z_t u_{1t}]},\n\\qquad\n\\Theta_h = \\Phi_h\\, b_1.\\]",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -475,7 +508,7 @@
     "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\nlibrary(tictoc)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -486,7 +519,7 @@
     "text": "4 Data\n\ndata(\"Kaenzig2021\")\n\nfinaldata &lt;- Kaenzig2021 |&gt;\n    select(Oil_Price, World_Oil_Prod, World_Oil_Inven, World_IP, US_IP, US_CPI) |&gt;\n    as.matrix()\n\niv_oil &lt;- Kaenzig2021 |&gt;\n    select(iv_kanzig_final) |&gt;\n    drop_na() |&gt;\n    as.matrix()\n\n# Truncated to zero (used for instrument-strength diagnostics only)\niv_oil_trunc &lt;- Kaenzig2021 |&gt;\n    select(iv_kanzig_final) |&gt;\n    mutate(iv_kanzig_final = ifelse(is.na(iv_kanzig_final), 0, iv_kanzig_final)) |&gt;\n    as.matrix()\n\nN         &lt;- ncol(finaldata)\nvarnames  &lt;- c(\"Oil Price\", \"World Oil Prod.\", \"World Oil Inven.\",\n               \"World IP\", \"US IP\", \"US CPI\")\nshockname &lt;- \"Oil Shock\"",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -497,7 +530,7 @@
     "text": "5 VAR Estimation\n\np &lt;- 12\nc &lt;- 1\n\nvar_result &lt;- fVAR(finaldata, p, c)\nbeta       &lt;- var_result$beta\nresiduals  &lt;- var_result$residuals\nsigma_full &lt;- var_result$sigma\n\nhor  &lt;- 48\nwold &lt;- fWoldIRF(var_result, horizon = hor)",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -505,10 +538,10 @@
     "href": "03_1_Kaenzig2021_ExternalIV.html#proxy-svar-mbb-bootstrap",
     "title": "Proxy SVAR (External Instruments) and Weak-IV Robust Inference",
     "section": "6 Proxy SVAR: MBB Bootstrap",
-    "text": "6 Proxy SVAR: MBB Bootstrap\n\nadjustZ &lt;- c(1, nrow(iv_oil))\nadjustu &lt;- c(nrow(residuals) - nrow(iv_oil) + 1, nrow(residuals))\n\ntic()\nresult_mbb &lt;- fBootstrapIVMBB(\n    y          = finaldata,\n    var_result = var_result,\n    Z          = iv_oil,\n    nboot      = 1000,\n    blocksize  = 24,          # 0: auto block size, 24 is in the paper\n    adjustZ    = adjustZ,\n    adjustu    = adjustu,\n    policyvar  = 1,\n    horizon    = hor,\n    n_threads  = 3\n)\n#&gt; Using 3 thread(s) for parallel bootstrap computation...\ntoc()\n#&gt; 0.991 sec elapsed",
+    "text": "6 Proxy SVAR: MBB Bootstrap\n\nadjustZ &lt;- c(1, nrow(iv_oil))\nadjustu &lt;- c(nrow(residuals) - nrow(iv_oil) + 1, nrow(residuals))\n\ntic()\nresult_mbb &lt;- fBootstrapIVMBB(\n    y          = finaldata,\n    var_result = var_result,\n    Z          = iv_oil,\n    nboot      = 1000,\n    blocksize  = 24,          # 0: auto block size, 24 is in the paper\n    adjustZ    = adjustZ,\n    adjustu    = adjustu,\n    policyvar  = 1,\n    horizon    = hor,\n    n_threads  = 3\n)\n#&gt; Using 3 thread(s) for parallel bootstrap computation...\ntoc()\n#&gt; 0.992 sec elapsed",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -519,7 +552,7 @@
     "text": "7 Impulse Response Functions\n\nfPlotIRFIV(\n    result_mbb = result_mbb,\n    varnames   = varnames,\n    shockname  = shockname,\n    scale      = 10,\n    facet_ncol = 3\n) +\n  xlim(0, 50) +\n  labs(x = NULL, y = NULL)\n\n\n\n\n\n\n\nFigure 1: IRFs to oil supply news shock — MBB bootstrap (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -530,7 +563,7 @@
     "text": "8 Instrument Strength\n\nu_p &lt;- residuals[, 1]\n\n# Match the paper: truncate missing values to zero\niv_trunc_aligned &lt;- tail(iv_oil_trunc, length(u_p))\n\nstrength_trunc &lt;- fOLS(y = as.matrix(u_p), X = iv_trunc_aligned, c = 1)\n\n# Without truncation: restrict to proxy sample only\nu_p_fin  &lt;- u_p[(length(u_p) - nrow(iv_oil) + 1):length(u_p)] |&gt; as.matrix()\nstrength &lt;- fOLS(y = u_p_fin, X = iv_oil, c = 1)\n\nlibrary(gt)\n\ntibble(\n    Statistic = c(\"F-stat\", \"Robust F-stat\", \"R²\", \"Adj. R²\"),\n    `Truncated (paper)` = c(strength_trunc$F, strength_trunc$Frobust,\n                             strength_trunc$r2, strength_trunc$r2adj),\n    `Without truncation` = c(strength$F, strength$Frobust,\n                              strength$r2, strength$r2adj)\n) |&gt;\n  gt() |&gt;\n  fmt_number(columns = 2:3, decimals = 3) |&gt;\n  tab_header(title = \"First-Stage Instrument Strength\")\n\n\n\n\n\n\n\nFirst-Stage Instrument Strength\n\n\nStatistic\nTruncated (paper)\nWithout truncation\n\n\n\n\nF-stat\n22.669\n20.259\n\n\nRobust F-stat\n10.551\n10.545\n\n\nR²\n0.042\n0.047\n\n\nAdj. R²\n0.040\n0.044",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -541,7 +574,7 @@
     "text": "9 IV Identification (Manual Two-Stage)\n\nu     &lt;- residuals[(nrow(residuals) - length(iv_oil) + 1):nrow(residuals), ]\nT1    &lt;- nrow(u)\nsigma &lt;- (t(u) %*% u) / (T1 - 1 - p - N * p)\nS     &lt;- t(chol(sigma))\n\n# Stage 1: regress u_p on instrument\nols1 &lt;- fOLS(y = u_p_fin, X = iv_oil, c = 0)\nuhat &lt;- ols1$fitted_partial\n\n# Stage 2: regress other residuals on uhat to get s_q / s_p\nu_q_fin &lt;- u[(nrow(u) - nrow(iv_oil) + 1):nrow(u), -1]\nsq_sp   &lt;- solve(t(uhat) %*% uhat) %*% t(uhat) %*% u_q_fin\n\n# Structural impact vector (normalised to unit oil price response)\ns &lt;- c(1, sq_sp[1], sq_sp[2], sq_sp[3], sq_sp[4], sq_sp[5])",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -552,7 +585,7 @@
     "text": "10 Get the Structural Shock\n\noil_shock &lt;- fGetShock(\n    residuals  = residuals,\n    sigma_full = sigma_full,\n    s          = s,\n    normalize  = 'unit',\n    shockSize  = 1 # for 10% use 0.1 to match Kaenzig (2021)\n)",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -563,7 +596,7 @@
     "text": "11 Historical Decomposition\n\nhd_result &lt;- fHDIV(\n    residuals = residuals,\n    sigma     = sigma_full,\n    s         = s,\n    beta      = beta,\n    c         = c,\n    p         = p\n)\nHDshock &lt;- hd_result$HDshock",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -571,10 +604,10 @@
     "href": "03_1_Kaenzig2021_ExternalIV.html#bootstrap-uncertainty-bands-for-historical-decomposition",
     "title": "Proxy SVAR (External Instruments) and Weak-IV Robust Inference",
     "section": "12 Bootstrap Uncertainty Bands for Historical Decomposition",
-    "text": "12 Bootstrap Uncertainty Bands for Historical Decomposition\n\ntic()\nboot_hd &lt;- fBootstrapHDIV(\n    y          = finaldata,\n    var_result = var_result,\n    Z          = iv_oil,\n    s          = s,\n    nboot      = 500L,\n    blocksize  = 24L,\n    adjustZ    = adjustZ,\n    adjustu    = adjustu,\n    policyvar  = 1L,\n    conf        = 90,\n    n_threads  = 3\n)\n#&gt; Using 3 thread(s) for bootstrap HD computation...\ntoc()\n#&gt; 0.958 sec elapsed\n\nHD1_upper &lt;- boot_hd$upper[, 1]\nHD1_lower &lt;- boot_hd$lower[, 1]\n\n\n# Date sequence aligned with VAR residuals sample (1975M01–2017M12)\ndates &lt;- seq(as.Date(\"1975-01-01\"), as.Date(\"2017-12-01\"), by = \"month\")\n\noil_events &lt;- as.Date(c(\n    \"1978-09-01\", \"1980-10-01\", \"1985-12-01\", \"1990-08-01\",\n    \"1997-07-01\", \"2002-11-01\", \"2008-09-01\", \"2014-11-01\"\n))\n\noil_event_labels &lt;- c(\n    \"Iranian\\nrevolution\", \"Iran-Iraq\\nwar\", \"OPEC\\ncollapse\",\n    \"Gulf war\", \"Asian fin.\\ncrisis\", \"Venezuelan\\ncrisis\",\n    \"Global fin.\\ncrisis\", \"Oil crash\\n2014\"\n)\n\nhd_mean   &lt;- mean(HDshock[, 1])\ny_oil_dm  &lt;- finaldata[(p + 1):nrow(finaldata), 1] - mean(finaldata[(p + 1):nrow(finaldata), 1])\nhd_oil_dm &lt;- HDshock[, 1] - hd_mean\nupper_dm  &lt;- HD1_upper - hd_mean\nlower_dm  &lt;- HD1_lower - hd_mean\n\ntibble(\n    date   = dates,\n    actual = y_oil_dm,\n    hd     = hd_oil_dm\n) |&gt;\n  pivot_longer(c(actual, hd), names_to = \"series\", values_to = \"value\") |&gt;\n  mutate(series = factor(series, levels = c(\"actual\", \"hd\"),\n                         labels = c(\"Real oil price\", \"Contribution oil supply news\"))\n  ) |&gt;\n  ggplot(aes(x = date, y = value, colour = series, linetype = series)) +\n  geom_ribbon(data = tibble(date = dates, lower = lower_dm, upper = upper_dm),\n                aes(x = date, ymin = lower, ymax = upper),\n                inherit.aes = FALSE, fill = tidyMacro_colors[3], alpha = 0.2) +\n  geom_vline(xintercept = oil_events, linewidth = 0.6, colour = \"grey90\") +\n  annotate(\n    \"text\", x = oil_events, y = 148,\n    label = oil_event_labels, size = 3.5, vjust = 1,\n    colour = \"grey30\", lineheight = 0.85\n  ) +\n  geom_line(linewidth = 0.7) +\n  scale_colour_manual(\n    values = c(\"Real oil price\" = tidyMacro_colors[4],\n               \"Contribution oil supply news\" = tidyMacro_colors[1])\n  ) +\n  scale_x_date(date_breaks = \"5 years\", date_labels = \"%Y\") +\n  ylim(-150, 150) +\n  labs(x = NULL, y = \"%\") +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 2: Historical decomposition: contribution of oil supply news shock to real oil price",
+    "text": "12 Bootstrap Uncertainty Bands for Historical Decomposition\n\ntic()\nboot_hd &lt;- fBootstrapHDIV(\n    y          = finaldata,\n    var_result = var_result,\n    Z          = iv_oil,\n    s          = s,\n    nboot      = 500L,\n    blocksize  = 24L,\n    adjustZ    = adjustZ,\n    adjustu    = adjustu,\n    policyvar  = 1L,\n    conf        = 90,\n    n_threads  = 3\n)\n#&gt; Using 3 thread(s) for bootstrap HD computation...\ntoc()\n#&gt; 0.935 sec elapsed\n\nHD1_upper &lt;- boot_hd$upper[, 1]\nHD1_lower &lt;- boot_hd$lower[, 1]\n\n\n# Date sequence aligned with VAR residuals sample (1975M01–2017M12)\ndates &lt;- seq(as.Date(\"1975-01-01\"), as.Date(\"2017-12-01\"), by = \"month\")\n\noil_events &lt;- as.Date(c(\n    \"1978-09-01\", \"1980-10-01\", \"1985-12-01\", \"1990-08-01\",\n    \"1997-07-01\", \"2002-11-01\", \"2008-09-01\", \"2014-11-01\"\n))\n\noil_event_labels &lt;- c(\n    \"Iranian\\nrevolution\", \"Iran-Iraq\\nwar\", \"OPEC\\ncollapse\",\n    \"Gulf war\", \"Asian fin.\\ncrisis\", \"Venezuelan\\ncrisis\",\n    \"Global fin.\\ncrisis\", \"Oil crash\\n2014\"\n)\n\nhd_mean   &lt;- mean(HDshock[, 1])\ny_oil_dm  &lt;- finaldata[(p + 1):nrow(finaldata), 1] - mean(finaldata[(p + 1):nrow(finaldata), 1])\nhd_oil_dm &lt;- HDshock[, 1] - hd_mean\nupper_dm  &lt;- HD1_upper - hd_mean\nlower_dm  &lt;- HD1_lower - hd_mean\n\ntibble(\n    date   = dates,\n    actual = y_oil_dm,\n    hd     = hd_oil_dm\n) |&gt;\n  pivot_longer(c(actual, hd), names_to = \"series\", values_to = \"value\") |&gt;\n  mutate(series = factor(series, levels = c(\"actual\", \"hd\"),\n                         labels = c(\"Real oil price\", \"Contribution oil supply news\"))\n  ) |&gt;\n  ggplot(aes(x = date, y = value, colour = series, linetype = series)) +\n  geom_ribbon(data = tibble(date = dates, lower = lower_dm, upper = upper_dm),\n                aes(x = date, ymin = lower, ymax = upper),\n                inherit.aes = FALSE, fill = tidyMacro_colors[3], alpha = 0.2) +\n  geom_vline(xintercept = oil_events, linewidth = 0.6, colour = \"grey90\") +\n  annotate(\n    \"text\", x = oil_events, y = 148,\n    label = oil_event_labels, size = 3.5, vjust = 1,\n    colour = \"grey30\", lineheight = 0.85\n  ) +\n  geom_line(linewidth = 0.7) +\n  scale_colour_manual(\n    values = c(\"Real oil price\" = tidyMacro_colors[4],\n               \"Contribution oil supply news\" = tidyMacro_colors[1])\n  ) +\n  scale_x_date(date_breaks = \"5 years\", date_labels = \"%Y\") +\n  ylim(-150, 150) +\n  labs(x = NULL, y = \"%\") +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 2: Historical decomposition: contribution of oil supply news shock to real oil price",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -585,7 +618,7 @@
     "text": "13 Forecast Error Variance Decomposition\n\nfevd_result &lt;- fFEVDIV(s, S, wold, N, hor, sigma, u, T1 = T1, p = p)\n\nfPlotVarDec(\n    fevd       = fevd_result$fFEVDIV,\n    varnames   = varnames,\n    shocknames = shockname\n) +\n  scale_fill_manual(values = tidyMacro_colors[c(2, 4)])\n\n\n\n\n\n\n\nFigure 3: Forecast error variance decomposition: share explained by oil supply news shock",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -596,7 +629,7 @@
     "text": "14 Weak-IV Robust Inference (Montiel-Olea, Stock, Watson 2021)\nThe MBB bootstrap assumes a strong instrument. Montiel Olea et al. (2021) provide confidence sets that remain valid regardless of instrument strength. Two types are reported:\n\nDelta method (inner, darker band): plug-in inference using the asymptotic variance of the IV estimator.\nAnderson-Rubin (outer, lighter band): weak-IV robust confidence set; bounds solve a quadratic inequality and may be unbounded if the instrument is very weak.\n\n\nmsw &lt;- fMSW(\n    var_result = var_result,\n    Z          = iv_oil,\n    finaldata  = finaldata,\n    adjustu    = adjustu,\n    hor        = hor,\n    nvar       = 1,\n    scale      = 1,\n    confidence = 0.9,\n    NWlags     = 0\n)\n\ncat(\"Wald statistic (HAC-robust F):\", round(msw$Waldstat, 2), \"\\n\")\n#&gt; Wald statistic (HAC-robust F): 11.67\n\n\nfPlotIRFMSW(\n    msw_result      = msw,\n    varnames        = varnames,\n    shockname       = shockname,\n    scale           = 10,\n    facet_ncol      = 3,\n    line_color      = 'black',\n    ribbon_fill_ar  = tidyMacro_colors[1],\n    ribbon_fill_dm  = tidyMacro_colors[3],\n    ribbon_alpha_ar = 0.45,\n    ribbon_alpha_dm = 0.45\n) +\n  labs(x = NULL, y = NULL)\n\n\n\n\n\n\n\nFigure 4: Weak-IV robust IRFs — Anderson-Rubin (outer) and delta-method (inner) 90% bands",
     "crumbs": [
       "Home",
-      "Identifcation via External Instruments and Weak IV"
+      "External Instruments and Weak IV"
     ]
   },
   {
@@ -607,7 +640,7 @@
     "text": "This document replicates the main empirical results of Galí (1999) shocks can have a permanent effect on labor productivity.",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -618,7 +651,7 @@
     "text": "This document replicates the main empirical results of Galí (1999) shocks can have a permanent effect on labor productivity.",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -629,7 +662,7 @@
     "text": "2 Model and Identification\nWith \\(\\Phi(1) = \\sum_{h=0}^{\\infty} \\Phi_h\\) the reduced-form long-run multiplier, the cumulative structural effect is \\(\\Theta(1) = \\Phi(1) B_0\\). The reduced form identifies the long-run covariance\n\\[\\Omega \\equiv \\Phi(1)\\, \\Sigma\\, \\Phi(1)' = \\Theta(1)\\, \\Theta(1)'.\\]\nImposing a lower-triangular \\(\\Theta(1)\\) (only technology shocks affect productivity permanently) makes it the unique Cholesky factor of \\(\\Omega\\), and the impact matrix follows as\n\\[\\Theta(1) = \\operatorname{chol}(\\Omega), \\qquad B_0 = \\Phi(1)^{-1}\\, \\Theta(1).\\]",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -640,7 +673,7 @@
     "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\nlibrary(tictoc)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -651,7 +684,7 @@
     "text": "4 Data\n\ndata(\"Gali1999\")\nGali1999 |&gt; head()\n#&gt; # A tibble: 6 × 3\n#&gt;   Date       Productivity  Hours\n#&gt;   &lt;date&gt;            &lt;dbl&gt;  &lt;dbl&gt;\n#&gt; 1 1947-04-01         2.01 -0.507\n#&gt; 2 1947-07-01        -3.20  3.09 \n#&gt; 3 1947-10-01         3.82  3.03 \n#&gt; 4 1948-01-01        12.0  -1.99 \n#&gt; 5 1948-04-01         9.54  0.186\n#&gt; 6 1948-07-01        -3.11  3.63\n\n\ny &lt;- Gali1999 |&gt; select(Productivity, Hours) |&gt; as.matrix()\ndates &lt;- Gali1999 |&gt; pull(Date)\n\nT &lt;- nrow(y)\nN &lt;- ncol(y)",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -662,7 +695,7 @@
     "text": "5 VAR Estimation\n\n# Lag length selection via AIC\np &lt;- fAICBIC(y, pmax = 4, c = 1)$aic\nc &lt;- 1\n\n# Estimate VAR\nvar_result &lt;- fVAR(y, p = p, c = c)\n\n# Variance-covariance matrix of reduced-form residuals\nSigma &lt;- var_result$sigma",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -673,7 +706,7 @@
     "text": "6 BQ Identification\n\nhorizon &lt;- 40\nwold &lt;- fWoldIRF(var_result, horizon = horizon)\n\n# Long-run multiplier matrix\nC1 &lt;- apply(wold, c(1, 2), sum)\n\n# Lower Cholesky of long-run covariance\nD1 &lt;- t(chol(C1 %*% Sigma %*% t(C1)))\n\n# Structural impact matrix\nK &lt;- solve(C1, D1)\n\n# BQ IRFs (in first differences)\nirf_bq &lt;- fBQIRF(wold, K)",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -681,10 +714,10 @@
     "href": "02_1_Gali1999.html#bootstrap-confidence-bands",
     "title": "Long run restrictions",
     "section": "7 Bootstrap Confidence Bands",
-    "text": "7 Bootstrap Confidence Bands\n\ntic()\nboot_bq &lt;- fBootstrapBQ(\n  y = y,\n  var_result = var_result,\n  nboot = 1000,\n  horizon = 40,\n  bootscheme = \"residual\",\n  cumulate = c(1, 2)\n)\ntoc()\n#&gt; 0.057 sec elapsed",
+    "text": "7 Bootstrap Confidence Bands\n\ntic()\nboot_bq &lt;- fBootstrapBQ(\n  y = y,\n  var_result = var_result,\n  nboot = 1000,\n  horizon = 40,\n  bootscheme = \"residual\",\n  cumulate = c(1, 2)\n)\ntoc()\n#&gt; 0.058 sec elapsed",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -695,7 +728,7 @@
     "text": "8 Impulse Response Functions\nLevel responses are recovered by accumulating the first-differenced IRFs. The first shock is the technology shock; the second is the non-technology shock.\n\nfPlotIRFBQ(\n  point       = irf_bq,\n  boot_result = boot_bq,\n  varnames    = c(\"LABPROD\", \"HOURS\"),\n  shocknames  = c(\"Shock:Technology\", \"Shock:Non-Technology\"),\n  cumulate    = c(1, 2),\n  shocks      = c(1, 2)\n)\n\n\n\n\n\n\n\nFigure 1: Impulse response functions to technology and non-technology shocks (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -706,7 +739,7 @@
     "text": "9 Forecast Error Variance Decomposition\n\n# Cumulate BQ IRF along horizon (dim 3) to get level responses\nirf_cumu &lt;- irf_bq\nfor (h in 2:dim(irf_bq)[3]) {\n  irf_cumu[, , h] &lt;- irf_cumu[, , h] + irf_cumu[, , h - 1]\n}\n\n# FEVD — reuses Cholesky FEVD function (same maths)\nfevd &lt;- fFEVDChol(irf_cumu, shock = 0)$fevd\nfevd &lt;- fevd[, c(2, 1), ] # optional, for vis purposes\n\nfPlotVarDec(\n  fevd = fevd,\n  varnames = c(\"LABPROD\", \"HOURS\"),\n  shocknames = c(\"Technology\", \"Non-Technology\")\n) +\n  scale_fill_manual(values = tidyMacro_colors[1:2])\n\n\n\n\n\n\n\nFigure 2: Forecast error variance decomposition",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -717,7 +750,7 @@
     "text": "10 Historical Decomposition\n\nhistdec_all &lt;- vector(\"list\", N)\nystar_all &lt;- matrix(0, nrow = T - p, ncol = N)\n\nfor (series in seq_len(N)) {\n  res &lt;- fHistDec(y, var_result, K, series)\n  histdec_all[[series]] &lt;- res$histdec\n  ystar_all[, series] &lt;- res$ystar\n}\n\nnames(histdec_all) &lt;- c(\"LABPROD\", \"HOURS\")\n\nfPlotHistDec(\n  histdec_list = histdec_all,\n  shock = 1,\n  shockname = \"Technology\",\n  dates = dates,\n  p = p,\n  facet_ncol = 1\n) +\n  scale_x_date(date_breaks = \"6 years\", date_labels = \"%Y\")\n\n\n\n\n\n\n\nFigure 3: Historical decomposition: contribution of technology shocks",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
@@ -728,29 +761,29 @@
     "text": "11 Conditional Correlations\nFollowing Galí (1999) , we decompose the unconditional correlation between hours and productivity into shock-specific conditional correlations. The conditional correlation for shock \\(i\\) is:\n\\[\\rho_i = \\frac{\\sum_{h} \\theta_{1i,h}\\, \\theta_{2i,h}}\n{\\sqrt{\\left(\\sum_{h} \\theta_{1i,h}^2\\right) \\left(\\sum_{h} \\theta_{2i,h}^2\\right)}},\\]\nwhere \\(\\theta_{ki,h}\\) is the response of variable \\(k\\) to shock \\(i\\) at horizon \\(h\\).\n\n# Dimensions of irf_bq: [variables, shocks, horizon]\nN_shocks &lt;- dim(irf_bq)[2]\n\n# Numerator: for each shock i, sum of cross-products of IRFs of var 1 and var 2\nnumerator &lt;- numeric(N_shocks)\nfor (i in 1:N_shocks) {\n  temp         &lt;- irf_bq[1, i, ] * irf_bq[2, i, ]\n  numerator[i] &lt;- sum(temp)\n}\n\n# Denominator: sqrt of product of sum-of-squares for each shock\nirf_squared &lt;- irf_bq^2\ndenominator &lt;- numeric(N_shocks)\nfor (i in 1:N_shocks) {\n  v1             &lt;- sum(irf_squared[1, i, ])\n  v2             &lt;- sum(irf_squared[2, i, ])\n  denominator[i] &lt;- sqrt(v1 * v2)\n}\n\n# Conditional correlations (one per shock)\ncond_corr &lt;- numerator / denominator\n\n# Unconditional correlations\nuncond_corr &lt;- cor(y)\n\ncat(\"Unconditional correlation (Productivity, Hours):\", round(uncond_corr[1, 2], 3), \"\\n\")\n#&gt; Unconditional correlation (Productivity, Hours): -0.203\ncat(\"Conditional correlation | Technology shock:     \", round(cond_corr[1], 3), \"\\n\")\n#&gt; Conditional correlation | Technology shock:      -0.901\ncat(\"Conditional correlation | Non-Technology shock: \", round(cond_corr[2], 3), \"\\n\")\n#&gt; Conditional correlation | Non-Technology shock:  0.733\n\nHours and productivity are nearly uncorrelated unconditionally, which sits uncomfortably with standard RBC theory. Once we condition on the source of variation, the picture sharpens: technology improvements are accompanied by a decline in hours, producing a negative conditional correlation. It is the non-technology shock that drives hours and productivity in the same direction — precisely the co-movement that RBC models mistakenly ascribed to technology.",
     "crumbs": [
       "Home",
-      "Identifcation via Long-run restrictions"
+      "Long-run restrictions"
     ]
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
+    "objectID": "00_index.html",
+    "href": "00_index.html",
     "title": "Home",
     "section": "",
     "text": "Welcome to the website of tidyMacro!\ntidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).",
     "crumbs": [
       "Home",
-      "Welcome"
+      "Main"
     ]
   },
   {
-    "objectID": "index.html#installation",
-    "href": "index.html#installation",
+    "objectID": "00_index.html#installation",
+    "href": "00_index.html#installation",
     "title": "Home",
     "section": "Installation",
     "text": "Installation\n\n# install.packages(\"devtools\")\ndevtools::install_github(\"muhsinciftci/tidyMacro\")",
     "crumbs": [
       "Home",
-      "Welcome"
+      "Main"
     ]
   },
   {
@@ -758,10 +791,10 @@
     "href": "01_Bloom2009.html",
     "title": "Short run restrictions",
     "section": "",
-    "text": "This document replicates the main empirical results of Bloom (2009), which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is \\(log(x) * 100\\)",
+    "text": "This document replicates the main empirical results of @bloom2009, which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is \\(log(x) * 100\\)",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -769,10 +802,10 @@
     "href": "01_Bloom2009.html#overview",
     "title": "Short run restrictions",
     "section": "",
-    "text": "This document replicates the main empirical results of Bloom (2009), which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is \\(log(x) * 100\\)",
+    "text": "This document replicates the main empirical results of @bloom2009, which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is \\(log(x) * 100\\)",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -783,7 +816,7 @@
     "text": "2 Model and Identification\nReduced-form VAR(\\(p\\)):\n\\[y_t = c + A_1 y_{t-1} + \\cdots + A_p y_{t-p} + u_t, \\qquad u_t \\sim (0, \\Sigma)\\]\nStructural shocks: \\(u_t = B_0 \\varepsilon_t\\) with \\(\\varepsilon_t \\sim (0, I_K)\\), so the data only pin down\n\\[\\Sigma = B_0 B_0'.\\]\nRecursive (Cholesky) identification sets the upper triangle of \\(B_0\\) to zero:\n\\[\\Sigma = P P', \\qquad B_0 = P \\ \\text{(lower triangular)}.\\]\nStructural IRFs from the Wold coefficients \\(\\Phi_h\\):\n\\[\\Theta_h = \\Phi_h B_0, \\qquad h = 0, 1, \\dots, H.\\]",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -794,7 +827,7 @@
     "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\nlibrary(tictoc)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -805,7 +838,7 @@
     "text": "4 Data\n\ndata(\"Bloom2009\")\n\n# See Data\nBloom2009 |&gt; head()\n#&gt; # A tibble: 6 × 9\n#&gt;   Date       SP500 UNCERT   FFR  WAGE   CPI HOURS  EMPL INDPRO\n#&gt;   &lt;date&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;\n#&gt; 1 1962-07-01  400.      0  2.71  82.0  341.  40.5  965.   312.\n#&gt; 2 1962-08-01  406.      0  2.93  82.4  341.  40.5  965.   312.\n#&gt; 3 1962-09-01  408.      0  2.9   82.4  342.  40.5  965.   313.\n#&gt; 4 1962-10-01  403.      1  2.9   82.9  341.  40.3  965.   313.\n#&gt; 5 1962-11-01  403.      0  2.94  82.9  341.  40.5  965.   314.\n#&gt; 6 1962-12-01  413.      0  2.93  82.9  341.  40.3  965.   314.\n\n\ndates_vec &lt;- Bloom2009 |&gt; pull(Date)\ny         &lt;- Bloom2009 |&gt; select(-Date) |&gt; as.matrix()\n\nT &lt;- nrow(y)\nN &lt;- ncol(y)\n\nvar_names &lt;- colnames(y)\nshockname &lt;- \"UNCERT\"\nshock     &lt;- match(shockname, var_names)",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -816,7 +849,7 @@
     "text": "5 VAR Estimation\n\np &lt;- 12\nc &lt;- 1\n\nvar_bloom &lt;- fVAR(y, p, c)\nsigma     &lt;- var_bloom$sigma\n\n# Cholesky factor (lower triangular)\nS &lt;- t(chol(sigma))\n\n# Wold IRFs\nhorizon   &lt;- 48\nwold      &lt;- fWoldIRF(var_bloom, horizon = horizon)\npoint_irf &lt;- fCholeskyIRF(wold, S)\n\n# Check Stability\nfCheckStability(var_model = var_bloom)\n#&gt; Maximum eigenvalue (modulus): 0.998396\n#&gt; The VAR is stable (all |lambda_i| &lt; 1).",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -824,10 +857,10 @@
     "href": "01_Bloom2009.html#bootstrap-confidence-bands",
     "title": "Short run restrictions",
     "section": "6 Bootstrap Confidence Bands",
-    "text": "6 Bootstrap Confidence Bands\n\n6.1 Standard Bootstrap\n\ntic()\nbloom_chol &lt;- fBootstrapChol(\n    y          = y,\n    var_result = var_bloom,\n    nboot      = 1000,\n    horizon    = horizon,\n    bootscheme = \"wild\",\n    n_threads  = 3\n)\ntoc()\n#&gt; 2.544 sec elapsed\n\n\n\n6.2 Bias-Corrected Bootstrap\n\ntic()\nbloom_corrected &lt;- fBootstrapCholCorrected(\n    y          = y,\n    var_result = var_bloom,\n    nboot1     = 1000,\n    nboot2     = 1000,\n    horizon    = horizon,\n    bootscheme = \"wild\",\n    n_threads  = 3\n)\ntoc()\n#&gt; 4.786 sec elapsed",
+    "text": "6 Bootstrap Confidence Bands\n\n6.1 Standard Bootstrap\n\ntic()\nbloom_chol &lt;- fBootstrapChol(\n    y          = y,\n    var_result = var_bloom,\n    nboot      = 1000,\n    horizon    = horizon,\n    bootscheme = \"wild\",\n    n_threads  = 3\n)\ntoc()\n#&gt; 2.021 sec elapsed\n\n\n\n6.2 Bias-Corrected Bootstrap\n\ntic()\nbloom_corrected &lt;- fBootstrapCholCorrected(\n    y          = y,\n    var_result = var_bloom,\n    nboot1     = 1000,\n    nboot2     = 1000,\n    horizon    = horizon,\n    bootscheme = \"wild\",\n    n_threads  = 3\n)\ntoc()\n#&gt; 3.9 sec elapsed",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -838,7 +871,7 @@
     "text": "7 Impulse Response Functions\n\n7.1 Standard Bootstrap\n\nfPlotIRFChol(\n    point       = point_irf,\n    boot_result = bloom_chol,\n    shock       = shock,\n    varnames    = var_names,\n    facet_ncol  = 3\n) +\n    labs(y = NULL)\n\n\n\n\n\n\n\nFigure 1: IRFs to uncertainty shock — standard bootstrap (68% and 90% confidence bands)\n\n\n\n\n\n\n\n7.2 Bias-Corrected Bootstrap\n\nfPlotIRFChol(\n    point       = point_irf,\n    boot_result = bloom_corrected,\n    shock       = shock,\n    varnames    = var_names,\n    facet_ncol  = 3\n) + \n    labs(y = NULL)\n\n\n\n\n\n\n\nFigure 2: IRFs to uncertainty shock — bias-corrected bootstrap (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -849,7 +882,7 @@
     "text": "8 Forecast Error Variance Decomposition\nShare of the \\(h\\)-step forecast error variance of variable \\(k\\) due to shock \\(j\\):\n\\[\\mathrm{FEVD}_{k,j}(h) = \\frac{\\sum_{s=0}^{h-1} (\\Theta_s)_{kj}^2}{\\sum_{s=0}^{h-1} \\sum_{\\ell=1}^{K} (\\Theta_s)_{k\\ell}^2}.\\]\n\nvardec &lt;- fFEVDChol(point_irf, shock = shock)\n\nfPlotVarDec(\n    fevd       = vardec$fevd,\n    varnames   = var_names,\n    shocknames = shockname\n) +\n  scale_fill_manual(values = tidyMacro_colors[c(2, 3)])\n\n\n\n\n\n\n\nFigure 3: Forecast error variance decomposition: share explained by uncertainty shock",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
     ]
   },
   {
@@ -860,7 +893,18 @@
     "text": "9 Historical Decomposition\nEach observation decomposes into deterministic components plus cumulated shock contributions (companion form for \\(p &gt; 1\\)):\n\\[y_t = \\sum_{s=0}^{t-1} \\Phi^s c + \\Phi^t y_0 + \\sum_{s=0}^{t-1} \\Theta_s \\varepsilon_{t-s},\n\\qquad\nHD_{k,t}^{(j)} = \\sum_{s=0}^{t-1} (\\Theta_s)_{kj}\\, \\varepsilon_{j,t-s}.\\]\n\n# Exclude the shock variable itself from the response variables\nseries &lt;- setdiff(seq_len(N), shock)\n\nhistdec_list &lt;- setNames(\n    lapply(series, function(i) fHistDec(y, var_bloom, S, i)$histdec),\n    colnames(y)[series]\n)\n\nfPlotHistDec(\n    histdec_list = histdec_list,\n    shock        = shock,\n    shockname    = shockname,\n    dates        = dates_vec,\n    p            = p,\n    facet_ncol   = 2\n) +\n    scale_x_date(date_breaks = \"7 years\", date_labels = \"%Y\")\n\n\n\n\n\n\n\nFigure 4: Historical decomposition: contribution of uncertainty shock",
     "crumbs": [
       "Home",
-      "Identifcation via Short-run restrictions"
+      "Short-run restrictions"
+    ]
+  },
+  {
+    "objectID": "01_Bloom2009.html#references",
+    "href": "01_Bloom2009.html#references",
+    "title": "Short run restrictions",
+    "section": "References",
+    "text": "References",
+    "crumbs": [
+      "Home",
+      "Short-run restrictions"
     ]
   },
   {
@@ -871,7 +915,7 @@
     "text": "This document replicates the news shock identification of Beaudry and Portier (2014) . A news shock is identified as the shock that has no contemporaneous effect on TFP but maximizes the long-run response of TFP at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -882,7 +926,7 @@
     "text": "This document replicates the news shock identification of Beaudry and Portier (2014) . A news shock is identified as the shock that has no contemporaneous effect on TFP but maximizes the long-run response of TFP at a 40-quarter horizon. The approach follows the mixed restriction strategy combining a zero impact restriction with a long-run maximization criterion.",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -893,7 +937,7 @@
     "text": "2 Model and Identification\nWith \\(P\\) the lower Cholesky factor of \\(\\Sigma\\), any rotation is observationally equivalent:\n\\[\\Sigma = P P' = (P Q)(P Q)', \\qquad Q Q' = I_K.\\]\nThe news shock is the rotation vector \\(q\\) orthogonal to the impact on TFP (variable 1) that maximizes the share of TFP’s forecast error variance up to horizon \\(H\\):\n\\[q^{*} = \\arg\\max_{q\\,:\\,q'q = 1,\\ (Pq)_1 = 0}\n\\frac{\\sum_{h=0}^{H} \\big[(\\Phi_h P q)_1\\big]^2}{\\sum_{h=0}^{H} \\sigma_{11,h}},\n\\qquad H = 40,\\]\nwhere \\(\\sigma_{11,h}\\) is the total forecast error variance of TFP at horizon \\(h\\). The impact vector is \\(b^{news} = P q^{*}\\) and structural IRFs are \\(\\Theta_h = \\Phi_h P q^{*}\\).",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -904,7 +948,7 @@
     "text": "3 Setup\n\nlibrary(tidyverse)\nlibrary(tictoc)\nlibrary(tidyMacro)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -915,7 +959,7 @@
     "text": "4 Data\n\ndata(\"BeaudryPortier2014\")\n\ny        &lt;- BeaudryPortier2014 |&gt; as.matrix()\nT_obs    &lt;- nrow(y)\nN        &lt;- ncol(y)\nvarnames &lt;- colnames(y)",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -926,7 +970,7 @@
     "text": "5 VAR Estimation\n\np &lt;- 2\nc &lt;- 1\n\nvar_result &lt;- fVAR(y, p = p, c = c)\nSigma &lt;- var_result$sigma",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -937,7 +981,7 @@
     "text": "6 News Shock Identification\n\nhorizon &lt;- 40\n\n# Wold IRFs by inverting (I - A(L))\nwold &lt;- fWoldIRF(var_result, horizon = horizon)\n\n# Lower Cholesky factor of Sigma\nS &lt;- t(chol(Sigma))\n\n# LR-Max point estimate\nstruct_irf &lt;- fMaxIRF(wold, S, var_idx = 1L)",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -945,10 +989,10 @@
     "href": "02_2_BeaudryPortier2014.html#bootstrap-confidence-bands",
     "title": "Mixed restrictions",
     "section": "7 Bootstrap Confidence Bands",
-    "text": "7 Bootstrap Confidence Bands\n\ntic()\nboot_max &lt;- fBootstrapMaxCorrected(\n  y          = y,\n  var_result = var_result,\n  nboot1     = 1000,\n  nboot2     = 2000,\n  horizon    = horizon,\n  var_idx    = 1,          # maximise long-run effect on TFP (variable 1)\n  cumulate   = integer(0), # no cumulation (levels data)\n  conf        = 68          # Match original paper\n)\ntoc()\n#&gt; 0.254 sec elapsed\n\n\nfPlotIRFLR(\n  point       = struct_irf,\n  boot_result = boot_max,\n  varnames    = varnames,\n  facet_ncol  = 2\n) + labs(y  = NULL)\n\n\n\n\n\n\n\nFigure 1: IRF to Tech. news shock — LR-Max bootstrap (68% and 90% confidence bands)",
+    "text": "7 Bootstrap Confidence Bands\n\ntic()\nboot_max &lt;- fBootstrapMaxCorrected(\n  y          = y,\n  var_result = var_result,\n  nboot1     = 1000,\n  nboot2     = 2000,\n  horizon    = horizon,\n  var_idx    = 1,          # maximise long-run effect on TFP (variable 1)\n  cumulate   = integer(0), # no cumulation (levels data)\n  conf        = 68          # Match original paper\n)\ntoc()\n#&gt; 0.247 sec elapsed\n\n\nfPlotIRFLR(\n  point       = struct_irf,\n  boot_result = boot_max,\n  varnames    = varnames,\n  facet_ncol  = 2\n) + labs(y  = NULL)\n\n\n\n\n\n\n\nFigure 1: IRF to Tech. news shock — LR-Max bootstrap (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -956,10 +1000,10 @@
     "href": "02_2_BeaudryPortier2014.html#compare-the-result-to-barsky2012",
     "title": "Mixed restrictions",
     "section": "8 Compare the result to Barsky and Sims (2012)",
-    "text": "8 Compare the result to Barsky and Sims (2012)\nNow we can compare the results to that of Barsky and Sims (2012) and plot IRF results.\n\nstruct_irf_uhlig &lt;- fUhligIRF(wold, S, idx = 1L)\n\ntic()\nboot_uhlig &lt;- fBootstrapUhligCorrected(\n  y          = y,\n  var_result = var_result,\n  nboot1     = 1000,\n  nboot2     = 2000,\n  horizon    = horizon,\n  idx        = 1L,        # maximise FEV share of TFP (variable 1)\n  cumulate   = integer(0),\n  conf        = 68         # Match original study\n)\ntoc()\n#&gt; 0.25 sec elapsed\n\n\nfPlotIRFLR(\n  point       = struct_irf_uhlig,\n  boot_result = boot_uhlig,\n  varnames    = varnames,\n  facet_ncol  = 2\n) + labs(y  = NULL)\n\n\n\n\n\n\n\nFigure 2: IRF to news shock — Uhlig max-share bootstrap (68% and 90% confidence bands)",
+    "text": "8 Compare the result to Barsky and Sims (2012)\nNow we can compare the results to that of Barsky and Sims (2012) and plot IRF results.\n\nstruct_irf_uhlig &lt;- fUhligIRF(wold, S, idx = 1L)\n\ntic()\nboot_uhlig &lt;- fBootstrapUhligCorrected(\n  y          = y,\n  var_result = var_result,\n  nboot1     = 1000,\n  nboot2     = 2000,\n  horizon    = horizon,\n  idx        = 1L,        # maximise FEV share of TFP (variable 1)\n  cumulate   = integer(0),\n  conf        = 68         # Match original study\n)\ntoc()\n#&gt; 0.253 sec elapsed\n\n\nfPlotIRFLR(\n  point       = struct_irf_uhlig,\n  boot_result = boot_uhlig,\n  varnames    = varnames,\n  facet_ncol  = 2\n) + labs(y  = NULL)\n\n\n\n\n\n\n\nFigure 2: IRF to news shock — Uhlig max-share bootstrap (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Mixed restrictions"
+      "Mixed restrictions"
     ]
   },
   {
@@ -970,7 +1014,7 @@
     "text": "Following Plagborg-Møller and Wolf (2021), the same oil supply news shock as in Känzig (2021) can be identified recursively by adding the instrument to the VAR as the first variable and applying a Cholesky decomposition. Under invertibility, the internal-instrument IRFs are asymptotically equivalent to the proxy-SVAR IRFs; the price is estimating the reduced-form VAR on the (shorter) sample for which the instrument is observed.",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -981,7 +1025,7 @@
     "text": "Following Plagborg-Møller and Wolf (2021), the same oil supply news shock as in Känzig (2021) can be identified recursively by adding the instrument to the VAR as the first variable and applying a Cholesky decomposition. Under invertibility, the internal-instrument IRFs are asymptotically equivalent to the proxy-SVAR IRFs; the price is estimating the reduced-form VAR on the (shorter) sample for which the instrument is observed.",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -992,7 +1036,7 @@
     "text": "2 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\nlibrary(tictoc)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -1003,7 +1047,7 @@
     "text": "3 Data\nThe instrument is missing outside the OPEC-announcement window; per the original paper we truncate the missing values to zero so that the augmented VAR can be estimated on the full sample.\n\ndata(\"Kaenzig2021\")\n\nfinaldata &lt;- Kaenzig2021 |&gt;\n    select(Oil_Price, World_Oil_Prod, World_Oil_Inven, World_IP, US_IP, US_CPI) |&gt;\n    as.matrix()\n\niv_oil_trunc &lt;- Kaenzig2021 |&gt;\n    select(iv_kanzig_final) |&gt;\n    mutate(iv_kanzig_final = ifelse(is.na(iv_kanzig_final), 0, iv_kanzig_final)) |&gt;\n    as.matrix()\n\nvarnames     &lt;- c(\"Oil Price\", \"World Oil Prod.\", \"World Oil Inven.\",\n                  \"World IP\", \"US IP\", \"US CPI\")\nvarnames_aug &lt;- c(\"Oil Instrument\", varnames)",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -1014,7 +1058,7 @@
     "text": "4 Augmented VAR and Cholesky IRF\n\np &lt;- 12\nc &lt;- 1\nhor &lt;- 48\n\ny_aug &lt;- cbind(iv_oil_trunc, finaldata)\n\nvar_aug  &lt;- fVAR(y_aug, p, c)\nS_aug    &lt;- t(chol(var_aug$sigma))\nwold_aug &lt;- fWoldIRF(var_aug, horizon = hor)\n\npoint_irf_aug &lt;- fCholeskyIRF(wold_aug, S_aug)",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -1022,10 +1066,10 @@
     "href": "03_3_Kaenzig2021_InternalIV.html#bootstrap",
     "title": "Internal Instruments: Cholesky on Augmented VAR",
     "section": "5 Bootstrap",
-    "text": "5 Bootstrap\n\ntic()\nboot_aug &lt;- fBootstrapChol(\n    y          = y_aug,\n    var_result = var_aug,\n    nboot      = 1000,\n    horizon    = hor,\n    conf        = 90,\n    conf2       = 68,\n    n_threads  = 3\n)\ntoc()\n#&gt; 1.362 sec elapsed",
+    "text": "5 Bootstrap\n\ntic()\nboot_aug &lt;- fBootstrapChol(\n    y          = y_aug,\n    var_result = var_aug,\n    nboot      = 1000,\n    horizon    = hor,\n    conf        = 90,\n    conf2       = 68,\n    n_threads  = 3\n)\ntoc()\n#&gt; 1.435 sec elapsed",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -1036,7 +1080,7 @@
     "text": "6 Impulse Response Functions\nResponses are rescaled so that the impact on the oil price matches a 10% jump, mirroring the proxy-SVAR scale.\n\n# point_irf_aug[2, 1, 1]: oil price (row 2), shock 1, h = 0\nscale_int &lt;- 10 / point_irf_aug[2, 1, 1]\n\nfPlotIRFChol(\n    point       = point_irf_aug,\n    boot_result = boot_aug,\n    shock       = 1,\n    varnames    = varnames_aug,\n    facet_ncol  = 3,\n    return_data = TRUE\n) |&gt;\n  filter(variable != \"Oil Instrument\") |&gt;\n  mutate(\n    variable = factor(variable, levels = varnames),\n    across(c(point, upper, lower, upper2, lower2), ~ . * scale_int)\n  ) |&gt;\n  ggplot(aes(x = horizon)) +\n  geom_ribbon(aes(ymin = lower,  ymax = upper),  fill = \"#407EC9\", alpha = 0.20) +\n  geom_ribbon(aes(ymin = lower2, ymax = upper2), fill = \"#407EC9\", alpha = 0.35) +\n  geom_line(aes(y = point), color = \"#910048\", linewidth = 0.8) +\n  geom_hline(yintercept = 0, linetype = \"dashed\", color = \"#707372\", linewidth = 0.6) +\n  facet_wrap(~ variable, scales = \"free\", ncol = 3) +\n  labs(x = NULL, y = NULL)\n\n\n\n\n\n\n\nFigure 1: IRFs to oil supply news shock — internal instruments (Cholesky, 68% and 90% confidence bands). Units: 10% impact on the oil price.\n\n\n\n\n\nOne should read these results with care: unlike proxy-SVAR, the augmented VAR is estimated on the shorter sample for which the instrument is observed, so tail-end coverage is thinner.",
     "crumbs": [
       "Home",
-      "Identifcation via Internal instruments"
+      "Internal instruments"
     ]
   },
   {
@@ -1047,7 +1091,7 @@
     "text": "This document illustrates the usage of the Generalized SVAR-IV procedure proposed by Forni et al. (2022) . I use example data set from Gertler and Karadi (2015) with three variables and a high frequency instrument. We have three cases at hand:\n\nInvertibility / Fundamentalness: the shock is a linear combination of present VAR residuals \\(\\Rightarrow\\) can recover IRFs, shock, FEVD, HD.\nNon-invertibility, but Recoverability: the shock is a linear combination of (past), present and future VAR residuals \\(\\Rightarrow\\) can recover IRFs, shock, HD, and FEVD by spectral methods.\nNon-recoverability: we can only obtain relative IRFs (some response scaled, usually to 1); no shock, no HD.\n\nThroughout, the instrument must satisfy the standard proxy conditions:\n\\[\\mathbb{E}[z_t \\varepsilon_{1t}] = \\alpha \\neq 0,\n\\qquad\n\\mathbb{E}[z_t \\varepsilon_{kt}] = 0, \\quad k = 2, \\dots, K.\\]\nThese three cases give rise to the following empirical procedure:\n\nRegress the instrument onto its own lags and the lags of other variables. Obtain the cleaned instrument as the residual of this regression.\nEstimate a reduced-form VAR and obtain the residuals.\nTest for invertibility by running the OLS regression \\[z_1(t) = c + \\delta(F)\\hat{e}(t) + u(t),\\] i.e. regress the instrument onto the current and future values of the residuals. Use an F-test to check \\(\\delta_1 = \\delta_2 = \\cdots = 0\\). If we reject the Null of invertibility, proceed to next step. Otherwise, use the normal SVAR-IV procedure to obtain IRFs, FEVD, HD\nIf we reject invertibility, test for recoverability using an autocorrelation test (e.g. Ljung-Box). Compute the fitted values from the regression in step 3 and check whether the resulting time series is autocorrelated. The null is zero autocorrelation (recoverable shock); the alternative is autocorrelation (non-recoverable shock).\nIf the shock is non-recoverable, use the usual procedure to obtain relative IRFs and derive lower and upper bounds for the absolute IRFs.",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1058,7 +1102,7 @@
     "text": "This document illustrates the usage of the Generalized SVAR-IV procedure proposed by Forni et al. (2022) . I use example data set from Gertler and Karadi (2015) with three variables and a high frequency instrument. We have three cases at hand:\n\nInvertibility / Fundamentalness: the shock is a linear combination of present VAR residuals \\(\\Rightarrow\\) can recover IRFs, shock, FEVD, HD.\nNon-invertibility, but Recoverability: the shock is a linear combination of (past), present and future VAR residuals \\(\\Rightarrow\\) can recover IRFs, shock, HD, and FEVD by spectral methods.\nNon-recoverability: we can only obtain relative IRFs (some response scaled, usually to 1); no shock, no HD.\n\nThroughout, the instrument must satisfy the standard proxy conditions:\n\\[\\mathbb{E}[z_t \\varepsilon_{1t}] = \\alpha \\neq 0,\n\\qquad\n\\mathbb{E}[z_t \\varepsilon_{kt}] = 0, \\quad k = 2, \\dots, K.\\]\nThese three cases give rise to the following empirical procedure:\n\nRegress the instrument onto its own lags and the lags of other variables. Obtain the cleaned instrument as the residual of this regression.\nEstimate a reduced-form VAR and obtain the residuals.\nTest for invertibility by running the OLS regression \\[z_1(t) = c + \\delta(F)\\hat{e}(t) + u(t),\\] i.e. regress the instrument onto the current and future values of the residuals. Use an F-test to check \\(\\delta_1 = \\delta_2 = \\cdots = 0\\). If we reject the Null of invertibility, proceed to next step. Otherwise, use the normal SVAR-IV procedure to obtain IRFs, FEVD, HD\nIf we reject invertibility, test for recoverability using an autocorrelation test (e.g. Ljung-Box). Compute the fitted values from the regression in step 3 and check whether the resulting time series is autocorrelated. The null is zero autocorrelation (recoverable shock); the alternative is autocorrelation (non-recoverable shock).\nIf the shock is non-recoverable, use the usual procedure to obtain relative IRFs and derive lower and upper bounds for the absolute IRFs.",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1069,7 +1113,7 @@
     "text": "2 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\n\nset.seed(12345)\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1080,7 +1124,7 @@
     "text": "3 Helper Functions\n\n# Clean the instrument: regress on own lags and lags of X, return residuals.\nclean_instrument &lt;- function(instr, p, X) {\n  T0    &lt;- nrow(X)\n  z0    &lt;- as.matrix(instr[(p + 1):T0])\n  lag_i &lt;- fLagMakerMatrix(as.matrix(instr), p)\n  lag_X &lt;- fLagMakerMatrix(X, p)\n  as.vector(fOLS(y = z0, X = cbind(lag_i, lag_X), c = 1L)$err)\n}",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1091,7 +1135,7 @@
     "text": "4 Data\n\ndata(\"GK2015\")\n\ninstr &lt;- GK2015$instr          # FF4 monetary policy surprises (T x 1)\nX     &lt;- GK2015 |&gt;\n  select(BY1, CPI_Inflation, IP_Growth) |&gt;\n  as.matrix()                  # T x N macro variables\n\ndates &lt;- GK2015$Date           # monthly, 1990-01-01 to 2012-06-01\nT_full &lt;- nrow(X)\nN      &lt;- ncol(X)\nvarnames  &lt;- c(\"1-Year Bond\", \"CPI Inflation\", \"IP Growth\")\nshockname &lt;- \"MP Shock\"",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1102,7 +1146,7 @@
     "text": "5 Parameters\n\np    &lt;- 7L\nc    &lt;- 1L\nhor  &lt;- 60L\ncumu &lt;- c(2L, 3L)   # cumulate CPI inflation and IP growth\nr    &lt;- 3L          # horizon for the invertibility test",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1113,7 +1157,7 @@
     "text": "6 Step 1 — Clean the Instrument\nRegress \\(z_0(t)\\) on its own lags and the lags of the VAR variables to remove predictable components.\n\nz &lt;- clean_instrument(instr, p, X)",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1124,7 +1168,7 @@
     "text": "7 Step 2 — VAR Estimation\n\nvar_result &lt;- fVAR(X, p, c)\neps        &lt;- var_result$residuals\nSigma      &lt;- cov(eps)\n\nwold &lt;- fWoldIRF(var_result, horizon = hor)\nS    &lt;- t(chol(Sigma))\nD    &lt;- fCholeskyIRF(wold, S)   # N x N x (hor+1) Cholesky IRF array\n\nT_eps &lt;- nrow(eps)   # = T_full - p",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1135,7 +1179,7 @@
     "text": "8 Step 3 — F-test for Invertibility\nRegress the cleaned instrument \\(z_1(t)\\) on current and \\(r\\) future VAR residuals. Test that the coefficients on future residuals are jointly zero (Null = invertible).\n\ninv &lt;- fTestInvertibility(z, eps, r)\ncat(sprintf(\"F-stat: %.4f   p-value: %.4f   Instrument relevance (corr): %.4f\\n\", inv$F_stat, inv$pval, inv$instr_relev))\n#&gt; F-stat: 2.0637   p-value: 0.0334   Instrument relevance (corr): 0.3694\n\nA small p-value rejects invertibility — future residuals help predict the instrument.",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1146,7 +1190,7 @@
     "text": "9 Step 4 — Ljung-Box Test for Recoverability\nObtain the fitted value \\(\\hat{z}_1(t) = \\hat{\\delta}(F)\\hat{e}(t)\\) from the regression above and test for autocorrelation (Null = recoverability).\n\nrec &lt;- fTestRecoverability(inv$fit, lags = 2L)\ncat(sprintf(\"Ljung-Box p-value (lag %d): %.4f\\n\", rec$lags, rec$pval))\n#&gt; Ljung-Box p-value (lag 2): 0.3039\n\n# Extract downstream objects from the invertibility regression\ndelta &lt;- inv$delta\nfit   &lt;- inv$fit\nvt    &lt;- inv$vt\n\nA large p-value: Not able to reject recoverability — we proceed under the recoverable case.",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1157,7 +1201,7 @@
     "text": "10 The Recoverable Case\nKey objects:\n\\[\\hat{\\xi}(t) = \\frac{\\hat{z}_1(t)}{a_1}, \\qquad a_1 = \\operatorname{sd}\\big(\\hat{z}_1(t)\\big),\n\\qquad\nb(L) = \\frac{C(L)\\, \\Psi(L)}{\\sqrt{a_2}},\\]\nwhere \\(\\Psi(L)\\) collects the coefficients from regressing \\(\\hat{e}(t)\\) on current and past \\(z_1(t)\\), \\(C(L)\\) is the Wold polynomial, and \\(a_2 = \\sum_{j} \\psi_j' \\Sigma^{-1} \\psi_j\\).\n\n10.1 (b) Structural Shock\nThe shock is \\(\\hat{\\xi}(t) = \\hat{z}_1(t) / a_1\\) where \\(a_1 = \\text{sd}(\\hat{z}_1(t))\\).\n\na1       &lt;- sd(fit)\nmp_shock &lt;- as.vector(fit) / a1\n\n\n\n10.2 (a) Absolute IRFs\nThe absolute IRF is \\(b(L) = C(L)\\Psi(L) / a_2\\) where \\(\\Psi(L)\\) is obtained by regressing \\(\\hat{e}(t)\\) onto current and past values of the instrument \\(z_1(t)\\).\n\n# Regress eps(r+1:end) on [1, z(r+1:end), z_lag1, ..., z_lagr]\nZ_psi &lt;- cbind(1, tail(z, -r), fLagMakerMatrix(as.matrix(z), r))\npsi   &lt;- solve(crossprod(Z_psi), crossprod(Z_psi, eps[(r + 1):T_eps, ]))\n# psi: (r+2) x N — row 1 is intercept, rows 2:(r+2) are psi_0,...,psi_r\n\n# Build psiL (N x 1 x (r+1)) and scalar a2\npsi_coefs &lt;- psi[2:(r + 2L), ]                                    # (r+1) x N\npsiL      &lt;- array(t(psi_coefs), dim = c(N, 1L, r + 1L))\nSigma_inv &lt;- solve(Sigma)\na2        &lt;- sum(apply(psi_coefs, 1, function(p) drop(t(p) %*% Sigma_inv %*% p)))\n\ngammaL  &lt;- fPolyConvolve(wold, psiL, hor + 1L)   # N x 1 x (hor+1)\nirf_mat &lt;- gammaL[, 1, ] / sqrt(a2)              # N x (hor+1)\n\nirf_cumu &lt;- irf_mat\nfor (v in cumu) irf_cumu[v, ] &lt;- cumsum(irf_cumu[v, ])\n\n\n\n10.3 (c) Historical Decomposition\n\nT_hd      &lt;- T_eps - r\nwold_long &lt;- fWoldIRF(var_result, horizon = T_hd)\n\ngammaL_long &lt;- fPolyConvolve(wold_long, psiL, T_hd) / sqrt(a2)\n\nHD &lt;- matrix(0, T_hd, N)\nfor (i in seq_len(N)) {\n  ga_i &lt;- gammaL_long[i, 1, ]\n  for (t in seq_len(T_hd))\n    HD[t, i] &lt;- sum(ga_i[seq_len(t)] * rev(mp_shock[seq_len(t)]))\n}\n\ndates_hd &lt;- dates[(p + 1):(T_full - r)]\n\n\nystar &lt;- scale(X[(p + 1):(T_full - r), ], center = TRUE, scale = FALSE)\n\nhd_tbl &lt;- tibble(\n  date     = rep(dates_hd, N),\n  variable = rep(varnames, each = length(dates_hd)),\n  hd       = as.vector(HD),\n  actual   = as.vector(ystar)\n) |&gt;\n  mutate(\n    variable = factor(variable, levels = varnames),\n    residual = actual - hd\n  )\n\nbar_tbl &lt;- hd_tbl |&gt;\n  pivot_longer(c(hd, residual), names_to = \"component\", values_to = \"value\") |&gt;\n  mutate(component = factor(component,\n                            levels = c(\"hd\", \"residual\"),\n                            labels = c(\"MP Contribution\", \"Residual\")))\n\nggplot() +\n  geom_col(data = bar_tbl,\n           aes(x = date, y = value, fill = component),\n           position = \"stack\", width = 28) +\n  geom_line(data = hd_tbl,\n            aes(x = date, y = actual), colour = tidyMacro_colors[4], linewidth = 0.7) +\n  geom_hline(yintercept = 0, linetype = \"dashed\", colour = \"#707372\", linewidth = 0.4) +\n  facet_wrap(~variable, scales = \"free_y\", ncol = 1) +\n  scale_fill_manual(values = c(\"MP Contribution\" = tidyMacro_colors[3],\n                               \"Residual\"        = \"#8B4513\")) +\n  labs(x = NULL, y = NULL, fill = NULL) +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 1: Historical decomposition: contribution of MP shock to each variable\n\n\n\n\n\n\n\n10.4 (d) Spectral FEVD\n\nbands       &lt;- rbind(c(2, 18), c(18, 96), c(96, 360))\nband_labels &lt;- c(\"Erratic (2–18m)\", \"Business cycle (18–96m)\", \"Long run (96–360m)\")\ngridpoints  &lt;- 128L\n\nirf_s &lt;- irf_mat   # N x (hor+1), unit-variance MP shock IRF\n\nfevd_fourier  &lt;- vapply(seq_len(nrow(bands)),\n                        function(b) fSpectralFEVD(D, irf_s, bands[b, ], gridpoints, TRUE),\n                        numeric(N))\nfevd_linspace &lt;- vapply(seq_len(nrow(bands)),\n                        function(b) fSpectralFEVD(D, irf_s, bands[b, ], gridpoints, FALSE),\n                        numeric(N))\n\ncolnames(fevd_fourier) &lt;- colnames(fevd_linspace) &lt;- band_labels\nrownames(fevd_fourier) &lt;- rownames(fevd_linspace) &lt;- varnames\n\ncat(\"Spectral FEVD (Fourier frequencies):\\n\");  print(round(fevd_fourier,  4))\n#&gt; Spectral FEVD (Fourier frequencies):\n#&gt;               Erratic (2–18m) Business cycle (18–96m) Long run (96–360m)\n#&gt; 1-Year Bond            0.4479                  0.0808             0.0251\n#&gt; CPI Inflation          0.0833                  0.0620             0.1482\n#&gt; IP Growth              0.2936                  0.2536             0.2747\ncat(\"\\nSpectral FEVD (linspace grid):\\n\");       print(round(fevd_linspace, 4))\n#&gt; \n#&gt; Spectral FEVD (linspace grid):\n#&gt;               Erratic (2–18m) Business cycle (18–96m) Long run (96–360m)\n#&gt; 1-Year Bond            0.4254                  0.0827             0.0268\n#&gt; CPI Inflation          0.0827                  0.0623             0.1423\n#&gt; IP Growth              0.2941                  0.2533             0.2687\n\n\n\n10.5 Bootstrap IRFs — Recoverable Case\n\nnboot &lt;- 2000L\n\nboot_rec &lt;- fBootstrapIVRecover(\n  y         = X,\n  instr     = as.numeric(instr),\n  var_result = var_result,\n  noise     = as.numeric(vt),\n  delta     = as.numeric(delta),\n  nboot     = nboot,\n  p = p, c = c, r = r, hor = hor,\n  cumu      = cumu,\n  conf = 90, conf2 = 68\n)\n\n\nh_seq &lt;- 0:hor\n\nirf_tbl &lt;- tibble(\n  variable = rep(varnames, each = hor + 1L),\n  horizon  = rep(h_seq, N),\n  point    = as.vector(t(irf_cumu)),\n  upper90  = as.vector(t(boot_rec$upper)),\n  lower90  = as.vector(t(boot_rec$lower)),\n  upper68  = as.vector(t(boot_rec$upper2)),\n  lower68  = as.vector(t(boot_rec$lower2))\n) |&gt; mutate(variable = factor(variable, levels = varnames))\n\nggplot(irf_tbl, aes(x = horizon)) +\n  geom_ribbon(aes(ymin = lower90, ymax = upper90), fill = \"#407EC9\", alpha = 0.20) +\n  geom_ribbon(aes(ymin = lower68, ymax = upper68), fill = \"#407EC9\", alpha = 0.35) +\n  geom_line(aes(y = point), colour = \"#910048\", linewidth = 0.8) +\n  geom_hline(yintercept = 0, linetype = \"dashed\", colour = \"#707372\", linewidth = 0.5) +\n  facet_wrap(~variable, scales = \"free\", ncol = 2) +\n  labs(x = \"Horizon (months)\", y = NULL) +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 2: IRFs to monetary policy shock — generalized IV, recoverable case (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1168,7 +1212,7 @@
     "text": "11 The Invertible Case — Standard SVAR-IV\nFor comparison, we apply the standard SVAR-IV procedure assuming invertibility. This would of course be wrong but here we show what would result in\n\n# Stage 1: regress eps on cleaned instrument, get impact vector\ns0 &lt;- drop(crossprod(z, eps)) / drop(crossprod(z))   # length-N\ns  &lt;- s0 / s0[1]                                      # normalise to unit 1YB impact\n\nscaler &lt;- sqrt(drop(t(s) %*% solve(Sigma) %*% s))\n\nirf_n &lt;- apply(wold, 3, function(C) C %*% s) / scaler   # N x (hor+1)\n\nirf_cumu_inv &lt;- irf_n\nfor (v in cumu) irf_cumu_inv[v, ] &lt;- cumsum(irf_cumu_inv[v, ])\n\n\n11.1 Bootstrap IRFs — Invertible Case (Wild)\n\nboot_inv &lt;- fBootstrapIVInvertible(\n  y          = X,\n  instr      = as.numeric(instr),\n  var_result = var_result,\n  nboot      = nboot,\n  p = p, c = c, hor = hor,\n  cumu       = cumu,\n  conf = 90, conf2 = 68\n)\n\n\nirf_inv_tbl &lt;- tibble(\n  variable = rep(varnames, each = hor + 1L),\n  horizon  = rep(h_seq, N),\n  point    = as.vector(t(irf_cumu_inv)),\n  upper90  = as.vector(t(boot_inv$upper)),\n  lower90  = as.vector(t(boot_inv$lower)),\n  upper68  = as.vector(t(boot_inv$upper2)),\n  lower68  = as.vector(t(boot_inv$lower2))\n) |&gt; mutate(variable = factor(variable, levels = varnames))\n\nggplot(irf_inv_tbl, aes(x = horizon)) +\n  geom_ribbon(aes(ymin = lower90, ymax = upper90), fill = \"#407EC9\", alpha = 0.20) +\n  geom_ribbon(aes(ymin = lower68, ymax = upper68), fill = \"#407EC9\", alpha = 0.35) +\n  geom_line(aes(y = point), colour = \"#910048\", linewidth = 0.8) +\n  geom_hline(yintercept = 0, linetype = \"dashed\", colour = \"#707372\", linewidth = 0.5) +\n  facet_wrap(~variable, scales = \"free\", ncol = 2) +\n  labs(x = \"Horizon (months)\", y = NULL) +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 3: IRFs to monetary policy shock — standard SVAR-IV, invertible case (68% and 90% confidence bands)",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
     ]
   },
   {
@@ -1179,7 +1223,51 @@
     "text": "12 The Non-Recoverable Case — Relative IRFs and Bounds\nIf the shock were non-recoverable, we can only identify relative IRFs and compute bounds on the absolute IRFs and spectral FEVD.\n\n12.1 Relative IRFs\n\n# Relative IRF: gammaL normalised by gammaL(1,1,1) — the impact on 1YB\nirf_rel      &lt;- gammaL[, 1, ] / gammaL[1, 1, 1]   # N x (hor+1)\nirf_rel_cumu &lt;- irf_rel\nfor (v in cumu) irf_rel_cumu[v, ] &lt;- cumsum(irf_rel_cumu[v, ])\n\n\ntibble(\n  variable = rep(varnames, each = hor + 1L),\n  horizon  = rep(h_seq, N),\n  value    = as.vector(t(irf_rel_cumu))\n) |&gt;\n  mutate(variable = factor(variable, levels = varnames)) |&gt;\n  ggplot(aes(x = horizon, y = value)) +\n  geom_line(colour = \"#910048\", linewidth = 0.8) +\n  geom_hline(yintercept = 0, linetype = \"dashed\", colour = \"#707372\", linewidth = 0.5) +\n  facet_wrap(~variable, scales = \"free\", ncol = 2) +\n  labs(x = \"Horizon (months)\", y = NULL) +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 4: Relative IRFs (non-recoverable case)\n\n\n\n\n\n\n\n12.2 Bounds on Absolute IRFs\n\nalpha_u &lt;- sd(z)\n\n# Lower bound: spectral maximum of psiL over frequency grid\npsi_mat   &lt;- matrix(psiL[, 1, ], nrow = N)          # N x (r+1)\nfreq_grid &lt;- seq(0, pi - pi / 256, length.out = 256L)\nalpha_l0  &lt;- vapply(freq_grid, function(theta) {\n  psi_spec &lt;- psi_mat %*% exp(1i * theta * 0:r)\n  Re(Conj(t(psi_spec)) %*% Sigma_inv %*% psi_spec)\n}, numeric(1L))\nalpha_l &lt;- var(z) * max(sqrt(alpha_l0))\n\n# IRF bounds: scale gammaL[,1,] by the two scalars\nirf_upper      &lt;- gammaL[, 1, ] * (var(z) / alpha_l)   # N x (hor+1)\nirf_lower      &lt;- gammaL[, 1, ] * alpha_u               # N x (hor+1)\nirf_upper_cumu &lt;- irf_upper\nirf_lower_cumu &lt;- irf_lower\nfor (v in cumu) {\n  irf_upper_cumu[v, ] &lt;- cumsum(irf_upper_cumu[v, ])\n  irf_lower_cumu[v, ] &lt;- cumsum(irf_lower_cumu[v, ])\n}\n\n\ntibble(\n  variable = rep(varnames, each = hor + 1L),\n  horizon  = rep(h_seq, N),\n  upper    = as.vector(t(irf_upper_cumu)),\n  lower    = as.vector(t(irf_lower_cumu))\n) |&gt;\n  mutate(variable = factor(variable, levels = varnames)) |&gt;\n  pivot_longer(c(upper, lower), names_to = \"bound\", values_to = \"value\") |&gt;\n  ggplot(aes(x = horizon, y = value, colour = bound)) +\n  geom_line(linewidth = 0.8) +\n  geom_hline(yintercept = 0, linetype = \"dashed\", colour = \"#707372\", linewidth = 0.5) +\n  scale_colour_manual(values = tidyMacro_colors[c(1, 3)]) +\n  facet_wrap(~variable, scales = \"free\", ncol = 2) +\n  labs(x = \"Horizon (months)\", y = NULL, colour = \"Bound\") +\n  fThemeTidyMacro()\n\n\n\n\n\n\n\nFigure 5: Bounds on absolute IRFs (non-recoverable case): upper (blue) and lower (orange)\n\n\n\n\n\n\n\n12.3 Bounds on Spectral FEVD (Business Cycle Band)\n\nbd_bc      &lt;- c(18, 96)\ngammaL_mat &lt;- gammaL[, 1, ]   # N x (hor+1)\n\nfevd_nr_low &lt;- var(z)               * fSpectralFEVD(D, gammaL_mat, bd_bc, gridpoints, TRUE)\nfevd_nr_up  &lt;- (var(z) / alpha_l)^2 * fSpectralFEVD(D, gammaL_mat, bd_bc, gridpoints, TRUE)\n\ncat(\"Spectral FEVD bounds — business cycle band (18–96 months):\\n\")\n#&gt; Spectral FEVD bounds — business cycle band (18–96 months):\ntibble(Variable = varnames,\n       Lower    = round(fevd_nr_low, 4),\n       Upper    = round(fevd_nr_up,  4)) |&gt; print()\n#&gt; # A tibble: 3 × 3\n#&gt;   Variable      Lower[,1] Upper[,1]\n#&gt;   &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;\n#&gt; 1 1-Year Bond      0.0115    0.0588\n#&gt; 2 CPI Inflation    0.0088    0.045 \n#&gt; 3 IP Growth        0.0361    0.184",
     "crumbs": [
       "Home",
-      "Identifcation via Noninvertible shocks"
+      "Noninvertible shocks"
+    ]
+  },
+  {
+    "objectID": "04_3_narrative_restrictions.html",
+    "href": "04_3_narrative_restrictions.html",
+    "title": "Identification via narrative restrictions",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidyMacro)\n\ntheme_set(fThemeTidyMacro())\n\nas_var_matrix &lt;- function(data) {\n  data |&gt; select(-Date) |&gt; as.matrix()\n}",
+    "crumbs": [
+      "Home",
+      "Narrative restrictions"
+    ]
+  },
+  {
+    "objectID": "04_3_narrative_restrictions.html#setup",
+    "href": "04_3_narrative_restrictions.html#setup",
+    "title": "Identification via narrative restrictions",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidyMacro)\n\ntheme_set(fThemeTidyMacro())\n\nas_var_matrix &lt;- function(data) {\n  data |&gt; select(-Date) |&gt; as.matrix()\n}",
+    "crumbs": [
+      "Home",
+      "Narrative restrictions"
+    ]
+  },
+  {
+    "objectID": "04_3_narrative_restrictions.html#narrative-restrictions",
+    "href": "04_3_narrative_restrictions.html#narrative-restrictions",
+    "title": "Identification via narrative restrictions",
+    "section": "2 Narrative restrictions",
+    "text": "2 Narrative restrictions\nThe baseline follows inst/Bianchi/Replic/ADRR2018/GO_ADRR2018.m and the narrative screens in the supplied VAR Toolbox’s SR.m. The optional importance weights below extend that toolbox example.\nA large set of rotations can satisfy sign restrictions, producing wide credible sets. Antolín-Díaz and Rubio-Ramírez (2018) sharpen identification by adding narrative restrictions, constraints tied to specific, well-documented historical episodes. The insight is that the historical record (policy announcements, oil supply disruptions, fiscal interventions) carries information about the sign or relative magnitude of a structural shock at a particular date, and that restricting the model to be consistent with it shrinks the set of admissible rotations.\nLet \\(\\varepsilon_{jt} = B_j^{-1}u_t\\) be the structural shocks under candidate \\(B_j\\). Two restriction types are defined.\nType 1, sign of the shock. At date \\(t^*\\) the \\(m\\)-th shock must have a specified sign, \\[s \\cdot \\varepsilon_{j,m,t^*} &gt; 0, \\qquad s \\in \\{+1,-1\\}.\\]\nType 2, dominance. At date \\(t^*\\) the contribution of shock \\(m\\) to the unexpected movement in variable \\(i\\) must exceed the combined contribution of all other shocks, \\[\\bigl|b_{j,im}\\,\\varepsilon_{j,m,t^*}\\bigr| &gt; \\sum_{k \\neq m}\\bigl|b_{j,ik}\\,\\varepsilon_{j,k,t^*}\\bigr|.\\]\nBoth are applied as additional acceptance criteria after a rotation satisfying the sign constraints has been found. A draw that passes the signs but fails a narrative constraint is discarded, so the acceptance rate can only fall. How far it falls is itself informative: a large drop means the historical episodes genuinely narrow the identified set; little or no drop means they add nothing beyond the sign constraints.\nThe application keeps Uhlig’s sign restrictions, extends the sample to 1965m1–2007m11, and estimates without a constant, as in the supplied toolbox example. The stored data are passed directly to the estimator; this code does not apply an additional demeaning step. The extra information comes from October 1979, the month of the Volcker announcement. Two facts are beyond serious dispute: the monetary policy shock was strongly positive, and monetary policy was the dominant driver of the unexpected move in the funds rate that month.\n\ndata(ADRR2018)\n\nadrr &lt;- ADRR2018\n\n# The narrative design retains Uhlig's six-variable sign pattern.\nff_rate &lt;- 6\nmp_shock &lt;- 1\nsign_uhlig &lt;- matrix(\n  0, nrow = 6, ncol = 6,\n  dimnames = list(names(adrr)[-1], NULL)\n)\nsign_uhlig[, mp_shock] &lt;- c(0, -1, -1, 0, -1, 1)\n\nadrr |&gt; head(3)\n#&gt; # A tibble: 3 × 7\n#&gt;   Date       `Real GDP` `GDP Deflator` `Commodity Price Idx.` `Total Reserves`\n#&gt;   &lt;date&gt;          &lt;dbl&gt;          &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;\n#&gt; 1 1965-01-01       8.26           2.92                   20.2             2.48\n#&gt; 2 1965-02-01       8.26           2.92                   20.2             2.48\n#&gt; 3 1965-03-01       8.27           2.92                   20.2             2.48\n#&gt; # ℹ 2 more variables: `Non-Borrowed Reserves` &lt;dbl&gt;, `Fed. Funds Rate` &lt;dbl&gt;\n\n\nvolcker &lt;- ym(\"1979-10\")\n\nspec_adrr &lt;- list(p = 12, c = 0, sign = sign_uhlig, nsteps = 60, ndraws = 500, sr_hor = 6, conf = 68, inference = 1, store_draws = FALSE, max_post_draws = 5000, dates = adrr$Date, seed = 42)\n\nsr_adrr &lt;- do.call(fSignRestr, c(list(as_var_matrix(adrr)), spec_adrr))\n\nnsr_adrr &lt;- do.call(fSignRestr, c(list(as_var_matrix(adrr)), spec_adrr, list(\n  narrative = list(\n    # Type 1: the MP shock was positive in October 1979. `sign = 1` here is a\n    # direction, not an address.\n    sign = list(shock = mp_shock, period = volcker, sign = 1),\n    # Type 2: the MP shock dominated the funds-rate residual that month.\n    dom  = list(shock = mp_shock, period = volcker, var = ff_rate)\n  ))))\n\ntibble(\n  model       = c(\"Sign only\", \"Sign + narrative\"),\n  accept_rate = c(sr_adrr$accept_rate, nsr_adrr$accept_rate),\n  rotations   = c(sr_adrr$ndraws_tried, nsr_adrr$ndraws_tried)\n)\n#&gt; # A tibble: 2 × 3\n#&gt;   model            accept_rate rotations\n#&gt;   &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt;\n#&gt; 1 Sign only             0.290       1723\n#&gt; 2 Sign + narrative      0.0289     17322\n\nThe narrative screen costs roughly an order of magnitude in acceptance rate. One well-documented month does a lot of work, and the cost of that work is exactly why the draw loop is worth writing in parallel C++.\nResponses are normalised to a 25 basis point impact on the funds rate, as in the paper’s replication code: one scalar per model, computed from the median impact response and applied to every draw before percentiles are taken.\n\nnorm_25bp &lt;- function(sr, ff_var = ff_rate, shock = mp_shock) {\n  # Impact responses are already stored in Ball: no full IRF draws needed.\n  # The common factor expresses log responses in percent and the rate in bp.\n  100 * 0.25 / median(sr$Ball[ff_var, shock, ])\n}\n\nscale_sr  &lt;- norm_25bp(sr_adrr)\nscale_nsr &lt;- norm_25bp(nsr_adrr)\n\ntibble(model = c(\"Sign only\", \"Sign + narrative\"),\n       scale = c(scale_sr, scale_nsr))\n#&gt; # A tibble: 2 × 2\n#&gt;   model            scale\n#&gt;   &lt;chr&gt;            &lt;dbl&gt;\n#&gt; 1 Sign only        116. \n#&gt; 2 Sign + narrative  64.4\n\n\nfPlotIRFSign(\n    sr_adrr, shock = mp_shock, compare = nsr_adrr,\n    labels        = c(\"Sign\", \"Sign + narrative\"),\n    scale         = scale_sr,\n    scale_compare = scale_nsr,\n    facet_ncol    = 2,\n    facet_scales  = \"free\"\n)\n\n\n\n\n\n\n\nFigure 1: Sign restrictions alone (blue) versus sign plus narrative restrictions (red). 68% credible bands, normalised to a 25bp impact on the funds rate. Six-variable VAR(12) without constant, monthly US data 1965m1-2007m11. Replicates Figure 6 of Antolin-Diaz and Rubio-Ramirez (2018).\n\n\n\n\n\nAdding the October 1979 restrictions narrows the identified set and shifts the central estimates. Both effects come from the same mechanism: candidates that satisfy the signs but are inconsistent with the Volcker episode are discarded, leaving a smaller and differently located set. The substantive payoff is in the top-left panel. The sign-only output response is positive or indeterminate; the narrative restrictions push the median below zero at medium and long horizons, so a contractionary shock now lowers output, resolving the ambiguity left by Uhlig’s agnostic identification.\n\n2.1 Where the restrictions bite\nThe mechanism is clearest in the distribution of the identified shock at the targeted date itself.\n\n# eps_t = B^-1 u_t, evaluated at the Volcker month for every accepted draw.\n# The first p rows are absorbed as initial conditions, so the residual-sample\n# index is the data row minus the lag order.\nvolcker_row &lt;- which(adrr$Date == volcker) - spec_adrr$p\n\nshock_at &lt;- function(sr, row, shock = mp_shock) {\n  u &lt;- sr$var$residuals[row, ]\n  apply(sr$Ball, 3, \\(B) solve(B, u)[shock])\n}\n\nshock_dist &lt;- bind_rows(\n  tibble(model = \"Sign\",             eps = shock_at(sr_adrr,  volcker_row)),\n  tibble(model = \"Sign + narrative\", eps = shock_at(nsr_adrr, volcker_row))\n) |&gt;\n  mutate(model = factor(model, levels = c(\"Sign\", \"Sign + narrative\")))\n\nshock_dist |&gt;\n  group_by(model) |&gt;\n  summarise(min = min(eps), median = median(eps), max = max(eps),\n            share_positive = mean(eps &gt; 0))\n#&gt; # A tibble: 2 × 5\n#&gt;   model               min median   max share_positive\n#&gt;   &lt;fct&gt;             &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt;\n#&gt; 1 Sign             -0.990   1.45  3.78          0.896\n#&gt; 2 Sign + narrative  2.39    3.10  4.06          1\n\n\nggplot(shock_dist, aes(eps, fill = model)) +\n  geom_histogram(bins = 30, position = \"identity\", alpha = 0.5,\n                 colour = \"white\", linewidth = 0.2) +\n  geom_vline(xintercept = 0, linetype = \"dashed\", colour = \"#707372\") +\n  labs(x = expression(epsilon[\"MonPol, 1979m10\"]), y = \"Accepted draws\")\n\n\n\n\n\n\n\nFigure 2: Distribution of the structural monetary policy shock in October 1979 across accepted draws, in shock units. Overlapping histograms, 30 bins. The dashed line at zero is the boundary imposed by the Type 1 restriction. Replicates Figure 5 of Antolin-Diaz and Rubio-Ramirez (2018).\n\n\n\n\n\nBoth restrictions bite, but differently. Under sign restrictions alone the shock is already mostly positive (the sign constraints on their own go some way toward placing the Volcker month in contractionary territory), yet a non-negligible left tail survives, of draws that satisfy every sign restriction while implying an expansionary monetary impulse in October 1979. Type 1 removes exactly that tail. Type 2 then does the heavier lifting: it discards draws that attribute the funds-rate move mainly to other shocks, and the surviving mass concentrates on large positive values well away from zero. The tighter bands in the previous figure are the downstream consequence of this reshaping.\n\n\n2.2 Rejection sampling versus reweighting\nThe VAR Toolbox uses equal-weight acceptance-rejection: every retained draw enters with the same weight. fSignRestr() follows that convention by default.\nWith narr_weight_mc &gt; 0, the package estimates an ADRR-style importance weight for each accepted impact matrix \\(B\\). It simulates independent standard-normal structural shocks at the restricted dates and estimates the probability that those shocks satisfy the narrative constraints conditional on \\(B\\). The weight is the reciprocal of that probability. This simulation is over shocks, not over new rotations. It does not by itself validate every other sampling convention as an exact replication of Antolín-Díaz and Rubio-Ramírez (2018).\nDominance probabilities depend on \\(B\\), so weights can vary across rotations even with inference = 0. The Monte Carlo estimate floors zero hit counts at one hit to keep weights finite; very large weights therefore need attention and a larger simulation budget. Weighted bands are calculated in C++ without retaining the full IRF arrays.\n\nnsr_weighted &lt;- do.call(fSignRestr, c(list(as_var_matrix(adrr)), spec_adrr, list(\n  narrative = list(sign = list(shock = mp_shock, period = volcker, sign = 1),\n                   dom  = list(shock = mp_shock, period = volcker, var = ff_rate)),\n  narr_weight_mc = 2000)))\n\ntibble(weight = nsr_weighted$weights) |&gt;\n  summarise(min = min(weight), median = median(weight),\n            mean = mean(weight), max = max(weight))\n#&gt; # A tibble: 1 × 4\n#&gt;     min median  mean   max\n#&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n#&gt; 1  2.72   7.26  7.66  23.5\n\n\nfPlotIRFSign(\n    nsr_adrr, \n    shock   = mp_shock, \n    compare = nsr_weighted,\n    labels  = c(\"Rejection sampling\", \"ADRR reweighting\"),\n    scale         = scale_nsr,\n    scale_compare = norm_25bp(nsr_weighted),\n    facet_ncol    = 2,\n    facet_scales  = \"free\"\n)\n\n\n\n\n\n\n\nFigure 3: Rejection sampling (the toolbox convention) versus ADRR importance reweighting, under the same narrative restrictions.",
+    "crumbs": [
+      "Home",
+      "Narrative restrictions"
+    ]
+  },
+  {
+    "objectID": "04_3_narrative_restrictions.html#references",
+    "href": "04_3_narrative_restrictions.html#references",
+    "title": "Identification via narrative restrictions",
+    "section": "3 References",
+    "text": "3 References\n\n\nAntolín-Díaz, Juan, and Juan F. Rubio-Ramírez. 2018. “Narrative Sign Restrictions for SVARs.” American Economic Review 108 (10): 2802–29.",
+    "crumbs": [
+      "Home",
+      "Narrative restrictions"
     ]
   },
   {
@@ -1355,7 +1443,7 @@
     "text": "This chapter is a replication of Jorda and Taylor (2025) with fLP() and fLPIV(). Syntax conventions common to all four local-projection engines — formulas, ..macros, l()/f(), multi-band conf, thread rules, output shapes — live in the Local Projections syntax primer; this chapter focuses on the empirical exercise.\nThe empirical exercise projects log CPI (×100) on a unit Romer-Romer monetary policy shock over 1985Q1-2007Q4, using long differences CPI_{t+h} - CPI_{t-1} and four lags of real GDP growth, CPI inflation, and the short-term rate change as controls. Two features specific to reproducing Jorda and Taylor (2025) in MATLAB (LPmodel.m) matter here:",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1366,7 +1454,7 @@
     "text": "1 Setup\n\nlibrary(tidyverse)\nlibrary(tidyMacro)\nlibrary(zoo)\nlibrary(patchwork)\n\nset_theme(fThemeTidyMacro())",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1377,7 +1465,7 @@
     "text": "2 Data\n\ndata(\"JordaTaylor2025\")\n\njt_lp &lt;- JordaTaylor2025 |&gt;\n  mutate(Date = as.Date(as.yearqtr(Date, format = \"%YQ%q\"))) |&gt;\n  dplyr::filter(Date &gt;= \"1985-01-01\", Date &lt;= \"2007-10-01\") |&gt;\n  transmute(\n      Date,\n      CPI = 100 * logCPI,\n      RRShock,\n      dLogGDP,\n      dLogCPI,\n      dSTIR\n    )\n\njt_lp |&gt; head()\n#&gt; # A tibble: 6 × 6\n#&gt;   Date         CPI RRShock dLogGDP dLogCPI   dSTIR\n#&gt;   &lt;date&gt;     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;\n#&gt; 1 1985-01-01 -56.7  0.0864    4.16    4.57 -0.790 \n#&gt; 2 1985-04-01 -56.1 -0.146     3.48    2.47 -0.560 \n#&gt; 3 1985-07-01 -55.5  0.251     6.14    2.31 -0.0200\n#&gt; 4 1985-10-01 -54.9  0.0732    2.48    2.31  0.200 \n#&gt; 5 1986-01-01 -54.4 -0.0949    4.09    1.95 -0.270 \n#&gt; 6 1986-04-01 -54.0  0.277     1.09    1.60 -0.910\n\n\njt_lp |&gt;\n  select(Date, CPI, RRShock, dLogGDP, dSTIR) |&gt;\n  pivot_longer(-Date, names_to = \"variable\") |&gt;\n  ggplot(aes(x = Date, y = value)) +\n    geom_line(linewidth = 0.7) +\n    facet_wrap(~ variable, scales = \"free\", ncol = 2) +\n    scale_x_date(date_labels = \"%Y.%m\") +\n    labs(x = NULL, y = NULL)\n\n\n\n\n\n\n\nFigure 1: Variables used in the LP replications",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1388,7 +1476,7 @@
     "text": "3 1 · Classic LP-OLS replication — one fit, two bands\nThe Jordà-Taylor (2025) result. A single call to fLP() delivers both the 68% and 95% bands: pass conf = c(68, 95) and the bands are rebuilt from the raw irfs_se in the fit object — no need to estimate twice.\n\ncontrols &lt;- c(\"dLogGDP\", \"dLogCPI\", \"dSTIR\")\n\nlp_jt &lt;- fLP(\n  CPI ~ RRShock + l(..controls, 1:4),\n  data       = jt_lp,\n  horizons   = 17,              # MATLAB nsteps = 18 means h = 0, ..., 17\n  shock      = \"RRShock\",\n  conf       = c(68, 95),   # multi-band from one fit\n  nw_lags    = 0,\n  nw_offset  = 0,               # classic Jordà rule; matches OLSmodel.m\n  cumulative = TRUE,\n  n_threads  = 1\n)\n\n\n3.1 Direct plot\nfPlotLP() draws one ribbon per band automatically (widest first, so the tighter band sits visually on top).\n\np1 &lt;- fPlotLP(lp_jt) +\n  labs(title = \"CPI response to a unit Romer-Romer shock (Auto)\",\n       y = \"Percent\")\n\n\n\n3.2 Customized plot from tidy data\nEvery plot can also be assembled by hand from the tidy plot data.\n\np2 &lt;- fPlotLP(lp_jt, return_data = TRUE) |&gt;\n  ggplot(aes(x = horizon, y = point)) +\n    geom_ribbon(aes(ymin = lower, ymax = upper, group = conf, alpha = conf, fill = NULL),\n                fill = \"#407EC9\") +\n    geom_line(linewidth = 0.9, colour = \"#910048\") +\n    geom_hline(yintercept = 0, linewidth = 0.4, linetype = \"dashed\") +\n    scale_alpha_manual(values = c(`0.95` = 0.18, `0.68` = 0.34)) +\n    scale_x_continuous(breaks = seq(0, 15, 5)) +\n    labs(title = \"CPI response to Romer-Romer shock (Manual)\", y = \"Percent\")\n\n\n# Compare charts\np1 + p2\n\n\n\n\n\n\n\nFigure 2: Same fit, hand-rolled ggplot from fPlotLP(..., return_data = TRUE)",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1399,7 +1487,7 @@
     "text": "4 2 · Many responses to one shock: Multi-equation LHS\nfLP() accepts a vector-valued LHS: c(y1, y2, y3) ~ shock + .... Each LHS variable is estimated as its own local projection against the shared RHS — in parallel across horizons (OpenMP) — and returned as a single fLP object. Combined with conf = c(68, 95), one call yields a full multi-response × multi-band figure.\n\nlp_multi &lt;- fLP(\n  c(CPI, dSTIR) ~ RRShock + l(..controls, 1:4),\n  data       = jt_lp,\n  horizons   = 17,\n  shock      = \"RRShock\",\n  conf       = c(68, 95),\n  nw_lags    = 0,\n  nw_offset  = 0,\n  cumulative = TRUE,\n  n_threads  = 1\n)\n\n\nfPlotLP(lp_multi, facet_ncol = 2) +\n  labs(title = \"Responses to a Romer-Romer shock (1 fit, 2 LHS × 2 bands)\")\n\n\n\n\n\n\n\nFigure 3: Multi-equation LP — two responses to one Romer-Romer shock, one fit\n\n\n\n\n\nBehind the scenes each response has its own regression; only the RHS is shared. This is materially faster than looping in R because the horizon loop is parallelised in C++ and only the OLS cross-products are formed once per horizon. Note also that fLP() does not auto-augment the RHS — the RHS you write is exactly what enters each regression. For instance, above the dSTIR equation happens to have dSTIR_l1..l4 on the RHS only because dSTIR is a member of the ..controls macro; if you drop it from controls, its own lags disappear from the RHS.",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1410,7 +1498,7 @@
     "text": "5 3 · Level vs cumulative responses\ncumulative = TRUE regresses y_{t+h} - y_{t-1} on the RHS; FALSE regresses the level y_{t+h}. Comparing them makes the “level” vs “long-difference” distinction explicit.\n\nlp_cum &lt;- fLP(\n    CPI ~ RRShock + l(..controls, 1:4),\n    data = jt_lp, \n    horizons = 17, \n    shock = \"RRShock\",\n    conf = c(68, 90), \n    nw_lags = 0, \n    nw_offset = 0,\n    cumulative = TRUE,  \n    n_threads = 1\n)\n\nlp_lev &lt;- fLP(\n    CPI ~ RRShock + l(..controls, 1:4),\n    data = jt_lp, \n    horizons = 17, \n    shock = \"RRShock\",\n    conf = c(68, 90), \n    nw_lags = 0, \n    nw_offset = 0,\n    cumulative = FALSE,  \n    n_threads = 1\n)\n\n\n\nfPlotLP(lp_cum) + ggtitle('Cumulative Response') + fPlotLP(lp_lev) + ggtitle('Level Response')",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1421,7 +1509,7 @@
     "text": "6 4 · Newey-West bandwidth: matching MATLAB vs the MA&R default\nTwo bandwidth rules give identical point estimates but different SE bands: the classic Jordà = h rule (nw_offset = 0, matches LPmodel.m bit-for-bit) and the Miranda-Agrippino & Ricco = h + 1 rule (nw_offset = 1, the fLP() default). The syntax primer covers the general convention; here we visualise the resulting band gap on this replication.\n\nlp_jorda &lt;- fLP(CPI ~ RRShock + l(..controls, 1:4),\n                data = jt_lp, horizons = 17, shock = \"RRShock\",\n                conf = 90, nw_lags = 0, nw_offset = 0,\n                cumulative = TRUE, n_threads = 1)\n\nlp_mar   &lt;- fLP(CPI ~ RRShock + l(..controls, 1:4),\n                data = jt_lp, horizons = 17, shock = \"RRShock\",\n                conf = 90, nw_lags = 0, nw_offset = 1,\n                cumulative = TRUE, n_threads = 1)\n\n# IRFs are identical; only the NW bandwidth (and hence SEs) differ.\nall.equal(as.numeric(lp_jorda$irfs), as.numeric(lp_mar$irfs))\n#&gt; [1] TRUE\n\n\nbind_rows(\n  fPlotLP(lp_jorda, return_data = TRUE) |&gt; mutate(rule = \"Jordà (h)\"),\n  fPlotLP(lp_mar,   return_data = TRUE) |&gt; mutate(rule = \"Miranda-Agrippino (h+1)\")\n) |&gt;\n  ggplot(aes(x = horizon, y = point, colour = rule, fill = rule)) +\n    geom_ribbon(aes(ymin = lower, ymax = upper, color = rule), alpha = 0.5) +\n    geom_line(linewidth = 0.9) +\n    geom_hline(yintercept = 0, linewidth = 0.4, linetype = \"dashed\") +\n    labs(title = \"CPI response — NW bandwidth comparison at 90%\",\n         x = \"Horizon\", y = \"Percent\", colour = NULL, fill = NULL)\n\n\n\n\n\n\n\nFigure 4: Same IRF, different NW bandwidth rule at 90%",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1432,7 +1520,7 @@
     "text": "7 5 · LP-IV — Unemployment response to an FFR shock\nfLPIV() estimates local projections with an external instrument, mirroring fLP()’s formula-based syntax. Replicates Jordà & Taylor (2025) Figure 6a: the unemployment response to a unit federal-funds-rate shock, instrumented by the Romer-Romer (RR) narrative shock.\nThe specification (Ex6 tab of the JT2025 workbook, monthly 1985M1-2000M1):\n\nLHS: Unemployment (long difference, y_{t+h} - y_{t-1})\nEndogenous treatment: FFRates (the fed funds rate)\nExogenous controls: six lags of Unemployment, Inflation, FFRates\nInstruments: contemporaneous RR shock plus six lags (over-identified 2SLS)\nHAC: Newey-West with a fixed bandwidth of 6 (Stata’s vce(hac nw 6))\n\nThe result is delivered horizon-by-horizon via Frisch-Waugh-Lovell 2SLS with a delta-method HAC standard error — the same recipe as Cesa-Bianchi’s LPmodel.m in LP-IV mode.\n\ndata(\"JordaTaylor2025IV\")\n\njt_iv &lt;- JordaTaylor2025IV |&gt;\n  filter(Date &gt;= as.POSIXct(\"1985-01-01\", tz = \"UTC\"),\n         Date &lt;= as.POSIXct(\"2000-01-01\", tz = \"UTC\")) |&gt;\n  transmute(Date,\n            urate = Unemployment,\n            infl  = Inflation,\n            ffr   = FFRates,\n            rz    = RRShock)\n\n\njt_iv |&gt;\n  pivot_longer(-Date, names_to = \"variable\") |&gt;\n  ggplot(aes(x = Date, y = value)) +\n    geom_line(linewidth = 0.7) +\n    facet_wrap(~ variable, scales = \"free\", ncol = 2) +\n    labs(x = NULL, y = NULL)\n\n\n\n\n\n\n\nFigure 5: Variables used in the LP-IV replication\n\n\n\n\n\n\niv_ctrl &lt;- c(\"urate\", \"infl\", \"ffr\")\n\nlp_iv &lt;- fLPIV(\n  urate ~ ffr + l(..iv_ctrl, 1:6),\n  instruments = ~ l(rz, 0:6),\n  data        = jt_iv,\n  endog       = \"ffr\",\n  horizons    = 48,\n  conf        = c(68, 95),\n  nw_lags_iv  = 6,             # fixed HAC bandwidth = Stata's vce(hac nw 6)\n  cumulative  = TRUE,\n  n_threads   = 1\n)\n\nlp_iv\n#&gt; \n#&gt; Local Projections — IV (fLPIV)\n#&gt; --------------------------------------------- \n#&gt; Original formula :  urate ~ ffr + l(..iv_ctrl, 1:6) \n#&gt; Expanded formula :  urate ~ ffr + urate_l1 + urate_l2 + urate_l3 + urate_l4 + urate_l5 +      urate_l6 + infl_l1 + infl_l2 + infl_l3 + infl_l4 + infl_l5 +      infl_l6 + ffr_l1 + ffr_l2 + ffr_l3 + ffr_l4 + ffr_l5 + ffr_l6 \n#&gt; Instruments      :  ~rz_l0 + rz_l1 + rz_l2 + rz_l3 + rz_l4 + rz_l5 + rz_l6 \n#&gt; Endogenous       :  ffr \n#&gt; Controls         :  urate_l1, urate_l2, urate_l3, urate_l4, urate_l5, urate_l6, infl_l1, infl_l2, infl_l3, infl_l4, infl_l5, infl_l6, ffr_l1, ffr_l2, ffr_l3, ffr_l4, ffr_l5, ffr_l6 \n#&gt; LHS variables    :  urate \n#&gt; Horizons         : 0 to 48 \n#&gt; Cumulative       :  TRUE \n#&gt; Confidence       :  95%, 68% \n#&gt; HAC bandwidth    :  fixed = 6 (vce(hac nw 6))\n#&gt; Observations     :  175 \n#&gt; \n#&gt; IRF (endog = 'ffr'):\n#&gt;      urate\n#&gt; 0  -0.1006\n#&gt; 1  -0.2264\n#&gt; 2  -0.2281\n#&gt; 3  -0.3843\n#&gt; 4  -0.3026\n#&gt; 5  -0.0642\n#&gt; 6  -0.0791\n#&gt; 7   0.0232\n#&gt; 8   0.0965\n#&gt; 9   0.1766\n#&gt; 10  0.2850\n#&gt; 11  0.4309\n#&gt; 12  0.5384\n#&gt; 13  0.5911\n#&gt; 14  0.6026\n#&gt; 15  0.5316\n#&gt; 16  0.5267\n#&gt; 17  0.5582\n#&gt; 18  0.5159\n#&gt; 19  0.4835\n#&gt; 20  0.8204\n#&gt; 21  0.6397\n#&gt; 22  0.7474\n#&gt; 23  0.8150\n#&gt; 24  0.7392\n#&gt; 25  0.9504\n#&gt; 26  0.9749\n#&gt; 27  0.9934\n#&gt; 28  1.0497\n#&gt; 29  0.9379\n#&gt; 30  0.9229\n#&gt; 31  1.0563\n#&gt; 32  1.0085\n#&gt; 33  0.8723\n#&gt; 34  0.8391\n#&gt; 35  0.6559\n#&gt; 36  0.4724\n#&gt; 37  0.3058\n#&gt; 38  0.1818\n#&gt; 39  0.1458\n#&gt; 40  0.3319\n#&gt; 41  0.2168\n#&gt; 42  0.2054\n#&gt; 43  0.2100\n#&gt; 44  0.0409\n#&gt; 45  0.1004\n#&gt; 46  0.1305\n#&gt; 47  0.1604\n#&gt; 48  0.1674\n#&gt; \n#&gt; First-stage F (h = 0..H):  7.17, 7.3, 7.03, 6.95, 6.92, 6.81, 6.8, 6.59, 6.68, 6.66, 6.59, 6.68, 6.73, 6.68, 6.6, 6.5, 6.46, 6.41, 6.36, 6.33, 6.29, 6.25, 6.22, 6.17, 6.1, 6.18, 6.11, 6.08, 6.05, 5.95, 5.9, 5.8, 5.75, 5.71, 5.72, 5.67, 5.64, 5.58, 5.54, 5.49, 5.47, 5.43, 5.26, 5.24, 5.21, 5.18, 5.09, 5.08, 4.97\n\nThe print method summarises the endogenous treatment, control set, instrument formula, and the Newey-West bandwidth rule (fixed vs horizon-varying).\n\n7.1 Impulse response and first-stage strength\n\nfPlotLP(lp_iv) +\n  labs(title = \"Unemployment to a unit FFR shock (LP-IV)\",\n       subtitle = \"Instrument: Romer-Romer shock (0 + 6 lags), NW bandwidth = 6\",\n       y = \"Percentage points\")\n\n\n\n\n\n\n\nFigure 6: Jordà-Taylor (2025) Figure 6a: unemployment response to an FFR shock instrumented by the RR narrative shock\n\n\n\n\n\n\ntibble::tibble(horizon = 0:48, F = as.numeric(lp_iv$Fstat_fs)) |&gt;\n  ggplot(aes(x = horizon, y = F)) +\n    geom_col(fill = \"#407EC9\", alpha = 0.75) +\n    geom_hline(yintercept = 10, colour = \"#910048\", linetype = \"dashed\") +\n    labs(x = \"Horizon\", y = \"First-stage F\",\n         title = \"First-stage F across horizons\")\n\n\n\n\n\n\n\nFigure 7: First-stage F-statistic across horizons (values below 10 flag a weak-instrument concern)\n\n\n\n\n\nThe Fstat_fs and rsqr_fs fields expose the per-horizon first-stage diagnostics for the (residualised) IV projection — worth checking whenever the point estimates look surprising. The df convention (Th - kc - nz) is documented in the syntax primer.",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1443,7 +1531,7 @@
     "text": "8 6 · Tidy output for downstream work\ntidy.fLP() returns a long data frame. For single-band fits, the shape matches the historical broom-style output (estimate, se, lower, upper). For multi-band fits, one lower_X / upper_X column pair is produced per confidence level. It works on both fLP() and fLPIV() results.\n\ntidy.fLP(lp_jt) |&gt; head(6)\n#&gt;   horizon lhs   shock    estimate         se    lower_95  upper_95    lower_68\n#&gt; 1       0 CPI RRShock  0.03926033 0.06578167 -0.08966937 0.1681900 -0.02615677\n#&gt; 2       1 CPI RRShock  0.08884440 0.11743912 -0.14133205 0.3190209 -0.02794386\n#&gt; 3       2 CPI RRShock -0.02728809 0.16816012 -0.35687588 0.3022997 -0.19451625\n#&gt; 4       3 CPI RRShock -0.06389951 0.20501135 -0.46571437 0.3379153 -0.26777466\n#&gt; 5       4 CPI RRShock -0.07363836 0.24941001 -0.56247300 0.4151963 -0.32166611\n#&gt; 6       5 CPI RRShock -0.22802839 0.31100676 -0.83759044 0.3815337 -0.53731152\n#&gt;     upper_68\n#&gt; 1 0.10467743\n#&gt; 2 0.20563266\n#&gt; 3 0.13994007\n#&gt; 4 0.13997564\n#&gt; 5 0.17438939\n#&gt; 6 0.08125473\n\n\ntidy.fLP(lp_jorda) |&gt; head()\n#&gt;   horizon lhs   shock    estimate         se       lower     upper\n#&gt; 1       0 CPI RRShock  0.03926033 0.06578167 -0.06894088 0.1474616\n#&gt; 2       1 CPI RRShock  0.08884440 0.11743912 -0.10432577 0.2820146\n#&gt; 3       2 CPI RRShock -0.02728809 0.16816012 -0.30388688 0.2493107\n#&gt; 4       3 CPI RRShock -0.06389951 0.20501135 -0.40111317 0.2733141\n#&gt; 5       4 CPI RRShock -0.07363836 0.24941001 -0.48388132 0.3366046\n#&gt; 6       5 CPI RRShock -0.22802839 0.31100676 -0.73958899 0.2835322\n\n\ntidy.fLP(lp_iv) |&gt; head(6)\n#&gt;   horizon   lhs shock    estimate         se   lower_95    upper_95   lower_68\n#&gt; 1       0 urate   ffr -0.10059663 0.09992538 -0.2964468 0.095253515 -0.1999682\n#&gt; 2       1 urate   ffr -0.22636130 0.12998155 -0.4811205 0.028397862 -0.3556225\n#&gt; 3       2 urate   ffr -0.22805006 0.20592301 -0.6316518 0.175551633 -0.4328318\n#&gt; 4       3 urate   ffr -0.38434557 0.19670393 -0.7698782 0.001187053 -0.5799593\n#&gt; 5       4 urate   ffr -0.30262493 0.22765158 -0.7488138 0.143563973 -0.5290148\n#&gt; 6       5 urate   ffr -0.06418874 0.26109180 -0.5759193 0.447541780 -0.3238335\n#&gt;       upper_68\n#&gt; 1 -0.001225047\n#&gt; 2 -0.097100122\n#&gt; 3 -0.023268294\n#&gt; 4 -0.188731792\n#&gt; 5 -0.076235021\n#&gt; 6  0.195456054",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {
@@ -1454,7 +1542,7 @@
     "text": "9 Summary\n\nnw_offset = 0 (classic Jordà = h rule) and nw_lags_iv = 6 reproduce the Jorda and Taylor (2025) MATLAB / Stata standard errors.\nBoth fLP() and fLPIV() handle multi-band conf and, for fLP(), multi-equation LHS in a single fit — see the syntax primer for the shared conventions.",
     "crumbs": [
       "Home",
-      "LP with Shocks and IV"
+      "LP with Exogenous Shocks and IV"
     ]
   },
   {

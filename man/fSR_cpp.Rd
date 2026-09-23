@@ -29,7 +29,9 @@ fSR_cpp(
   exog = NULL,
   n_threads = 0L,
   seed = 42L,
-  verbose = FALSE
+  verbose = FALSE,
+  bands_conf = NULL,
+  fitted_var = NULL
 )
 }
 \arguments{
@@ -58,7 +60,7 @@ first (default 40).}
 draw before that slot is abandoned (default 1000).}
 
 \item{conf}{Numeric coverage of the reported credible bands, in percent
-(default 68).}
+(default 90).}
 
 \item{inference}{Integer. \code{1} (default) draws reduced-form parameters
 from the posterior, so bands reflect both parameter and identification
@@ -93,7 +95,7 @@ and bands, which avoids copying two
 
 \item{exog}{Optional T x M matrix of exogenous regressors (default NULL).}
 
-\item{n_threads}{Integer. \code{0} (default) uses all cores but one.}
+\item{n_threads}{Integer. \code{0} (default) uses all available OpenMP threads.}
 
 \item{seed}{Integer base seed. Accepted draw \code{d} uses a stream derived
 from \code{seed} and \code{d}, so results are independent of the thread
@@ -101,6 +103,12 @@ count.}
 
 \item{verbose}{Logical; print thread count and acceptance diagnostics
 (default FALSE).}
+
+\item{bands_conf}{Optional vector of confidence levels, with the first equal
+to conf. All bands are computed in the same C++ summary pass.}
+
+\item{fitted_var}{Optional precomputed fVAR result on exactly y, p, c and
+exog, supplied by the R wrapper to reuse its IV first-stage VAR fit.}
 }
 \value{
 A list with medians and credible bands for the IRFs (\code{IRmed},

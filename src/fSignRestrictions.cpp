@@ -8,6 +8,44 @@
 #include "fVAR.h"
 #include <RcppArmadillo.h>
 #include <algorithm>
+#include <stdexcept>
+
+namespace {
+// A conservative Gordan/Farkas certificate for the small free subspaces in
+// the two-IV replication. If m+1 signed rows of full rank have a strictly
+// positive null combination, A*q >= 0 implies q=0: no unit rotation can pass.
+// Only well-conditioned certificates, far from zero weights, are used.
+bool infeasible_impact_cpp(const arma::mat& checks, arma::uword nrows) {
+    const arma::uword m = checks.n_rows;
+    if (m == 0 || m > 3 || nrows < m + 1) return false;
+    arma::mat rows = checks.cols(0, nrows - 1);
+    for (arma::uword j = 0; j < nrows; ++j) {
+        const double norm = arma::norm(rows.col(j), 2);
+        if (!(norm > 0.0) || !std::isfinite(norm)) return false;
+        rows.col(j) /= norm;
+    }
+    std::vector<arma::uword> subset(m + 1);
+    for (arma::uword i = 0; i <= m; ++i) subset[i] = i;
+    arma::mat system(m + 1, m + 1, arma::fill::ones);
+    arma::vec target(m + 1, arma::fill::zeros), weights;
+    target(m) = 1.0;
+    for (int budget = 0; budget < 64; ++budget) {
+        for (arma::uword j = 0; j <= m; ++j)
+            system.submat(0, j, m - 1, j) = rows.col(subset[j]);
+        if (arma::rcond(system) > 1e-6 &&
+            arma::solve(weights, system, target,
+                        arma::solve_opts::fast + arma::solve_opts::no_approx) &&
+            weights.min() > 1e-8 &&
+            arma::norm(system * weights - target, "inf") < 1e-12) return true;
+        int i = static_cast<int>(m);
+        while (i >= 0 && subset[i] == nrows - (m + 1) + i) --i;
+        if (i < 0) break;
+        ++subset[i];
+        for (arma::uword j = i + 1; j <= m; ++j) subset[j] = subset[j - 1] + 1;
+    }
+    return false; // Absence of a certificate says nothing about feasibility.
+}
+} // namespace
 
 void fSignRotationPrep_cpp(const arma::mat& sigma,
                            const arma::mat& Bfix,
@@ -16,9 +54,14 @@ void fSignRotationPrep_cpp(const arma::mat& sigma,
 
     const arma::uword N       = sigma.n_rows;
     const arma::uword n_fixed = Bfix.n_cols;
+    scr.restrictions_ready = false;
+    scr.infeasible = false;
+    if (N == 0 || sigma.n_cols != N || !sigma.is_finite() ||
+        n_fixed >= N || (n_fixed > 0 && (Bfix.n_rows != N || !Bfix.is_finite())))
+        throw std::invalid_argument("Invalid covariance or fixed-column dimensions/values.");
 
     if (!arma::chol(scr.C, sigma, "lower")) {
-        Rcpp::stop("The reduced-form covariance matrix is not positive definite.");
+        throw std::runtime_error("The reduced-form covariance matrix is not positive definite.");
     }
 
     scr.startingMat.set_size(N, N);
@@ -41,7 +84,8 @@ void fSignRotationPrep_cpp(const arma::mat& sigma,
         // different covariance (the instrument subsample); normalise defensively.
         for (arma::uword l = 0; l < j; ++l) qj -= arma::dot(q.col(l), qj) * q.col(l);
         const double nrm = arma::norm(qj, 2);
-        if (nrm < 1e-12) Rcpp::stop("Pre-determined impact columns are collinear.");
+        if (!std::isfinite(nrm) || nrm < 1e-12)
+            throw std::runtime_error("Pre-determined impact columns are collinear.");
         q.col(j) = qj / nrm;
     }
     for (arma::uword j = n_fixed; j < N; ++j) {
@@ -53,6 +97,8 @@ void fSignRotationPrep_cpp(const arma::mat& sigma,
             for (arma::uword l = 0; l < j; ++l) r -= arma::dot(q.col(l), r) * q.col(l);
             nrm = arma::norm(r, 2);
         } while (nrm < 1e-10 && ++guard < 100);
+        if (!std::isfinite(nrm) || nrm < 1e-10)
+            throw std::runtime_error("Failed to complete the fixed-column basis.");
         q.col(j) = r / nrm;
     }
 
@@ -75,86 +121,111 @@ bool fSignRotation_cpp(const arma::mat&  SIGN,
     const arma::uword ds  = SIGN.n_cols;                       // shocks to match
     const arma::uword H   = static_cast<arma::uword>(sr_hor);
 
-    if (SIGN.n_rows != N)  Rcpp::stop("SIGN must have one row per variable.");
-    if (ws + ds > N)       Rcpp::stop("SIGN has more shock columns than free columns of B.");
-
-    scr.used.assign(N, 0);
-    scr.order.resize(N);
-
-    if (scr.termaa.n_rows != N) scr.termaa.set_size(N, N);
-    if (H > 1 && (scr.irfchk.n_rows != N || scr.irfchk.n_cols != m ||
-                  scr.irfchk.n_slices != H)) {
-        scr.irfchk.set_size(N, m, H);
+    if (!scr.restrictions_ready) {
+        if (SIGN.n_rows != N || ws + ds > N || sr_hor < 1 || sr_rot < 1 ||
+            !SIGN.is_finite() ||
+            arma::any(arma::vectorise((SIGN != -1.0) % (SIGN != 0.0) % (SIGN != 1.0))))
+            throw std::invalid_argument("Invalid sign restrictions.");
+        if (H > 1 && (wold.n_rows != N || wold.n_cols != N || wold.n_slices < H))
+            throw std::invalid_argument("Too few Wold horizons for the restrictions.");
+        scr.used.resize(N);
+        scr.order.resize(N);
+        scr.orientation.resize(N);
+        scr.n_restr.resize(ds);
+        scr.signed_basis.resize(ds);
+        // Factor Psi_h * startingMat out of the rotation loop. Only constrained
+        // rows are needed; each candidate sign is a short dot product with Q.
+        arma::cube basis(N, m, H, arma::fill::none);
+        basis.slice(0) = scr.startingMat.cols(ws, N - 1);
+        for (arma::uword h = 1; h < H; ++h)
+            basis.slice(h) = wold.slice(h) * basis.slice(0);
+        for (arma::uword ii = 0; ii < ds; ++ii) {
+            const arma::uvec rows = arma::find(SIGN.col(ii) != 0.0);
+            scr.n_restr[ii] = rows.n_elem;
+            arma::mat& checks = scr.signed_basis[ii];
+            checks.set_size(m, rows.n_elem * H);
+            for (arma::uword h = 0; h < H; ++h)
+                for (arma::uword r = 0; r < rows.n_elem; ++r)
+                    checks.col(h * rows.n_elem + r) =
+                        SIGN(rows(r), ii) * basis.slice(h).row(rows(r)).t();
+        }
+        if (scr.impact_match_first && ws > 0)
+            for (arma::uword ii = 0; ii < ds && !scr.infeasible; ++ii)
+                scr.infeasible = infeasible_impact_cpp(scr.signed_basis[ii], scr.n_restr[ii]);
+        scr.restrictions_ready = true;
     }
 
+    if (scr.infeasible) {
+        n_tried = 0;
+        B_out.reset();
+        return false;
+    }
     for (int attempt = 1; attempt <= sr_rot; ++attempt) {
-
-        // --- rotate the free block -------------------------------------
         fGenerateQ_inplace(scr.Qs, scr.Rs, scr.Gs, m, rng);
-        scr.rotated = scr.startingMat.cols(ws, N - 1) * scr.Qs;
-
-        if (ws > 0) scr.termaa.cols(0, ws - 1) = scr.startingMat.cols(0, ws - 1);
-        scr.termaa.cols(ws, N - 1) = scr.rotated;
-
-        // --- responses used by the sign check --------------------------
-        // sr_hor == 1 checks the impact matrix itself, so no IRF is needed.
-        if (H > 1) {
-            scr.irfchk.slice(0) = scr.rotated;   // wold.slice(0) is the identity
-            for (arma::uword h = 1; h < H; ++h) {
-                scr.irfchk.slice(h) = wold.slice(h) * scr.rotated;
-            }
-        }
-
-        // --- greedily match each shock to a free column ----------------
         std::fill(scr.used.begin(), scr.used.end(), 0);
+        std::fill(scr.orientation.begin(), scr.orientation.end(), 1.0);
         for (arma::uword i = 0; i < N; ++i) scr.order[i] = i;
 
-        arma::uword matched = 0;
+        bool matched = true;
         for (arma::uword ii = 0; ii < ds; ++ii) {
+            const arma::mat& checks = scr.signed_basis[ii];
+            const arma::uword count = scr.n_restr[ii] * (scr.impact_match_first ? 1 : H);
+            bool found = false;
             for (arma::uword jj = ws; jj < N; ++jj) {
                 if (scr.used[jj]) continue;
-
-                // Mirrors the toolbox rule: only a strictly wrong-signed
-                // response rejects, so exact zeros and unrestricted rows pass.
                 bool ok_pos = true, ok_neg = true;
-                for (arma::uword h = 0; h < H && (ok_pos || ok_neg); ++h) {
-                    const double* col = (H > 1)
-                        ? scr.irfchk.slice(h).colptr(jj - ws)
-                        : scr.termaa.colptr(jj);
-                    for (arma::uword i = 0; i < N; ++i) {
-                        const double s = SIGN(i, ii);
-                        if (s == 0.0) continue;
-                        const double prod = s * col[i];
-                        if (prod < 0.0) ok_pos = false;
-                        else if (prod > 0.0) ok_neg = false;
-                        if (!ok_pos && !ok_neg) break;
-                    }
+                const double* q = scr.Qs.colptr(jj - ws);
+                for (arma::uword r = 0; r < count; ++r) {
+                    const double* b = checks.colptr(r);
+                    double value = 0.0;
+                    for (arma::uword l = 0; l < m; ++l) value += b[l] * q[l];
+                    if (!std::isfinite(value)) { ok_pos = ok_neg = false; break; }
+                    if (value < 0.0) ok_pos = false;
+                    else if (value > 0.0) ok_neg = false;
+                    if (!ok_pos && !ok_neg) break;
                 }
-
-                if (ok_pos) {
+                if (ok_pos || ok_neg) {
                     scr.used[jj] = 1;
                     scr.order[ws + ii] = jj;
-                    ++matched;
-                    break;
-                }
-                if (ok_neg) {
-                    scr.used[jj] = 1;
-                    scr.termaa.col(jj) *= -1.0;
-                    scr.order[ws + ii] = jj;
-                    ++matched;
+                    scr.orientation[ws + ii] = ok_pos ? 1.0 : -1.0;
+                    found = true;
                     break;
                 }
             }
+            if (!found) { matched = false; break; }
+        }
+        if (!matched) continue;
+
+        // The paper's collector fixes the impact assignment before checking
+        // later horizons. It does not try another column after a later failure.
+        if (scr.impact_match_first && H > 1) {
+            for (arma::uword ii = 0; ii < ds && matched; ++ii) {
+                const arma::mat& checks = scr.signed_basis[ii];
+                const double* q = scr.Qs.colptr(scr.order[ws + ii] - ws);
+                for (arma::uword r = scr.n_restr[ii]; r < checks.n_cols; ++r) {
+                    const double* b = checks.colptr(r);
+                    double value = 0.0;
+                    for (arma::uword l = 0; l < m; ++l) value += b[l] * q[l];
+                    if (!(scr.orientation[ws + ii] * value > 0.0)) {
+                        matched = false; break;
+                    }
+                }
+            }
+            if (!matched) continue;
         }
 
-        if (matched == ds) {
-            B_out.set_size(N, N);
-            for (arma::uword j = 0; j < N; ++j) B_out.col(j) = scr.termaa.col(scr.order[j]);
-            n_tried = attempt;
-            return true;
-        }
+        // Complete an optional partial SIGN without duplicating matched columns.
+        arma::uword next = ws + ds;
+        for (arma::uword jj = ws; jj < N; ++jj)
+            if (!scr.used[jj]) scr.order[next++] = jj;
+        scr.rotated = scr.startingMat.cols(ws, N - 1) * scr.Qs;
+        B_out.set_size(N, N);
+        if (ws > 0) B_out.cols(0, ws - 1) = scr.startingMat.cols(0, ws - 1);
+        for (arma::uword j = ws; j < N; ++j)
+            B_out.col(j) = scr.orientation[j] * scr.rotated.col(scr.order[j] - ws);
+        n_tried = attempt;
+        return true;
     }
-
     n_tried = sr_rot;
     B_out.reset();
     return false;
@@ -218,6 +289,15 @@ Rcpp::List fSignRestrictions_cpp(const arma::mat& sigma,
     arma::mat Bfix_mat;
     if (Bfix.isNotNull()) Bfix_mat = Rcpp::as<arma::mat>(Bfix);
 
+    if (sigma.n_rows == 0 || sigma.n_rows != sigma.n_cols ||
+        SIGN.n_rows != sigma.n_rows || !sigma.is_finite() || !SIGN.is_finite())
+        Rcpp::stop("Invalid covariance or sign matrix dimensions/values.");
+    if (Bfix_mat.n_cols >= sigma.n_rows ||
+        (Bfix_mat.n_cols > 0 && (Bfix_mat.n_rows != sigma.n_rows || !Bfix_mat.is_finite())))
+        Rcpp::stop("Invalid fixed-column dimensions/values.");
+    if (SIGN.n_cols + Bfix_mat.n_cols > sigma.n_rows)
+        Rcpp::stop("Too many restricted and fixed columns.");
+    if (p < 1 || (c != 0 && c != 1)) Rcpp::stop("Invalid lag order or intercept.");
     arma::cube wold;
     if (sr_hor > 1) {
         if (beta.isNull()) {
@@ -225,6 +305,9 @@ Rcpp::List fSignRestrictions_cpp(const arma::mat& sigma,
         }
         VARResult vr;
         vr.beta   = Rcpp::as<arma::mat>(beta);
+        if (vr.beta.n_cols != sigma.n_rows ||
+            vr.beta.n_rows < sigma.n_rows * p + c || !vr.beta.is_finite())
+            Rcpp::stop("Invalid beta dimensions/values for the requested VAR.");
         vr.sigma  = sigma;
         vr.p      = p;
         vr.c      = c;
@@ -245,4 +328,104 @@ Rcpp::List fSignRestrictions_cpp(const arma::mat& sigma,
     return Rcpp::List::create(Rcpp::Named("B")       = B,
                               Rcpp::Named("n_tried") = n_tried,
                               Rcpp::Named("found")   = found);
+}
+
+//' Collect All Rotations Satisfying Sign Restrictions
+//'
+//' Runs a fixed number of Haar rotations and retains every impact matrix that
+//' satisfies the requested sign restrictions. This is the storage convention
+//' used by Cesa-Bianchi and Sokol's \code{signRestrictions.m}; most callers
+//' should use \code{\link{fSignRestrictions_cpp}}, which stops at the first
+//' admissible rotation.
+//'
+//' @inheritParams fSignRestrictions_cpp
+//'
+//' @return A list with \code{Ball}, an N x N x \code{n_found} array of
+//'   admissible impact matrices, \code{n_found}, \code{n_tried}, and
+//'   \code{found}.
+//'
+//' @seealso \code{\link{fSignRestrictions_cpp}}
+//'
+//' @export
+// [[Rcpp::export]]
+Rcpp::List fSignRestrictionsAll_cpp(const arma::mat& sigma,
+                                    const arma::mat& SIGN,
+                                    int sr_hor = 1,
+                                    int sr_rot = 500,
+                                    Rcpp::Nullable<arma::mat> Bfix = R_NilValue,
+                                    Rcpp::Nullable<arma::mat> beta = R_NilValue,
+                                    int p = 1,
+                                    int c = 1,
+                                    int seed = 42) {
+
+    if (sr_hor < 1) Rcpp::stop("sr_hor must be at least 1.");
+    if (sr_rot < 1) Rcpp::stop("sr_rot must be at least 1.");
+
+    const arma::uword N = sigma.n_rows;
+    if (sigma.n_cols != N) Rcpp::stop("sigma must be square.");
+    if (SIGN.n_rows != N) Rcpp::stop("SIGN must have one row per variable.");
+
+    arma::mat Bfix_mat;
+    if (Bfix.isNotNull()) Bfix_mat = Rcpp::as<arma::mat>(Bfix);
+    if (Bfix_mat.n_cols > 0 && Bfix_mat.n_rows != N) {
+        Rcpp::stop("Bfix must have one row per variable.");
+    }
+    if (SIGN.n_cols + Bfix_mat.n_cols != N) {
+        Rcpp::stop("SIGN must have N - ncol(Bfix) columns.");
+    }
+
+    if (sigma.n_rows == 0 || sigma.n_rows != sigma.n_cols ||
+        SIGN.n_rows != sigma.n_rows || !sigma.is_finite() || !SIGN.is_finite())
+        Rcpp::stop("Invalid covariance or sign matrix dimensions/values.");
+    if (Bfix_mat.n_cols >= sigma.n_rows ||
+        (Bfix_mat.n_cols > 0 && (Bfix_mat.n_rows != sigma.n_rows || !Bfix_mat.is_finite())))
+        Rcpp::stop("Invalid fixed-column dimensions/values.");
+    if (SIGN.n_cols + Bfix_mat.n_cols > sigma.n_rows)
+        Rcpp::stop("Too many restricted and fixed columns.");
+    if (p < 1 || (c != 0 && c != 1)) Rcpp::stop("Invalid lag order or intercept.");
+    arma::cube wold;
+    if (sr_hor > 1) {
+        if (beta.isNull()) Rcpp::stop("beta is required when sr_hor > 1.");
+        VARResult vr;
+        vr.beta   = Rcpp::as<arma::mat>(beta);
+        if (vr.beta.n_cols != sigma.n_rows ||
+            vr.beta.n_rows < sigma.n_rows * p + c || !vr.beta.is_finite())
+            Rcpp::stop("Invalid beta dimensions/values for the requested VAR.");
+        vr.sigma  = sigma;
+        vr.p      = p;
+        vr.c      = c;
+        vr.n_exog = 0;
+        wold = fWoldIRF_cpp(vr, sr_hor - 1).irfwold;
+    }
+
+    tidymacro::RNG rng(static_cast<std::uint64_t>(seed));
+    SignRotScratch scr;
+    scr.impact_match_first = true;
+    fSignRotationPrep_cpp(sigma, Bfix_mat, rng, scr);
+
+    std::vector<double> accepted;
+    const arma::uword block = N * N;
+    accepted.reserve(block * static_cast<std::size_t>(std::min(sr_rot, 1024)));
+
+    arma::mat B;
+    for (int attempt = 0; attempt < sr_rot; ++attempt) {
+        int n_tried = 0;
+        const bool found = fSignRotation_cpp(
+            SIGN, wold, sr_hor, 1, static_cast<int>(Bfix_mat.n_cols),
+            rng, scr, B, n_tried);
+        if (scr.infeasible) break;
+        if (found) accepted.insert(accepted.end(), B.begin(), B.end());
+        if (attempt % 4096 == 0) Rcpp::checkUserInterrupt();
+    }
+
+    const arma::uword n_found = accepted.size() / block;
+    arma::cube Ball(accepted.data(), N, N, n_found, false);
+
+    return Rcpp::List::create(
+        Rcpp::Named("Ball")    = Ball,
+        Rcpp::Named("n_found") = static_cast<int>(n_found),
+        Rcpp::Named("n_tried") = scr.infeasible ? 0 : sr_rot,
+        Rcpp::Named("n_ruled_out") = scr.infeasible ? sr_rot : 0,
+        Rcpp::Named("infeasible") = scr.infeasible,
+        Rcpp::Named("found")   = !accepted.empty());
 }

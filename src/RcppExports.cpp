@@ -710,6 +710,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fRecoverBIVMulti_cpp
+Rcpp::List fRecoverBIVMulti_cpp(const arma::mat& resid_sub, const arma::mat& Z_sub, int ntotcoeff);
+RcppExport SEXP _tidyMacro_fRecoverBIVMulti_cpp(SEXP resid_subSEXP, SEXP Z_subSEXP, SEXP ntotcoeffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type resid_sub(resid_subSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z_sub(Z_subSEXP);
+    Rcpp::traits::input_parameter< int >::type ntotcoeff(ntotcoeffSEXP);
+    rcpp_result_gen = Rcpp::wrap(fRecoverBIVMulti_cpp(resid_sub, Z_sub, ntotcoeff));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fRemoveBias
 Rcpp::List fRemoveBias(const arma::mat& beta, int c, int p, const arma::cube& boot_beta);
 RcppExport SEXP _tidyMacro_fRemoveBias(SEXP betaSEXP, SEXP cSEXP, SEXP pSEXP, SEXP boot_betaSEXP) {
@@ -725,8 +738,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fSR_cpp
-Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN, int nsteps, int ndraws, int sr_hor, int sr_rot, int max_post_draws, double conf, int inference, Rcpp::Nullable<arma::mat> Bfix, Rcpp::Nullable<arma::uvec> narr_sign_shock, Rcpp::Nullable<arma::uvec> narr_sign_period, Rcpp::Nullable<arma::vec> narr_sign_sign, Rcpp::Nullable<arma::uvec> narr_dom_shock, Rcpp::Nullable<arma::uvec> narr_dom_period, Rcpp::Nullable<arma::uvec> narr_dom_var, int narr_weight_mc, bool resid_from_draw, bool store_draws, Rcpp::Nullable<arma::mat> exog, int n_threads, int seed, bool verbose);
-RcppExport SEXP _tidyMacro_fSR_cpp(SEXP ySEXP, SEXP pSEXP, SEXP cSEXP, SEXP SIGNSEXP, SEXP nstepsSEXP, SEXP ndrawsSEXP, SEXP sr_horSEXP, SEXP sr_rotSEXP, SEXP max_post_drawsSEXP, SEXP confSEXP, SEXP inferenceSEXP, SEXP BfixSEXP, SEXP narr_sign_shockSEXP, SEXP narr_sign_periodSEXP, SEXP narr_sign_signSEXP, SEXP narr_dom_shockSEXP, SEXP narr_dom_periodSEXP, SEXP narr_dom_varSEXP, SEXP narr_weight_mcSEXP, SEXP resid_from_drawSEXP, SEXP store_drawsSEXP, SEXP exogSEXP, SEXP n_threadsSEXP, SEXP seedSEXP, SEXP verboseSEXP) {
+Rcpp::List fSR_cpp(const arma::mat& y, int p, int c, const arma::mat& SIGN, int nsteps, int ndraws, int sr_hor, int sr_rot, int max_post_draws, double conf, int inference, Rcpp::Nullable<arma::mat> Bfix, Rcpp::Nullable<arma::uvec> narr_sign_shock, Rcpp::Nullable<arma::uvec> narr_sign_period, Rcpp::Nullable<arma::vec> narr_sign_sign, Rcpp::Nullable<arma::uvec> narr_dom_shock, Rcpp::Nullable<arma::uvec> narr_dom_period, Rcpp::Nullable<arma::uvec> narr_dom_var, int narr_weight_mc, bool resid_from_draw, bool store_draws, Rcpp::Nullable<arma::mat> exog, int n_threads, int seed, bool verbose, Rcpp::Nullable<arma::vec> bands_conf, Rcpp::Nullable<Rcpp::List> fitted_var);
+RcppExport SEXP _tidyMacro_fSR_cpp(SEXP ySEXP, SEXP pSEXP, SEXP cSEXP, SEXP SIGNSEXP, SEXP nstepsSEXP, SEXP ndrawsSEXP, SEXP sr_horSEXP, SEXP sr_rotSEXP, SEXP max_post_drawsSEXP, SEXP confSEXP, SEXP inferenceSEXP, SEXP BfixSEXP, SEXP narr_sign_shockSEXP, SEXP narr_sign_periodSEXP, SEXP narr_sign_signSEXP, SEXP narr_dom_shockSEXP, SEXP narr_dom_periodSEXP, SEXP narr_dom_varSEXP, SEXP narr_weight_mcSEXP, SEXP resid_from_drawSEXP, SEXP store_drawsSEXP, SEXP exogSEXP, SEXP n_threadsSEXP, SEXP seedSEXP, SEXP verboseSEXP, SEXP bands_confSEXP, SEXP fitted_varSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -755,7 +768,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(fSR_cpp(y, p, c, SIGN, nsteps, ndraws, sr_hor, sr_rot, max_post_draws, conf, inference, Bfix, narr_sign_shock, narr_sign_period, narr_sign_sign, narr_dom_shock, narr_dom_period, narr_dom_var, narr_weight_mc, resid_from_draw, store_draws, exog, n_threads, seed, verbose));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<arma::vec> >::type bands_conf(bands_confSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::List> >::type fitted_var(fitted_varSEXP);
+    rcpp_result_gen = Rcpp::wrap(fSR_cpp(y, p, c, SIGN, nsteps, ndraws, sr_hor, sr_rot, max_post_draws, conf, inference, Bfix, narr_sign_shock, narr_sign_period, narr_sign_sign, narr_dom_shock, narr_dom_period, narr_dom_var, narr_weight_mc, resid_from_draw, store_draws, exog, n_threads, seed, verbose, bands_conf, fitted_var));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -784,6 +799,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type c(cSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     rcpp_result_gen = Rcpp::wrap(fSignRestrictions_cpp(sigma, SIGN, sr_hor, sr_rot, Bfix, beta, p, c, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fSignRestrictionsAll_cpp
+Rcpp::List fSignRestrictionsAll_cpp(const arma::mat& sigma, const arma::mat& SIGN, int sr_hor, int sr_rot, Rcpp::Nullable<arma::mat> Bfix, Rcpp::Nullable<arma::mat> beta, int p, int c, int seed);
+RcppExport SEXP _tidyMacro_fSignRestrictionsAll_cpp(SEXP sigmaSEXP, SEXP SIGNSEXP, SEXP sr_horSEXP, SEXP sr_rotSEXP, SEXP BfixSEXP, SEXP betaSEXP, SEXP pSEXP, SEXP cSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type SIGN(SIGNSEXP);
+    Rcpp::traits::input_parameter< int >::type sr_hor(sr_horSEXP);
+    Rcpp::traits::input_parameter< int >::type sr_rot(sr_rotSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<arma::mat> >::type Bfix(BfixSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<arma::mat> >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< int >::type c(cSEXP);
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(fSignRestrictionsAll_cpp(sigma, SIGN, sr_hor, sr_rot, Bfix, beta, p, c, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -927,10 +961,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_tidyMacro_fOLS", (DL_FUNC) &_tidyMacro_fOLS, 4},
     {"_tidyMacro_fPolyConvolve", (DL_FUNC) &_tidyMacro_fPolyConvolve, 3},
     {"_tidyMacro_fRecoverBIV_cpp", (DL_FUNC) &_tidyMacro_fRecoverBIV_cpp, 4},
+    {"_tidyMacro_fRecoverBIVMulti_cpp", (DL_FUNC) &_tidyMacro_fRecoverBIVMulti_cpp, 3},
     {"_tidyMacro_fRemoveBias", (DL_FUNC) &_tidyMacro_fRemoveBias, 4},
-    {"_tidyMacro_fSR_cpp", (DL_FUNC) &_tidyMacro_fSR_cpp, 25},
+    {"_tidyMacro_fSR_cpp", (DL_FUNC) &_tidyMacro_fSR_cpp, 27},
     {"_tidyMacro_fSVARSteps", (DL_FUNC) &_tidyMacro_fSVARSteps, 0},
     {"_tidyMacro_fSignRestrictions_cpp", (DL_FUNC) &_tidyMacro_fSignRestrictions_cpp, 9},
+    {"_tidyMacro_fSignRestrictionsAll_cpp", (DL_FUNC) &_tidyMacro_fSignRestrictionsAll_cpp, 9},
     {"_tidyMacro_fSpectralFEVD", (DL_FUNC) &_tidyMacro_fSpectralFEVD, 5},
     {"_tidyMacro_fUhligIRF", (DL_FUNC) &_tidyMacro_fUhligIRF, 3},
     {"_tidyMacro_fUhligMaxShare", (DL_FUNC) &_tidyMacro_fUhligMaxShare, 3},

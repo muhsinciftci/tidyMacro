@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Identification via sign restrictions and external instruments – tidyMacro</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./03_3_Kaenzig2021_InternalIV.html" rel="next">
+<link href="./04_3_narrative_restrictions.html" rel="prev">
+<link href="./logo.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-4dc7a0a1c379dfe597de3776b2e979c6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="tidyMacro">
+<meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
+<meta property="og:image" content="https://tidymacro.netlify.app/04_4_sign_external_instruments_files/figure-html/fig-acr-1.png">
+<meta property="og:site_name" content="tidyMacro">
+<meta property="og:image:height" content="960">
+<meta property="og:image:width" content="1344">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">tidyMacro</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./00_index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./faq.html"> 
+<span class="menu-text">FAQ</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./04_4_sign_external_instruments.html">Sign restrictions and External instruments</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-center sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+      <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/muhsinciftci/tidyMacro" title="tidyMacro GitHub" class="quarto-navigation-tool px-1" aria-label="tidyMacro GitHub"><i class="bi bi-github"></i></a>
+    <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7150339" title="Paper" class="quarto-navigation-tool px-1" aria-label="Paper"><i class="bi bi-file-pdf"></i></a>
+    <a href="https://www.linkedin.com/in/muhsin-ciftci/" title="Linkedin" class="quarto-navigation-tool px-1" aria-label="Linkedin"><i class="bi bi-linkedin"></i></a>
+</div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./00_index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Main</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_Bloom2009.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Short-run restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_1_Gali1999.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Long-run restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_2_BeaudryPortier2014.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mixed restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_1_Kaenzig2021_ExternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">External Instruments and Weak IV</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_ForniGambettiRicco.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Noninvertible shocks</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_2_sign_restrictions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sign restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_3_narrative_restrictions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Narrative restrictions</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_4_sign_external_instruments.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Sign restrictions and External instruments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_3_Kaenzig2021_InternalIV.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Internal instruments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_2_Kaenzig2021_Hetero.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Heteroskedasticity</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_01_lp_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Primer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_2_lp_syntax_primer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Syntax Primer</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_JordaTaylor2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP with Exogenous Shocks and IV</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_AlmuzaraSancibrian2024.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP Panel</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07_Dube2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LP DID</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup"><span class="header-section-number">1</span> Setup</a></li>
+  <li><a href="#sign-restrictions-external-instruments-iv" id="toc-sign-restrictions-external-instruments-iv" class="nav-link" data-scroll-target="#sign-restrictions-external-instruments-iv"><span class="header-section-number">2</span> Sign restrictions + External Instruments (IV)</a>
+  <ul class="collapse">
+  <li><a href="#the-uncertainty-the-toolbox-leaves-out" id="toc-the-uncertainty-the-toolbox-leaves-out" class="nav-link" data-scroll-target="#the-uncertainty-the-toolbox-leaves-out"><span class="header-section-number">2.1</span> The uncertainty the toolbox leaves out</a></li>
+  <li><a href="#application-the-romer-romer-instrument" id="toc-application-the-romer-romer-instrument" class="nav-link" data-scroll-target="#application-the-romer-romer-instrument"><span class="header-section-number">2.2</span> Application: the Romer-Romer instrument</a></li>
+  </ul></li>
+  <li><a href="#cesa-bianchi-and-sokol-2022" id="toc-cesa-bianchi-and-sokol-2022" class="nav-link" data-scroll-target="#cesa-bianchi-and-sokol-2022"><span class="header-section-number">3</span> Cesa-Bianchi and Sokol (2022)</a>
+  <ul class="collapse">
+  <li><a href="#replication-code" id="toc-replication-code" class="nav-link" data-scroll-target="#replication-code"><span class="header-section-number">3.1</span> Replication code</a></li>
+  </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">4</span> References</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/04_4_sign_external_instruments.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Identification via sign restrictions and external instruments</h1>
+</div>
+
+
+
+<div class="quarto-title-meta column-body">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="setup" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="setup"><span class="header-section-number">1</span> Setup</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyMacro)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">fThemeTidyMacro</span>())</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Instrumented shocks occupy the first structural columns.</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>iv_shock <span class="ot">&lt;-</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<hr>
+</section>
+<section id="sign-restrictions-external-instruments-iv" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="sign-restrictions-external-instruments-iv"><span class="header-section-number">2</span> Sign restrictions + External Instruments (IV)</h2>
+<p>The two strategies can be combined, as proposed by <span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span>. The motivation is practical: a researcher often has a credible instrument for one shock, typically monetary policy, but nothing comparable for the others. Rather than discard the instrument or leave the remaining shocks unidentified, the instrument point-identifies its column of <span class="math inline">\(B\)</span> and sign restrictions set-identify the rest.</p>
+<p>Partition <span class="math inline">\(B = \begin{bmatrix} B^{IV} &amp; B^{SR} \end{bmatrix}\)</span>. The first block is point-identified by the proxy through the usual two-stage regression <span class="citation" data-cites="stockwatson2012 mertens2013">(<a href="#ref-stockwatson2012" role="doc-biblioref">Stock and Watson 2012</a>; <a href="#ref-mertens2013" role="doc-biblioref">Mertens and Ravn 2013</a>)</span>: regress the first variable’s residual on the instrument, then project the remaining residuals on the fitted values to recover the ratios <span class="math inline">\(b_{i1}/b_{11}\)</span>, and rescale to shock units. The second block is set identified. The difference from plain sign restrictions is how <span class="math inline">\(Q_j\)</span> is built: sequentially rather than by QR:</p>
+<ol type="1">
+<li>Find the unit vector <span class="math inline">\(Q^{IV}\)</span> that rotates the first column of <span class="math inline">\(P\)</span> into <span class="math inline">\(B^{IV}\)</span>, i.e.&nbsp;<span class="math inline">\(PQ^{IV} = B^{IV}\)</span>.</li>
+<li>Given <span class="math inline">\(Q^{IV}\)</span>, complete the remaining columns by Gram-Schmidt on standard normal draws, so that <span class="math inline">\(Q_j = \begin{bmatrix} Q^{IV} &amp; Q_j^{SR}\end{bmatrix}\)</span> is orthonormal.</li>
+</ol>
+<p>Then <span class="math inline">\(B_j = PQ_j\)</span> satisfies <span class="math inline">\(\Sigma_u = B_jB_j'\)</span> with its first column pinned at the IV estimate, and only the remaining columns are screened against the sign restrictions. The monetary policy shock is never touched by the rotation loop.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What the scheme looks like in its original application
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span> use <code>sign+iv</code> to identify a <em>financial</em> shock, and the shape of their design is worth knowing because it is more demanding than the illustration below.</p>
+<p>Their US block is a five-variable monthly VAR(12) over 1979m7-2016m12 in the 1-year rate, the corporate bond yield, real GDP, the CPI and the excess bond premium. Two shocks are point-identified by external instruments, the monetary policy and central bank information surprises of <span class="citation" data-cites="jarocinski2020">Jarociński and Karadi (<a href="#ref-jarocinski2020" role="doc-biblioref">2020</a>)</span>, and only <em>one</em> further shock is set-identified by sign restrictions. A contractionary financial shock is defined as one that lowers output, prices and the policy rate while raising the credit spread and the borrowing rate; the restriction that does the identifying work is the last one, since it is the response of the borrowing rate that separates a financial shock from an ordinary demand shock. Restrictions are imposed over three months, and inference is a wild bootstrap following <span class="citation" data-cites="mertens2013">Mertens and Ravn (<a href="#ref-mertens2013" role="doc-biblioref">2013</a>)</span> rather than the Normal-inverse-Wishart posterior used here.</p>
+<p><code>fSignRestr()</code> accepts a <span class="math inline">\(k\)</span>-column instrument and leaves <span class="math inline">\(N-k\)</span> columns for sign restrictions. Its inference uses posterior VAR draws with an IV block estimated once. This differs from the paper’s wild bootstrap, which re-estimates the VAR and the IV block for each bootstrap sample. The C++ two-IV algebra follows <code>VARiriv_B.m</code>; the all-rotation collector follows <code>signRestrictions.m</code> and <code>VARirSR.m</code> in <code>inst/Bianchi/BianchiSokol2021/codes/Additional Codes/</code>.</p>
+</div>
+</div>
+<section id="the-uncertainty-the-toolbox-leaves-out" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="the-uncertainty-the-toolbox-leaves-out"><span class="header-section-number">2.1</span> The uncertainty the toolbox leaves out</h3>
+<p>The IV column is recovered <em>once</em> on the OLS point estimate. The draw loop then redraws <span class="math inline">\((\Phi, \Sigma_u)\)</span> from the posterior at every iteration but reads <span class="math inline">\(B^{IV}\)</span> back from that fixed value, regardless of the <code>inference</code> flag. The instrument’s own sampling error, the first-stage uncertainty that weak-instrument diagnostics are about, never reaches the bands.</p>
+<p>The VAR Toolbox keeps the first-stage estimate at OLS rather than re-estimating it during posterior draws. The covariance normalization described below still changes the impact column’s length. A joint likelihood, as in <span class="citation" data-cites="caldara2019">Caldara and Herbst (<a href="#ref-caldara2019" role="doc-biblioref">2019</a>)</span> or <span class="citation" data-cites="arias2021">Arias et al. (<a href="#ref-arias2021" role="doc-biblioref">2021</a>)</span>, is one route to modelling instrument uncertainty. Another is resampling residuals and instruments together and re-estimating the first stage, as in the Bianchi-Sokol wild bootstrap; this does not automatically provide inference robust to weak instruments. <code>fSignRestr()</code> follows the toolbox, so the bands on the instrumented shock should be read as conditional on the first stage.</p>
+<p>The fixed column is renormalised against each draw’s Cholesky factor, <span class="math inline">\(b_1 / \lVert L^{-1}b_1 \rVert\)</span>, so its direction is constant but its length is not. For multiple instruments, Gram-Schmidt also changes subsequent columns’ directions when the IV-sample and VAR-draw covariances differ. Thus “fixed” means that the first stage is not re-estimated; it does not mean that every numerical entry of the impact block is unchanged. The paper’s bootstrap uses the IV-sample covariance for both recovery and completion.</p>
+</section>
+<section id="application-the-romer-romer-instrument" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="application-the-romer-romer-instrument"><span class="header-section-number">2.2</span> Application: the Romer-Romer instrument</h3>
+<p><code>ACR2019</code> allows a version where both the data and the instrument come from published work: it is the six-variable monetary VAR of <span class="citation" data-cites="arias2019">Arias et al. (<a href="#ref-arias2019" role="doc-biblioref">2019</a>)</span>, distributed in the replication package of <span class="citation" data-cites="braun2023">Braun and Brüggemann (<a href="#ref-braun2023" role="doc-biblioref">2023</a>)</span>, together with the narrative monetary policy shock of <span class="citation" data-cites="romer2004">Romer and Romer (<a href="#ref-romer2004" role="doc-biblioref">2004</a>)</span> as the external instrument. The six endogenous variables are the same ones used on the sign and narrative pages. The local Braun-Bruggemann code (<code>inst/Bruggemann2022</code>) estimates a proxy-augmented likelihood model and also imposes restrictions on the inverse impact matrix. Its dataset is used here; its identification algorithm is not the fixed-IV-block rotation method illustrated below.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ACR2019)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The replication code takes 100 * log of everything except the policy rate.</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>acr <span class="ot">&lt;-</span> ACR2019 <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="fu">c</span>(Date, <span class="st">`</span><span class="at">Fed. Funds Rate</span><span class="st">`</span>, RR), \(x) <span class="dv">100</span> <span class="sc">*</span> <span class="fu">log</span>(x)))                </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Monetary policy is pinned by the instrument; one further shock is set-identified as a contractionary demand shock, lowering output, prices and the policy rate. The remaining four are left free. That is the same shape as the design in <span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span>: instrument for the shock you can instrument, sign restrictions for one more, silence about the rest.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The first-stage normalization equation is the policy rate.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>endo_acr <span class="ot">&lt;-</span> acr <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="st">`</span><span class="at">Fed. Funds Rate</span><span class="st">`</span>, <span class="fu">everything</span>(), <span class="sc">-</span>Date, <span class="sc">-</span>RR)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Column 1 of `sign_acr` is structural shock 2, the demand shock.</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>sign_acr <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">5</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(endo_acr), <span class="cn">NULL</span>))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>sign_acr[<span class="fu">c</span>(<span class="st">"Real GDP"</span>, <span class="st">"GDP Deflator"</span>, <span class="st">"Fed. Funds Rate"</span>), <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>sr_acr <span class="ot">&lt;-</span> <span class="fu">fSignRestr</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>(endo_acr), </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">p =</span> <span class="dv">12</span>, </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">c =</span> <span class="dv">0</span>, </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">sign =</span> sign_acr,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">store_draws =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">nsteps =</span> <span class="dv">48</span>, </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">ndraws =</span> <span class="dv">500</span>, </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">sr_hor =</span> <span class="dv">6</span>, </span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf   =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>), </span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">inference =</span> <span class="dv">1</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">instrument =</span> <span class="fu">list</span>(<span class="at">Z =</span> <span class="fu">as.matrix</span>(ACR2019<span class="sc">$</span>RR)),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">varnames   =</span> <span class="fu">names</span>(endo_acr), <span class="at">seed =</span> <span class="dv">42</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>sr_acr</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Sign-restricted SVAR (sign+iv)</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Variables      : Fed. Funds Rate, Real GDP, GDP Deflator, Commodity Price Idx., Total Reserves, Non-Borrowed Reserves</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Lags           : 12   Intercept: 0</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Accepted draws : 500 of 500 slots (0 failed)</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Rotations tried: 21,021   acceptance: 2.379%</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Horizons       : 48   bands: 68, 90%</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Instrument     : first-stage F = 93.46, R2 = 0.167, n = 468</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   IV column(s)   : fixed at OLS (VAR Toolbox convention)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFSign</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    sr_acr, </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">shock =</span> iv_shock, </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="st">"Sign + IV (Romer-Romer)"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>), </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_ncol =</span> <span class="dv">2</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-acr" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-acr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="04_4_sign_external_instruments_files/figure-html/fig-acr-1.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-acr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Romer narrative instrument, with a sign-identified demand shock alongside. Median with 68% and 90% credible bands, six-variable VAR(12) without constant, monthly US data 1965m1-2007m12.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Check instrument relevance in the normalization equation used by the model.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">instrument =</span> <span class="st">"RR (Romer-Romer)"</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">F  =</span> sr_acr<span class="sc">$</span>iv<span class="sc">$</span>fs_F,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2 =</span> sr_acr<span class="sc">$</span>iv<span class="sc">$</span>fs_r2,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n  =</span> sr_acr<span class="sc">$</span>iv<span class="sc">$</span>n_iv</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), \(x) <span class="fu">round</span>(x, <span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="dwnwkzbfwn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#dwnwkzbfwn table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#dwnwkzbfwn thead, #dwnwkzbfwn tbody, #dwnwkzbfwn tfoot, #dwnwkzbfwn tr, #dwnwkzbfwn td, #dwnwkzbfwn th {
+  border-style: none;
+}
+
+#dwnwkzbfwn p {
+  margin: 0;
+  padding: 0;
+}
+
+#dwnwkzbfwn .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#dwnwkzbfwn .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#dwnwkzbfwn .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#dwnwkzbfwn .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#dwnwkzbfwn .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#dwnwkzbfwn .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#dwnwkzbfwn .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#dwnwkzbfwn .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#dwnwkzbfwn .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#dwnwkzbfwn .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#dwnwkzbfwn .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#dwnwkzbfwn .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#dwnwkzbfwn .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#dwnwkzbfwn .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#dwnwkzbfwn .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#dwnwkzbfwn .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#dwnwkzbfwn .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#dwnwkzbfwn .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#dwnwkzbfwn .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#dwnwkzbfwn .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#dwnwkzbfwn .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#dwnwkzbfwn .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#dwnwkzbfwn .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#dwnwkzbfwn .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#dwnwkzbfwn .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#dwnwkzbfwn .gt_left {
+  text-align: left;
+}
+
+#dwnwkzbfwn .gt_center {
+  text-align: center;
+}
+
+#dwnwkzbfwn .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#dwnwkzbfwn .gt_font_normal {
+  font-weight: normal;
+}
+
+#dwnwkzbfwn .gt_font_bold {
+  font-weight: bold;
+}
+
+#dwnwkzbfwn .gt_font_italic {
+  font-style: italic;
+}
+
+#dwnwkzbfwn .gt_super {
+  font-size: 65%;
+}
+
+#dwnwkzbfwn .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#dwnwkzbfwn .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#dwnwkzbfwn .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#dwnwkzbfwn .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#dwnwkzbfwn .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#dwnwkzbfwn .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#dwnwkzbfwn .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#dwnwkzbfwn .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#dwnwkzbfwn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="instrument" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">instrument</th>
+<th id="F" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">F</th>
+<th id="R2" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">R2</th>
+<th id="n" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">n</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="instrument">RR (Romer-Romer)</td>
+<td class="gt_row gt_right" headers="F">93.458</td>
+<td class="gt_row gt_right" headers="R2">0.167</td>
+<td class="gt_row gt_right" headers="n">468</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The table reports relevance for the policy-rate equation used in this fit. Changing the first variable changes that diagnostic; a first-stage statistic previously computed for GDP cannot be reused for the policy-rate equation.</p>
+<p>Because the impact column is held at its first-stage estimate, none of that weakness reaches the credible bands, for the reason set out above. These conditional credible bands are not weak-instrument-robust confidence sets.</p>
+<hr>
+</section>
+</section>
+<section id="cesa-bianchi-and-sokol-2022" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="cesa-bianchi-and-sokol-2022"><span class="header-section-number">3</span> Cesa-Bianchi and Sokol (2022)</h2>
+<p><span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span> reports the domestic responses to an adverse US financial shock. The model is a five-variable monthly VAR(12) with a constant, estimated from 1979:M7 through 2016:M12. The endogenous variables are ordered as the one-year Treasury rate, corporate bond yield, real GDP, CPI and the excess bond premium. Monetary policy and central-bank-information shocks are jointly identified by the two high-frequency surprises of <span class="citation" data-cites="jarocinski2020">Jarociński and Karadi (<a href="#ref-jarocinski2020" role="doc-biblioref">2020</a>)</span>. Conditional on those two columns, the financial shock is the first shock left for sign identification.</p>
+<p>The financial shock lowers the policy rate, real GDP and CPI while raising the borrowing rate and the excess bond premium. These signs hold on impact and for the following two months. The remaining demand and supply shocks are unrestricted. The supplied MATLAB driver (<code>main/CS_allFigures.m</code> and <code>scripts/STEP1_US_VAR_baseline.m</code>) requests 2,000,000 wild-bootstrap samples and up to 10,000 rotations per stable VAR, and reports the mean response with 68% and 90% percentile bands. These settings are separate from <code>fSignRestr()</code>’s Bayesian draw count.</p>
+<p>For the supplied US data at the OLS estimate, the impact signs have no nonzero direction in the complement of the two IV columns. More rotations of that fixed model cannot help. The all-rotation C++ collector now checks for a well-conditioned linear certificate of this incompatibility in small free subspaces, returning <code>infeasible = TRUE</code>, <code>n_tried = 0</code> and the excluded rotation budget in <code>n_ruled_out</code>. Every bootstrap VAR must be checked separately: this OLS finding is not a claim that the entire bootstrap has no admissible models.</p>
+<section id="replication-code" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="replication-code"><span class="header-section-number">3.1</span> Replication code</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"CBS2022"</span>, <span class="at">package =</span> <span class="st">"tidyMacro"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>us <span class="ot">&lt;-</span> CBS2022 <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(Date <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">"1979-07-01"</span>), Date <span class="sc">&lt;=</span> <span class="fu">as.Date</span>(<span class="st">"2016-12-01"</span>))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> us <span class="sc">|&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(i_1YR, BondYield, lnRGDP, CPI, EBP)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> us <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(MPshockSign, CBIshockSign)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Shocks 1 and 2 are identified by the instruments. Column 1 identifies</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># shock 3, the adverse financial shock; demand and supply remain unrestricted.</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>sign_financial      <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">5</span>, <span class="at">ncol =</span> <span class="dv">3</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>sign_financial[, <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>bs_us <span class="ot">&lt;-</span> <span class="fu">fSignRestr</span>(</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> y,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">p =</span> <span class="dv">12</span>,</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">c =</span> <span class="dv">1</span>,</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">sign =</span> sign_financial,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">instrument =</span> <span class="fu">list</span>(<span class="at">Z =</span> z),</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">nsteps =</span> <span class="dv">36</span>,</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">ndraws =</span> <span class="dv">2000</span>,</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">sr_hor =</span> <span class="dv">3</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">sr_rot =</span> <span class="dv">10000</span>,</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>),</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">store_draws =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">varnames    =</span> <span class="fu">c</span>(<span class="st">"1-year rate"</span>, <span class="st">"Bond yield"</span>, <span class="st">"Real GDP"</span>, <span class="st">"CPI"</span>, <span class="st">"EBP"</span>),</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">2022</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFSign</span>(</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  bs_us,</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">shock =</span> <span class="dv">3</span>,</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">labels =</span> <span class="st">"Financial shock"</span>,</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>),</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale =</span> <span class="dv">100</span>,</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">facet_ncol =</span> <span class="dv">3</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="references" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="references"><span class="header-section-number">4</span> References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-arias2019" class="csl-entry" role="listitem">
+Arias, Jonas E., Dario Caldara, and Juan F. Rubio-Ramírez. 2019. <span>“The Systematic Component of Monetary Policy in <span>SVARs</span>: An Agnostic Identification Procedure.”</span> <em>Journal of Monetary Economics</em> 101: 1–13. <a href="https://doi.org/10.1016/j.jmoneco.2018.07.011">https://doi.org/10.1016/j.jmoneco.2018.07.011</a>.
+</div>
+<div id="ref-arias2021" class="csl-entry" role="listitem">
+Arias, Jonas E., Juan F. Rubio-Ramírez, and Daniel F. Waggoner. 2021. <span>“Inference in <span>Bayesian</span> Proxy-<span>SVARs</span>.”</span> <em>Journal of Econometrics</em> 225 (1): 88–106.
+</div>
+<div id="ref-braun2023" class="csl-entry" role="listitem">
+Braun, Robin, and Ralf Brüggemann. 2023. <span>“Identification of <span>SVAR</span> Models by Combining Sign Restrictions with External Instruments.”</span> <em>Journal of Business &amp; Economic Statistics</em> 41 (4): 1077–89. <a href="https://doi.org/10.1080/07350015.2022.2104857">https://doi.org/10.1080/07350015.2022.2104857</a>.
+</div>
+<div id="ref-caldara2019" class="csl-entry" role="listitem">
+Caldara, Dario, and Edward Herbst. 2019. <span>“Monetary Policy, Real Activity, and Credit Spreads: Evidence from <span>Bayesian</span> Proxy <span>SVARs</span>.”</span> <em>American Economic Journal: Macroeconomics</em> 11 (1): 157–92.
+</div>
+<div id="ref-cesabianchi2021" class="csl-entry" role="listitem">
+Cesa-Bianchi, Ambrogio, and Andrej Sokol. 2022. <span>“Financial Shocks, Credit Spreads, and the International Credit Channel.”</span> <em>Journal of International Economics</em> 135: 103543. <a href="https://doi.org/10.1016/j.jinteco.2021.103543">https://doi.org/10.1016/j.jinteco.2021.103543</a>.
+</div>
+<div id="ref-jarocinski2020" class="csl-entry" role="listitem">
+Jarociński, Marek, and Peter Karadi. 2020. <span>“Deconstructing Monetary Policy Surprises: The Role of Information Shocks.”</span> <em>American Economic Journal: Macroeconomics</em> 12 (2): 1–43. <a href="https://doi.org/10.1257/mac.20180090">https://doi.org/10.1257/mac.20180090</a>.
+</div>
+<div id="ref-mertens2013" class="csl-entry" role="listitem">
+Mertens, Karel, and Morten O. Ravn. 2013. <span>“The Dynamic Effects of Personal and Corporate Income Tax Changes in the <span>United States</span>.”</span> <em>American Economic Review</em> 103 (4): 1212–47.
+</div>
+<div id="ref-romer2004" class="csl-entry" role="listitem">
+Romer, Christina D., and David H. Romer. 2004. <span>“A New Measure of Monetary Shocks: Derivation and Implications.”</span> <em>American Economic Review</em> 94 (4): 1055–84. <a href="https://doi.org/10.1257/0002828042002651">https://doi.org/10.1257/0002828042002651</a>.
+</div>
+<div id="ref-stockwatson2012" class="csl-entry" role="listitem">
+Stock, James H., and Mark W. Watson. 2012. <span>“Disentangling the Channels of the 2007-09 Recession.”</span> <em>Brookings Papers on Economic Activity</em> 43 (1): 81–135.
+</div>
+</div>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tidymacro\.netlify\.app");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="./04_3_narrative_restrictions.html" class="pagination-link" aria-label="Narrative restrictions">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Narrative restrictions</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./03_3_Kaenzig2021_InternalIV.html" class="pagination-link" aria-label="Internal instruments">
+        <span class="nav-page-text">Internal instruments</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2025 Muhsin Ciftci · Goethe University Frankfurt</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/04_4_sign_external_instruments.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>This page is built with <a href="https://quarto.org">Quarto</a>.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
