@@ -22,7 +22,7 @@ suppressWarnings('tidyverse')
 
 tidyMacro is an R package for fast estimation and identification of Structural Vector Autoregressions (VAR) and local projections via C++ (Rcpp/RcppArmadillo).
 
-::: {.callout-tip collapse="false" title="Functionality"}
+## Functionality
 - Fast VAR & VARX reduced form estimations
 - Local projections estimations with clean syntax, support for macros
 - Zero dependency on other packages. Ground up written in C++. All visualizations made with ggplot2 in R.
@@ -31,10 +31,10 @@ tidyMacro is an R package for fast estimation and identification of Structural V
 - Parallel bootstrap computations via OpenMP for maximum speed.
 - Excellent documentation with detailed examples for every function
 - Import data via tidyverse, clean, modify and then supply your final data piping as matrix for Armadillo calculations
-- Example data sets for each replication: Already transformed data
-:::
+- Example data sets for each replication via already transformed data
 
-::: {.callout-important collapse="false" title="Models - Identification - Decompositions"}
+
+## Models - Identification - Decompositions
 1.  **Identification via short-run / recursive ordering** ✅
 
     - Impulse response functions ✅
@@ -113,9 +113,7 @@ tidyMacro is an R package for fast estimation and identification of Structural V
     - Local Projections Difference in Differences ✅
       - Replication: @dube2025
     - State Dependent Local projections ⛔
-:::
 
-------------------------------------------------------------------------
 
 ### 📚 How to Cite {.unnumbered}
 

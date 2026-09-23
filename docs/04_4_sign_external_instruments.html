@@ -162,8 +162,8 @@ window.Quarto = {
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
 <meta property="og:image" content="https://tidymacro.netlify.app/04_4_sign_external_instruments_files/figure-html/fig-acr-1.png">
 <meta property="og:site_name" content="tidyMacro">
-<meta property="og:image:height" content="960">
-<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="2304">
+<meta property="og:image:width" content="3072">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -184,7 +184,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./00_index.html" aria-current="page"> 
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -235,7 +235,7 @@ window.Quarto = {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./00_index.html" class="sidebar-item-text sidebar-link">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Main</span></a>
   </div>
 </li>
@@ -409,7 +409,7 @@ window.Quarto = {
 <div class="callout-body-container callout-body">
 <p><span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span> use <code>sign+iv</code> to identify a <em>financial</em> shock, and the shape of their design is worth knowing because it is more demanding than the illustration below.</p>
 <p>Their US block is a five-variable monthly VAR(12) over 1979m7-2016m12 in the 1-year rate, the corporate bond yield, real GDP, the CPI and the excess bond premium. Two shocks are point-identified by external instruments, the monetary policy and central bank information surprises of <span class="citation" data-cites="jarocinski2020">Jarociński and Karadi (<a href="#ref-jarocinski2020" role="doc-biblioref">2020</a>)</span>, and only <em>one</em> further shock is set-identified by sign restrictions. A contractionary financial shock is defined as one that lowers output, prices and the policy rate while raising the credit spread and the borrowing rate; the restriction that does the identifying work is the last one, since it is the response of the borrowing rate that separates a financial shock from an ordinary demand shock. Restrictions are imposed over three months, and inference is a wild bootstrap following <span class="citation" data-cites="mertens2013">Mertens and Ravn (<a href="#ref-mertens2013" role="doc-biblioref">2013</a>)</span> rather than the Normal-inverse-Wishart posterior used here.</p>
-<p><code>fSignRestr()</code> accepts a <span class="math inline">\(k\)</span>-column instrument and leaves <span class="math inline">\(N-k\)</span> columns for sign restrictions. Its inference uses posterior VAR draws with an IV block estimated once. This differs from the paper’s wild bootstrap, which re-estimates the VAR and the IV block for each bootstrap sample. The C++ two-IV algebra follows <code>VARiriv_B.m</code>; the all-rotation collector follows <code>signRestrictions.m</code> and <code>VARirSR.m</code> in <code>inst/Bianchi/BianchiSokol2021/codes/Additional Codes/</code>.</p>
+<p><code>fSignRestr()</code> accepts a <span class="math inline">\(k\)</span>-column instrument and leaves <span class="math inline">\(N-k\)</span> columns for sign restrictions. Its inference uses posterior VAR draws with an IV block estimated once.</p>
 </div>
 </div>
 <section id="the-uncertainty-the-toolbox-leaves-out" class="level3" data-number="2.1">
@@ -494,23 +494,23 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), \(x) <span class="fu">round</span>(x, <span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="dwnwkzbfwn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#dwnwkzbfwn table {
+<div id="yyatkmkjca" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#yyatkmkjca table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#dwnwkzbfwn thead, #dwnwkzbfwn tbody, #dwnwkzbfwn tfoot, #dwnwkzbfwn tr, #dwnwkzbfwn td, #dwnwkzbfwn th {
+#yyatkmkjca thead, #yyatkmkjca tbody, #yyatkmkjca tfoot, #yyatkmkjca tr, #yyatkmkjca td, #yyatkmkjca th {
   border-style: none;
 }
 
-#dwnwkzbfwn p {
+#yyatkmkjca p {
   margin: 0;
   padding: 0;
 }
 
-#dwnwkzbfwn .gt_table {
+#yyatkmkjca .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -536,12 +536,12 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-left-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_caption {
+#yyatkmkjca .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#dwnwkzbfwn .gt_title {
+#yyatkmkjca .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -553,7 +553,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-width: 0;
 }
 
-#dwnwkzbfwn .gt_subtitle {
+#yyatkmkjca .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -565,7 +565,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-top-width: 0;
 }
 
-#dwnwkzbfwn .gt_heading {
+#yyatkmkjca .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -577,13 +577,13 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_bottom_border {
+#yyatkmkjca .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_col_headings {
+#yyatkmkjca .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -598,7 +598,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_col_heading {
+#yyatkmkjca .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -618,7 +618,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   overflow-x: hidden;
 }
 
-#dwnwkzbfwn .gt_column_spanner_outer {
+#yyatkmkjca .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -630,15 +630,15 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 4px;
 }
 
-#dwnwkzbfwn .gt_column_spanner_outer:first-child {
+#yyatkmkjca .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#dwnwkzbfwn .gt_column_spanner_outer:last-child {
+#yyatkmkjca .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#dwnwkzbfwn .gt_column_spanner {
+#yyatkmkjca .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -650,11 +650,11 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   width: 100%;
 }
 
-#dwnwkzbfwn .gt_spanner_row {
+#yyatkmkjca .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#dwnwkzbfwn .gt_group_heading {
+#yyatkmkjca .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -680,7 +680,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   text-align: left;
 }
 
-#dwnwkzbfwn .gt_empty_group_heading {
+#yyatkmkjca .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -695,15 +695,15 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   vertical-align: middle;
 }
 
-#dwnwkzbfwn .gt_from_md > :first-child {
+#yyatkmkjca .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#dwnwkzbfwn .gt_from_md > :last-child {
+#yyatkmkjca .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#dwnwkzbfwn .gt_row {
+#yyatkmkjca .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -722,7 +722,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   overflow-x: hidden;
 }
 
-#dwnwkzbfwn .gt_stub {
+#yyatkmkjca .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -735,7 +735,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#dwnwkzbfwn .gt_stub_row_group {
+#yyatkmkjca .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -749,15 +749,15 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   vertical-align: top;
 }
 
-#dwnwkzbfwn .gt_row_group_first td {
+#yyatkmkjca .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#dwnwkzbfwn .gt_row_group_first th {
+#yyatkmkjca .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#dwnwkzbfwn .gt_summary_row {
+#yyatkmkjca .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -767,16 +767,16 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#dwnwkzbfwn .gt_first_summary_row {
+#yyatkmkjca .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_first_summary_row.thick {
+#yyatkmkjca .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#dwnwkzbfwn .gt_last_summary_row {
+#yyatkmkjca .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -786,7 +786,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_grand_summary_row {
+#yyatkmkjca .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -796,7 +796,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#dwnwkzbfwn .gt_first_grand_summary_row {
+#yyatkmkjca .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -806,7 +806,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-top-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_last_grand_summary_row_top {
+#yyatkmkjca .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -816,11 +816,11 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_striped {
+#yyatkmkjca .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#dwnwkzbfwn .gt_table_body {
+#yyatkmkjca .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -829,7 +829,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_footnotes {
+#yyatkmkjca .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -843,7 +843,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_footnote {
+#yyatkmkjca .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -852,7 +852,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#dwnwkzbfwn .gt_sourcenotes {
+#yyatkmkjca .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -866,7 +866,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#dwnwkzbfwn .gt_sourcenote {
+#yyatkmkjca .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -874,72 +874,72 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#dwnwkzbfwn .gt_left {
+#yyatkmkjca .gt_left {
   text-align: left;
 }
 
-#dwnwkzbfwn .gt_center {
+#yyatkmkjca .gt_center {
   text-align: center;
 }
 
-#dwnwkzbfwn .gt_right {
+#yyatkmkjca .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#dwnwkzbfwn .gt_font_normal {
+#yyatkmkjca .gt_font_normal {
   font-weight: normal;
 }
 
-#dwnwkzbfwn .gt_font_bold {
+#yyatkmkjca .gt_font_bold {
   font-weight: bold;
 }
 
-#dwnwkzbfwn .gt_font_italic {
+#yyatkmkjca .gt_font_italic {
   font-style: italic;
 }
 
-#dwnwkzbfwn .gt_super {
+#yyatkmkjca .gt_super {
   font-size: 65%;
 }
 
-#dwnwkzbfwn .gt_footnote_marks {
+#yyatkmkjca .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#dwnwkzbfwn .gt_asterisk {
+#yyatkmkjca .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#dwnwkzbfwn .gt_indent_1 {
+#yyatkmkjca .gt_indent_1 {
   text-indent: 5px;
 }
 
-#dwnwkzbfwn .gt_indent_2 {
+#yyatkmkjca .gt_indent_2 {
   text-indent: 10px;
 }
 
-#dwnwkzbfwn .gt_indent_3 {
+#yyatkmkjca .gt_indent_3 {
   text-indent: 15px;
 }
 
-#dwnwkzbfwn .gt_indent_4 {
+#yyatkmkjca .gt_indent_4 {
   text-indent: 20px;
 }
 
-#dwnwkzbfwn .gt_indent_5 {
+#yyatkmkjca .gt_indent_5 {
   text-indent: 25px;
 }
 
-#dwnwkzbfwn .katex-display {
+#yyatkmkjca .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#dwnwkzbfwn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#yyatkmkjca div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -974,7 +974,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
 <section id="cesa-bianchi-and-sokol-2022" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="cesa-bianchi-and-sokol-2022"><span class="header-section-number">3</span> Cesa-Bianchi and Sokol (2022)</h2>
 <p><span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span> reports the domestic responses to an adverse US financial shock. The model is a five-variable monthly VAR(12) with a constant, estimated from 1979:M7 through 2016:M12. The endogenous variables are ordered as the one-year Treasury rate, corporate bond yield, real GDP, CPI and the excess bond premium. Monetary policy and central-bank-information shocks are jointly identified by the two high-frequency surprises of <span class="citation" data-cites="jarocinski2020">Jarociński and Karadi (<a href="#ref-jarocinski2020" role="doc-biblioref">2020</a>)</span>. Conditional on those two columns, the financial shock is the first shock left for sign identification.</p>
-<p>The financial shock lowers the policy rate, real GDP and CPI while raising the borrowing rate and the excess bond premium. These signs hold on impact and for the following two months. The remaining demand and supply shocks are unrestricted. The supplied MATLAB driver (<code>main/CS_allFigures.m</code> and <code>scripts/STEP1_US_VAR_baseline.m</code>) requests 2,000,000 wild-bootstrap samples and up to 10,000 rotations per stable VAR, and reports the mean response with 68% and 90% percentile bands. These settings are separate from <code>fSignRestr()</code>’s Bayesian draw count.</p>
+<p>The financial shock lowers the policy rate, real GDP and CPI while raising the borrowing rate and the excess bond premium. These signs hold on impact and for the following two months. The remaining demand and supply shocks are unrestricted.</p>
 <p>For the supplied US data at the OLS estimate, the impact signs have no nonzero direction in the complement of the two IV columns. More rotations of that fixed model cannot help. The all-rotation C++ collector now checks for a well-conditioned linear certificate of this incompatibility in small free subspaces, returning <code>infeasible = TRUE</code>, <code>n_tried = 0</code> and the excluded rotation budget in <code>n_ruled_out</code>. Every bootstrap VAR must be checked separately: this OLS finding is not a claim that the entire bootstrap has no admissible models.</p>
 <section id="replication-code" class="level3" data-number="3.1">
 <h3 data-number="3.1" class="anchored" data-anchor-id="replication-code"><span class="header-section-number">3.1</span> Replication code</h3>

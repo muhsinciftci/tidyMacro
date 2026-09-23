@@ -6,7 +6,7 @@ project:
   output-dir: _output
   post-render: ./sync-docs.sh
   render:
-    - 00_index.qmd
+    - index.qmd
     - 01_Bloom2009.qmd
     - 02_1_Gali1999.qmd
     - 02_2_BeaudryPortier2014.qmd
@@ -46,7 +46,7 @@ website:
 
   navbar:
     left:
-      - href: 00_index.qmd
+      - href: index.qmd
         text: Home
       - href: faq.qmd
         text: FAQ
@@ -69,7 +69,7 @@ website:
     search: true
     collapse-level: 1
     contents:
-      - href: 00_index.qmd
+      - href: index.qmd
         text: Main
         
       - href: 01_Bloom2009.qmd

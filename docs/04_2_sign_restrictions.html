@@ -162,8 +162,8 @@ window.Quarto = {
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
 <meta property="og:image" content="https://tidymacro.netlify.app/04_2_sign_restrictions_files/figure-html/fig-uhlig-1.png">
 <meta property="og:site_name" content="tidyMacro">
-<meta property="og:image:height" content="960">
-<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="2304">
+<meta property="og:image:width" content="3072">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -184,7 +184,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./00_index.html" aria-current="page"> 
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -235,7 +235,7 @@ window.Quarto = {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./00_index.html" class="sidebar-item-text sidebar-link">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Main</span></a>
   </div>
 </li>
@@ -441,7 +441,6 @@ window.Quarto = {
 </section>
 <section id="uhlig-2005-sign-restrictions" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="uhlig-2005-sign-restrictions"><span class="header-section-number">4</span> Uhlig (2005): sign restrictions</h2>
-<p>The implementation follows the supplied <code>inst/Bianchi/Replic/Uhlig2005/GO_Uhlig2005.m</code> example and the VAR Toolbox’s <code>SR.m</code>, <code>SignRestrictions.m</code> and <code>VARdrawpost.m</code>. The C++ sampler uses independent random streams, so draws are not seed-for-seed identical to MATLAB. Percentiles use R’s type 7 convention; MATLAB’s default <code>prctile</code> convention differs in finite samples.</p>
 <p>What are the effects of monetary policy on output? <span class="citation" data-cites="uhlig2005">Uhlig (<a href="#ref-uhlig2005" role="doc-biblioref">2005</a>)</span> revisits the question with a deliberately agnostic approach: rather than timing assumptions or long-run restrictions, he imposes only sign restrictions that capture conventional wisdom about monetary transmission, and lets the data speak about output.</p>
 <p>The model is a VAR(12) with a constant on monthly US data, 1965m1–2003m12, in six variables: real GDP (log, interpolated to monthly), the GDP deflator (log), a commodity price index (log), total reserves (log), non-borrowed reserves (log) and the federal funds rate (percent). Log-level variables are scaled by 100 so every response reads in percent.</p>
 <div class="cell">
@@ -468,7 +467,7 @@ window.Quarto = {
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>mp_shock <span class="ot">&lt;-</span> <span class="dv">1</span></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>sign_uhlig <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">6</span>,                     <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(uhlig)[<span class="sc">-</span><span class="dv">1</span>], <span class="cn">NULL</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>sign_uhlig <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">6</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(uhlig)[<span class="sc">-</span><span class="dv">1</span>], <span class="cn">NULL</span>))</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>sign_uhlig[, mp_shock] <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Real GDP</span><span class="st">`</span>               <span class="ot">=</span>  <span class="dv">0</span>,</span>
@@ -506,7 +505,14 @@ window.Quarto = {
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFSign</span>(sr_uhlig, <span class="at">shock =</span> mp_shock, <span class="at">labels =</span> <span class="st">"Sign restrictions"</span>, <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>), <span class="at">facet_ncol =</span> <span class="dv">2</span>, <span class="at">facet_scales =</span> <span class="st">"free"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFSign</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    sr_uhlig, </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">shock =</span> mp_shock, </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="st">"Sign restrictions"</span>, </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>), </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_ncol =</span> <span class="dv">2</span>, </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_scales =</span> <span class="st">"free"</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-uhlig" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">

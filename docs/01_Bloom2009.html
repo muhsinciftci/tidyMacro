@@ -58,7 +58,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -68,7 +87,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./02_1_Gali1999.html" rel="next">
-<link href="./00_index.html" rel="prev">
+<link href="./index.html" rel="prev">
 <link href="./logo.png" rel="icon" type="image/png">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -143,8 +162,8 @@ window.Quarto = {
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
 <meta property="og:image" content="https://tidymacro.netlify.app/01_Bloom2009_files/figure-html/fig-irf-standard-1.png">
 <meta property="og:site_name" content="tidyMacro">
-<meta property="og:image:height" content="960">
-<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="2304">
+<meta property="og:image:width" content="3072">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -165,7 +184,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./00_index.html" aria-current="page"> 
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -216,7 +235,7 @@ window.Quarto = {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./00_index.html" class="sidebar-item-text sidebar-link">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Main</span></a>
   </div>
 </li>
@@ -366,7 +385,7 @@ window.Quarto = {
 
 <section id="overview" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> Overview</h2>
-<p>This document replicates the main empirical results of <span class="citation" data-cites="bloom2009">@bloom2009</span>, which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is <span class="math inline">\(log(x) * 100\)</span></p>
+<p>This document replicates the main empirical results of <span class="citation" data-cites="bloom2009">Bloom (<a href="#ref-bloom2009" role="doc-biblioref">2009</a>)</span>, which identifies uncertainty shocks using short run / recursive techniques. Data set (in all other replications as well) already come cleaned and transformed. What you see for example as x is <span class="math inline">\(log(x) * 100\)</span></p>
 </section>
 <section id="model-and-identification" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="model-and-identification"><span class="header-section-number">2</span> Model and Identification</h2>
@@ -459,7 +478,7 @@ window.Quarto = {
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_threads  =</span> <span class="dv">3</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2.021 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2.011 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="bias-corrected-bootstrap" class="level3" data-number="6.2">
@@ -476,7 +495,7 @@ window.Quarto = {
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_threads  =</span> <span class="dv">3</span></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3.9 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4.235 sec elapsed</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
@@ -602,12 +621,17 @@ Figure&nbsp;4: Historical decomposition: contribution of uncertainty shock
 </div>
 </section>
 <section id="references" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+
+
 
 
 </section>
 
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-bloom2009" class="csl-entry" role="listitem">
+Bloom, Nicholas. 2009. <span>“The Impact of Uncertainty Shocks.”</span> <em>Econometrica</em> 77 (3): 623–85. <a href="https://doi.org/10.3982/ECTA6248">https://doi.org/10.3982/ECTA6248</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -1015,7 +1039,7 @@ Figure&nbsp;4: Historical decomposition: contribution of uncertainty shock
   </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./00_index.html" class="pagination-link" aria-label="Main">
+      <a href="./index.html" class="pagination-link" aria-label="Main">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Main</span>
       </a>          
   </div>

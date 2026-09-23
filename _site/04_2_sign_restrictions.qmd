@@ -91,8 +91,6 @@ as_var_matrix <- function(data) {data |> select(-Date) |> as.matrix()}
 
 ## Uhlig (2005): sign restrictions
 
-The implementation follows the supplied `inst/Bianchi/Replic/Uhlig2005/GO_Uhlig2005.m` example and the VAR Toolbox's `SR.m`, `SignRestrictions.m` and `VARdrawpost.m`. The C++ sampler uses independent random streams, so draws are not seed-for-seed identical to MATLAB. Percentiles use R's type 7 convention; MATLAB's default `prctile` convention differs in finite samples.
-
 What are the effects of monetary policy on output? @uhlig2005 revisits the question with a deliberately agnostic approach: rather than timing assumptions or long-run restrictions, he imposes only sign restrictions that capture conventional wisdom about monetary transmission, and lets the data speak about output.
 
 The model is a VAR(12) with a constant on monthly US data, 1965m1–2003m12, in six variables: real GDP (log, interpolated to monthly), the GDP deflator (log), a commodity price index (log), total reserves (log), non-borrowed reserves (log) and the federal funds rate (percent). Log-level variables are scaled by 100 so every response reads in percent.
@@ -120,7 +118,7 @@ ff_rate <- 6
 
 mp_shock <- 1
 
-sign_uhlig <- matrix(0, nrow = 6, ncol = 6,                     dimnames = list(names(uhlig)[-1], NULL))
+sign_uhlig <- matrix(0, nrow = 6, ncol = 6, dimnames = list(names(uhlig)[-1], NULL))
 
 sign_uhlig[, mp_shock] <- c(
     `Real GDP`               =  0,
@@ -160,7 +158,14 @@ sr_uhlig <- fSignRestr(
 #| label: fig-uhlig
 #| fig-cap: "Responses to a contractionary monetary policy shock identified by sign restrictions. Element-wise median with 68% and 90% credible bands across 500 accepted draws. Six-variable VAR(12) with constant, monthly US data 1965m1-2003m12. Replicates Figure 6 of Uhlig (2005)."
 
-fPlotIRFSign(sr_uhlig, shock = mp_shock, labels = "Sign restrictions", conf = c(68, 90), facet_ncol = 2, facet_scales = "free")
+fPlotIRFSign(
+    sr_uhlig, 
+    shock = mp_shock, 
+    labels = "Sign restrictions", 
+    conf = c(68, 90), 
+    facet_ncol = 2, 
+    facet_scales = "free"
+)
 ```
 
 The key finding is that the output response is ambiguous. The restricted variables behave as assumed (the funds rate rises, prices and non-borrowed reserves fall), but the real GDP band spans both positive and negative values throughout. Under minimal identifying restrictions the data do not deliver a clear verdict on the output effects of monetary policy.
@@ -249,3 +254,4 @@ tibble(Date = uhlig$Date, contribution = hd$shock[, ff_rate, mp_shock]) |>
 
 ::: {#refs}
 :::
+

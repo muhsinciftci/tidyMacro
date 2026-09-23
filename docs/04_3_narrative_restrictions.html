@@ -162,8 +162,8 @@ window.Quarto = {
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
 <meta property="og:image" content="https://tidymacro.netlify.app/04_3_narrative_restrictions_files/figure-html/fig-adrr-1.png">
 <meta property="og:site_name" content="tidyMacro">
-<meta property="og:image:height" content="960">
-<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="2304">
+<meta property="og:image:width" content="3072">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -184,7 +184,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./00_index.html" aria-current="page"> 
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -235,7 +235,7 @@ window.Quarto = {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./00_index.html" class="sidebar-item-text sidebar-link">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Main</span></a>
   </div>
 </li>
@@ -379,15 +379,12 @@ window.Quarto = {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">fThemeTidyMacro</span>())</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>as_var_matrix <span class="ot">&lt;-</span> <span class="cf">function</span>(data) {</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>Date) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>as_var_matrix <span class="ot">&lt;-</span> <span class="cf">function</span>(data) {data <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>Date) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
 <section id="narrative-restrictions" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="narrative-restrictions"><span class="header-section-number">2</span> Narrative restrictions</h2>
-<p>The baseline follows <code>inst/Bianchi/Replic/ADRR2018/GO_ADRR2018.m</code> and the narrative screens in the supplied VAR Toolbox’s <code>SR.m</code>. The optional importance weights below extend that toolbox example.</p>
 <p>A large set of rotations can satisfy sign restrictions, producing wide credible sets. <span class="citation" data-cites="antolindiaz2018">Antolín-Díaz and Rubio-Ramírez (<a href="#ref-antolindiaz2018" role="doc-biblioref">2018</a>)</span> sharpen identification by adding <strong>narrative restrictions</strong>, constraints tied to specific, well-documented historical episodes. The insight is that the historical record (policy announcements, oil supply disruptions, fiscal interventions) carries information about the sign or relative magnitude of a structural shock at a particular date, and that restricting the model to be consistent with it shrinks the set of admissible rotations.</p>
 <p>Let <span class="math inline">\(\varepsilon_{jt} = B_j^{-1}u_t\)</span> be the structural shocks under candidate <span class="math inline">\(B_j\)</span>. Two restriction types are defined.</p>
 <p><strong>Type 1, sign of the shock.</strong> At date <span class="math inline">\(t^*\)</span> the <span class="math inline">\(m\)</span>-th shock must have a specified sign, <span class="math display">\[s \cdot \varepsilon_{j,m,t^*} &gt; 0, \qquad s \in \{+1,-1\}.\]</span></p>
@@ -402,20 +399,18 @@ window.Quarto = {
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The narrative design retains Uhlig's six-variable sign pattern.</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>ff_rate <span class="ot">&lt;-</span> <span class="dv">6</span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>mp_shock <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>sign_uhlig <span class="ot">&lt;-</span> <span class="fu">matrix</span>(</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">6</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(adrr)[<span class="sc">-</span><span class="dv">1</span>], <span class="cn">NULL</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>sign_uhlig[, mp_shock] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>adrr <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">3</span>)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 7</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Date       `Real GDP` `GDP Deflator` `Commodity Price Idx.` `Total Reserves`</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;date&gt;          &lt;dbl&gt;          &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 1965-01-01       8.26           2.92                   20.2             2.48</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 1965-02-01       8.26           2.92                   20.2             2.48</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 1965-03-01       8.27           2.92                   20.2             2.48</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ℹ 2 more variables: `Non-Borrowed Reserves` &lt;dbl&gt;, `Fed. Funds Rate` &lt;dbl&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>sign_uhlig <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">6</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(adrr)[<span class="sc">-</span><span class="dv">1</span>], <span class="cn">NULL</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>sign_uhlig[, mp_shock] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>adrr <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">3</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 3 × 7</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Date       `Real GDP` `GDP Deflator` `Commodity Price Idx.` `Total Reserves`</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;date&gt;          &lt;dbl&gt;          &lt;dbl&gt;                  &lt;dbl&gt;            &lt;dbl&gt;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 1965-01-01       8.26           2.92                   20.2             2.48</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 1965-02-01       8.26           2.92                   20.2             2.48</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 1965-03-01       8.27           2.92                   20.2             2.48</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ℹ 2 more variables: `Non-Borrowed Reserves` &lt;dbl&gt;, `Fed. Funds Rate` &lt;dbl&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>volcker <span class="ot">&lt;-</span> <span class="fu">ym</span>(<span class="st">"1979-10"</span>)</span>
@@ -466,13 +461,15 @@ window.Quarto = {
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFSign</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    sr_adrr, <span class="at">shock =</span> mp_shock, <span class="at">compare =</span> nsr_adrr,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels        =</span> <span class="fu">c</span>(<span class="st">"Sign"</span>, <span class="st">"Sign + narrative"</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale         =</span> scale_sr,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale_compare =</span> scale_nsr,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_ncol    =</span> <span class="dv">2</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_scales  =</span> <span class="st">"free"</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    sr_adrr, </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">shock   =</span> mp_shock, </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">compare =</span> nsr_adrr,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels        =</span> <span class="fu">c</span>(<span class="st">"Sign"</span>, <span class="st">"Sign + narrative"</span>),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale         =</span> scale_sr,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scale_compare =</span> scale_nsr,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_ncol    =</span> <span class="dv">2</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_scales  =</span> <span class="st">"free"</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-adrr" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">

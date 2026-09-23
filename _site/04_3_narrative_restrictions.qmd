@@ -23,16 +23,12 @@ library(tidyMacro)
 
 theme_set(fThemeTidyMacro())
 
-as_var_matrix <- function(data) {
-  data |> select(-Date) |> as.matrix()
-}
+as_var_matrix <- function(data) {data |> select(-Date) |> as.matrix()}
 ```
 
 ------------------------------------------------------------------------
 
 ## Narrative restrictions
-
-The baseline follows `inst/Bianchi/Replic/ADRR2018/GO_ADRR2018.m` and the narrative screens in the supplied VAR Toolbox's `SR.m`. The optional importance weights below extend that toolbox example.
 
 A large set of rotations can satisfy sign restrictions, producing wide credible sets. @antolindiaz2018 sharpen identification by adding **narrative restrictions**, constraints tied to specific, well-documented historical episodes. The insight is that the historical record (policy announcements, oil supply disruptions, fiscal interventions) carries information about the sign or relative magnitude of a structural shock at a particular date, and that restricting the model to be consistent with it shrinks the set of admissible rotations.
 
@@ -56,9 +52,7 @@ adrr <- ADRR2018
 # The narrative design retains Uhlig's six-variable sign pattern.
 ff_rate <- 6
 mp_shock <- 1
-sign_uhlig <- matrix(
-  0, nrow = 6, ncol = 6,
-  dimnames = list(names(adrr)[-1], NULL)
+sign_uhlig <- matrix(0, nrow = 6, ncol = 6, dimnames = list(names(adrr)[-1], NULL)
 )
 sign_uhlig[, mp_shock] <- c(0, -1, -1, 0, -1, 1)
 
@@ -115,7 +109,9 @@ tibble(model = c("Sign only", "Sign + narrative"),
 #| fig-cap: "Sign restrictions alone (blue) versus sign plus narrative restrictions (red). 68% credible bands, normalised to a 25bp impact on the funds rate. Six-variable VAR(12) without constant, monthly US data 1965m1-2007m11. Replicates Figure 6 of Antolin-Diaz and Rubio-Ramirez (2018)."
 
 fPlotIRFSign(
-    sr_adrr, shock = mp_shock, compare = nsr_adrr,
+    sr_adrr, 
+    shock   = mp_shock, 
+    compare = nsr_adrr,
     labels        = c("Sign", "Sign + narrative"),
     scale         = scale_sr,
     scale_compare = scale_nsr,
