@@ -160,7 +160,7 @@ window.Quarto = {
 
 <meta property="og:title" content="tidyMacro">
 <meta property="og:description" content="High-Performance Structural Vector Autoregressions (SVARs) and Local Projections in R">
-<meta property="og:image" content="https://tidymacro.netlify.app/04_4_sign_external_instruments_files/figure-html/fig-acr-1.png">
+<meta property="og:image" content="https://tidymacro.netlify.app/04_4_sign_external_instruments_files/figure-html/fig-cbs-single-iv-1.png">
 <meta property="og:site_name" content="tidyMacro">
 <meta property="og:image:height" content="2304">
 <meta property="og:image:width" content="3072">
@@ -343,13 +343,18 @@ window.Quarto = {
   <li><a href="#sign-restrictions-external-instruments-iv" id="toc-sign-restrictions-external-instruments-iv" class="nav-link" data-scroll-target="#sign-restrictions-external-instruments-iv"><span class="header-section-number">2</span> Sign restrictions + External Instruments (IV)</a>
   <ul class="collapse">
   <li><a href="#the-uncertainty-the-toolbox-leaves-out" id="toc-the-uncertainty-the-toolbox-leaves-out" class="nav-link" data-scroll-target="#the-uncertainty-the-toolbox-leaves-out"><span class="header-section-number">2.1</span> The uncertainty the toolbox leaves out</a></li>
-  <li><a href="#application-the-romer-romer-instrument" id="toc-application-the-romer-romer-instrument" class="nav-link" data-scroll-target="#application-the-romer-romer-instrument"><span class="header-section-number">2.2</span> Application: the Romer-Romer instrument</a></li>
   </ul></li>
-  <li><a href="#cesa-bianchi-and-sokol-2022" id="toc-cesa-bianchi-and-sokol-2022" class="nav-link" data-scroll-target="#cesa-bianchi-and-sokol-2022"><span class="header-section-number">3</span> Cesa-Bianchi and Sokol (2022)</a>
+  <li><a href="#pseudo-application-cesa-bianchi-and-sokol-2022-with-one-instrument" id="toc-pseudo-application-cesa-bianchi-and-sokol-2022-with-one-instrument" class="nav-link" data-scroll-target="#pseudo-application-cesa-bianchi-and-sokol-2022-with-one-instrument"><span class="header-section-number">3</span> Pseudo-application: Cesa-Bianchi and Sokol (2022) with one instrument</a>
   <ul class="collapse">
-  <li><a href="#replication-code" id="toc-replication-code" class="nav-link" data-scroll-target="#replication-code"><span class="header-section-number">3.1</span> Replication code</a></li>
+  <li><a href="#data-and-identification" id="toc-data-and-identification" class="nav-link" data-scroll-target="#data-and-identification"><span class="header-section-number">3.1</span> Data and identification</a></li>
+  <li><a href="#financial-shock-responses" id="toc-financial-shock-responses" class="nav-link" data-scroll-target="#financial-shock-responses"><span class="header-section-number">3.2</span> Financial-shock responses</a></li>
+  <li><a href="#instrument-relevance-and-interpretation" id="toc-instrument-relevance-and-interpretation" class="nav-link" data-scroll-target="#instrument-relevance-and-interpretation"><span class="header-section-number">3.3</span> Instrument relevance and interpretation</a></li>
   </ul></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">4</span> References</a></li>
+  <li><a href="#cesa-bianchi-and-sokol-2022" id="toc-cesa-bianchi-and-sokol-2022" class="nav-link" data-scroll-target="#cesa-bianchi-and-sokol-2022"><span class="header-section-number">4</span> Cesa-Bianchi and Sokol (2022)</a>
+  <ul class="collapse">
+  <li><a href="#replication-code" id="toc-replication-code" class="nav-link" data-scroll-target="#replication-code"><span class="header-section-number">4.1</span> Replication code</a></li>
+  </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">5</span> References</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/muhsinciftci/tidyMacro/edit/main/_site/04_4_sign_external_instruments.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/muhsinciftci/tidyMacro/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -383,8 +388,8 @@ window.Quarto = {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">fThemeTidyMacro</span>())</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Instrumented shocks occupy the first structural columns.</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>iv_shock <span class="ot">&lt;-</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Shock 1 is instrumented; shock 2 is identified by sign restrictions.</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>financial_shock <span class="ot">&lt;-</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <hr>
 </section>
@@ -418,99 +423,129 @@ window.Quarto = {
 <p>The VAR Toolbox keeps the first-stage estimate at OLS rather than re-estimating it during posterior draws. The covariance normalization described below still changes the impact column’s length. A joint likelihood, as in <span class="citation" data-cites="caldara2019">Caldara and Herbst (<a href="#ref-caldara2019" role="doc-biblioref">2019</a>)</span> or <span class="citation" data-cites="arias2021">Arias et al. (<a href="#ref-arias2021" role="doc-biblioref">2021</a>)</span>, is one route to modelling instrument uncertainty. Another is resampling residuals and instruments together and re-estimating the first stage, as in the Bianchi-Sokol wild bootstrap; this does not automatically provide inference robust to weak instruments. <code>fSignRestr()</code> follows the toolbox, so the bands on the instrumented shock should be read as conditional on the first stage.</p>
 <p>The fixed column is renormalised against each draw’s Cholesky factor, <span class="math inline">\(b_1 / \lVert L^{-1}b_1 \rVert\)</span>, so its direction is constant but its length is not. For multiple instruments, Gram-Schmidt also changes subsequent columns’ directions when the IV-sample and VAR-draw covariances differ. Thus “fixed” means that the first stage is not re-estimated; it does not mean that every numerical entry of the impact block is unchanged. The paper’s bootstrap uses the IV-sample covariance for both recovery and completion.</p>
 </section>
-<section id="application-the-romer-romer-instrument" class="level3" data-number="2.2">
-<h3 data-number="2.2" class="anchored" data-anchor-id="application-the-romer-romer-instrument"><span class="header-section-number">2.2</span> Application: the Romer-Romer instrument</h3>
-<p><code>ACR2019</code> allows a version where both the data and the instrument come from published work: it is the six-variable monetary VAR of <span class="citation" data-cites="arias2019">Arias et al. (<a href="#ref-arias2019" role="doc-biblioref">2019</a>)</span>, distributed in the replication package of <span class="citation" data-cites="braun2023">Braun and Brüggemann (<a href="#ref-braun2023" role="doc-biblioref">2023</a>)</span>, together with the narrative monetary policy shock of <span class="citation" data-cites="romer2004">Romer and Romer (<a href="#ref-romer2004" role="doc-biblioref">2004</a>)</span> as the external instrument. The six endogenous variables are the same ones used on the sign and narrative pages. The local Braun-Bruggemann code (<code>inst/Bruggemann2022</code>) estimates a proxy-augmented likelihood model and also imposes restrictions on the inverse impact matrix. Its dataset is used here; its identification algorithm is not the fixed-IV-block rotation method illustrated below.</p>
+</section>
+<section id="pseudo-application-cesa-bianchi-and-sokol-2022-with-one-instrument" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="pseudo-application-cesa-bianchi-and-sokol-2022-with-one-instrument"><span class="header-section-number">3</span> Pseudo-application: Cesa-Bianchi and Sokol (2022) with one instrument</h2>
+<p>This is a <strong>pseudo-application</strong>, adapted from <span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span>, rather than a replication of their estimates. We use their US data and financial-shock sign restrictions, but retain only the monetary-policy instrument <code>MPshockSign</code> from <span class="citation" data-cites="jarocinski2020">Jarociński and Karadi (<a href="#ref-jarocinski2020" role="doc-biblioref">2020</a>)</span>.</p>
+<p>The differences from the paper are substantive:</p>
+<ul>
+<li>The paper uses both monetary-policy and central-bank-information instruments. Here <code>CBIshockSign</code> is omitted, so the financial shock is constrained to be orthogonal to the instrument-identified monetary shock, without separately identifying an information shock. This changes the identification assumptions.</li>
+<li>The paper uses a wild bootstrap that re-estimates the IV block. Here <code>fSignRestr()</code> uses posterior VAR draws conditional on a first-stage estimate computed once, with the covariance normalization described above. The resulting bands do not incorporate first-stage sampling uncertainty.</li>
+<li>We illustrate only the US block, without the paper’s UK transmission model or counterfactuals.</li>
+</ul>
+<section id="data-and-identification" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="data-and-identification"><span class="header-section-number">3.1</span> Data and identification</h3>
+<p>The model is a five-variable monthly VAR(12) with a constant, using observations from 1979:M7 through 2016:M12. The variables are the one-year Treasury rate, corporate bond yield, real GDP, CPI and excess bond premium. <code>CBS2022</code> stores GDP and CPI in logs, the two interest rates in decimal units, and EBP in percentage points. No additional log transformation is needed. Missing instrument observations remain <code>NA</code>; genuine zeros are retained.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(ACR2019)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"CBS2022"</span>, <span class="at">package =</span> <span class="st">"tidyMacro"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># The replication code takes 100 * log of everything except the policy rate.</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>acr <span class="ot">&lt;-</span> ACR2019 <span class="sc">|&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="fu">c</span>(Date, <span class="st">`</span><span class="at">Fed. Funds Rate</span><span class="st">`</span>, RR), \(x) <span class="dv">100</span> <span class="sc">*</span> <span class="fu">log</span>(x)))                </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>us <span class="ot">&lt;-</span> CBS2022 <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Date <span class="sc">&gt;=</span> <span class="fu">as.Date</span>(<span class="st">"1979-07-01"</span>), Date <span class="sc">&lt;=</span> <span class="fu">as.Date</span>(<span class="st">"2016-12-01"</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The first-stage normalization equation is the one-year policy rate.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> us <span class="sc">|&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(i_1YR, BondYield, lnRGDP, CPI, EBP)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Pseudo-application: use only the monetary-policy instrument.</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> us <span class="sc">|&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(MPshockSign)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Monetary policy is pinned by the instrument; one further shock is set-identified as a contractionary demand shock, lowering output, prices and the policy rate. The remaining four are left free. That is the same shape as the design in <span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span>: instrument for the shock you can instrument, sign restrictions for one more, silence about the rest.</p>
+<p>Shock 1 is identified by the instrument. Shock 2 is an adverse financial shock: it lowers the policy rate, real GDP and CPI while raising the bond yield and excess bond premium. These signs are imposed on impact and for the following two months (<code>sr_hor = 3</code>). The other three shocks are unrestricted. A zero in the sign matrix means unrestricted, not an exact zero response.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The first-stage normalization equation is the policy rate.</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>endo_acr <span class="ot">&lt;-</span> acr <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="st">`</span><span class="at">Fed. Funds Rate</span><span class="st">`</span>, <span class="fu">everything</span>(), <span class="sc">-</span>Date, <span class="sc">-</span>RR)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Column 1 of `sign_acr` is structural shock 2, the demand shock.</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>sign_acr <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">5</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(endo_acr), <span class="cn">NULL</span>))</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>sign_acr[<span class="fu">c</span>(<span class="st">"Real GDP"</span>, <span class="st">"GDP Deflator"</span>, <span class="st">"Fed. Funds Rate"</span>), <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">1</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># With one instrument, column 1 of this 5 x 4 matrix identifies shock 2.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sign_financial <span class="ot">&lt;-</span> <span class="fu">matrix</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dv">0</span>, <span class="at">nrow =</span> <span class="dv">5</span>, <span class="at">ncol =</span> <span class="dv">4</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="fu">names</span>(y), <span class="cn">NULL</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>sign_financial[, <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>sr_acr <span class="ot">&lt;-</span> <span class="fu">fSignRestr</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>(endo_acr), </span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">p =</span> <span class="dv">12</span>, </span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">c =</span> <span class="dv">0</span>, </span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">sign =</span> sign_acr,</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">store_draws =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">nsteps =</span> <span class="dv">48</span>, </span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">ndraws =</span> <span class="dv">500</span>, </span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">sr_hor =</span> <span class="dv">6</span>, </span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf   =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>), </span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">inference =</span> <span class="dv">1</span>,</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">instrument =</span> <span class="fu">list</span>(<span class="at">Z =</span> <span class="fu">as.matrix</span>(ACR2019<span class="sc">$</span>RR)),</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">varnames   =</span> <span class="fu">names</span>(endo_acr), <span class="at">seed =</span> <span class="dv">42</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>sr_acr</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Sign-restricted SVAR (sign+iv)</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Variables      : Fed. Funds Rate, Real GDP, GDP Deflator, Commodity Price Idx., Total Reserves, Non-Borrowed Reserves</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Lags           : 12   Intercept: 0</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Accepted draws : 500 of 500 slots (0 failed)</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Rotations tried: 21,021   acceptance: 2.379%</span></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Horizons       : 48   bands: 68, 90%</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Instrument     : first-stage F = 93.46, R2 = 0.167, n = 468</span></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   IV column(s)   : fixed at OLS (VAR Toolbox convention)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>bs_us <span class="ot">&lt;-</span> <span class="fu">fSignRestr</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> y,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">p =</span> <span class="dv">12</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">c =</span> <span class="dv">1</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">sign =</span> sign_financial,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">instrument =</span> <span class="fu">list</span>(<span class="at">Z =</span> z),</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">nsteps =</span> <span class="dv">36</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">ndraws =</span> <span class="dv">2000</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">sr_hor =</span> <span class="dv">3</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">sr_rot =</span> <span class="dv">1000</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>),</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">inference =</span> <span class="dv">1</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">store_draws =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">varnames =</span> <span class="fu">c</span>(<span class="st">"1-year rate"</span>, <span class="st">"Bond yield"</span>, <span class="st">"Real GDP"</span>, <span class="st">"CPI"</span>, <span class="st">"EBP"</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">2022</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>bs_us</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Sign-restricted SVAR (sign+iv)</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Variables      : 1-year rate, Bond yield, Real GDP, CPI, EBP</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Lags           : 12   Intercept: 1</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Accepted draws : 2000 of 2000 slots (0 failed)</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Rotations tried: 84,233   acceptance: 2.374%</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Horizons       : 36   bands: 68, 90%</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Instrument     : first-stage F = 6.47, R2 = 0.020, n = 323</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   IV column(s)   : fixed at OLS (VAR Toolbox convention)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+<section id="financial-shock-responses" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="financial-shock-responses"><span class="header-section-number">3.2</span> Financial-shock responses</h3>
+<p>The figure plots <strong>shock 2</strong>, the sign-identified financial shock. Its signs over months 0–2 are imposed by construction; responses at later horizons are unrestricted. The instrument-identified monetary shock occupies column 1 and is not the shock plotted here.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fPlotIRFSign</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    sr_acr, </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">shock =</span> iv_shock, </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="st">"Sign + IV (Romer-Romer)"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>), </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">facet_ncol =</span> <span class="dv">2</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  bs_us,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">shock =</span> financial_shock,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">labels =</span> <span class="st">"Financial shock (single-IV pseudo-application)"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">conf =</span> <span class="fu">c</span>(<span class="dv">68</span>, <span class="dv">90</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Convert decimal rates to percentage points and logs to percent.</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># EBP is already in percentage points.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">100</span>, <span class="dv">100</span>, <span class="dv">100</span>, <span class="dv">1</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">facet_ncol =</span> <span class="dv">2</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="fig-acr" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-cbs-single-iv" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-acr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="04_4_sign_external_instruments_files/figure-html/fig-acr-1.png" class="img-fluid figure-img" style="width:100.0%">
+<div aria-describedby="fig-cbs-single-iv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="04_4_sign_external_instruments_files/figure-html/fig-cbs-single-iv-1.png" class="img-fluid figure-img" style="width:100.0%">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-acr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Romer narrative instrument, with a sign-identified demand shock alongside. Median with 68% and 90% credible bands, six-variable VAR(12) without constant, monthly US data 1965m1-2007m12.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cbs-single-iv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Pseudo-application adapted from Cesa-Bianchi and Sokol (2022): responses to an adverse financial shock, conditional on a monetary shock identified by a single instrument. Median with 68% and 90% conditional credible bands. Five-variable monthly US VAR(12) with a constant, 1979:M7-2016:M12. GDP and CPI responses are in approximate percent; interest-rate and EBP responses are in percentage points.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Check instrument relevance in the normalization equation used by the model.</p>
+</section>
+<section id="instrument-relevance-and-interpretation" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="instrument-relevance-and-interpretation"><span class="header-section-number">3.3</span> Instrument relevance and interpretation</h3>
+<p>The first stage uses the one-year-rate residual and the observed monetary-policy instrument. The diagnostic therefore pertains to the instrumented monetary shock, not directly to the sign-identified financial shock.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">instrument =</span> <span class="st">"RR (Romer-Romer)"</span>,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">F  =</span> sr_acr<span class="sc">$</span>iv<span class="sc">$</span>fs_F,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2 =</span> sr_acr<span class="sc">$</span>iv<span class="sc">$</span>fs_r2,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n  =</span> sr_acr<span class="sc">$</span>iv<span class="sc">$</span>n_iv</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), \(x) <span class="fu">round</span>(x, <span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> bs_us[[<span class="st">"iv"</span>]]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">instrument =</span> <span class="st">"MPshockSign (Jarocinski-Karadi)"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">F =</span> iv<span class="sc">$</span>fs_F,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2 =</span> iv<span class="sc">$</span>fs_r2,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> iv<span class="sc">$</span>n_iv</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), \(x) <span class="fu">round</span>(x, <span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="yyatkmkjca" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#yyatkmkjca table {
+<div id="qablwombos" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#qablwombos table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#yyatkmkjca thead, #yyatkmkjca tbody, #yyatkmkjca tfoot, #yyatkmkjca tr, #yyatkmkjca td, #yyatkmkjca th {
+#qablwombos thead, #qablwombos tbody, #qablwombos tfoot, #qablwombos tr, #qablwombos td, #qablwombos th {
   border-style: none;
 }
 
-#yyatkmkjca p {
+#qablwombos p {
   margin: 0;
   padding: 0;
 }
 
-#yyatkmkjca .gt_table {
+#qablwombos .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -536,12 +571,12 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-left-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_caption {
+#qablwombos .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#yyatkmkjca .gt_title {
+#qablwombos .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -553,7 +588,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-width: 0;
 }
 
-#yyatkmkjca .gt_subtitle {
+#qablwombos .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -565,7 +600,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-top-width: 0;
 }
 
-#yyatkmkjca .gt_heading {
+#qablwombos .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -577,13 +612,13 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_bottom_border {
+#qablwombos .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_col_headings {
+#qablwombos .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -598,7 +633,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_col_heading {
+#qablwombos .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -618,7 +653,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   overflow-x: hidden;
 }
 
-#yyatkmkjca .gt_column_spanner_outer {
+#qablwombos .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -630,15 +665,15 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 4px;
 }
 
-#yyatkmkjca .gt_column_spanner_outer:first-child {
+#qablwombos .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#yyatkmkjca .gt_column_spanner_outer:last-child {
+#qablwombos .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#yyatkmkjca .gt_column_spanner {
+#qablwombos .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -650,11 +685,11 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   width: 100%;
 }
 
-#yyatkmkjca .gt_spanner_row {
+#qablwombos .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#yyatkmkjca .gt_group_heading {
+#qablwombos .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -680,7 +715,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   text-align: left;
 }
 
-#yyatkmkjca .gt_empty_group_heading {
+#qablwombos .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -695,15 +730,15 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   vertical-align: middle;
 }
 
-#yyatkmkjca .gt_from_md > :first-child {
+#qablwombos .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#yyatkmkjca .gt_from_md > :last-child {
+#qablwombos .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#yyatkmkjca .gt_row {
+#qablwombos .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -722,7 +757,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   overflow-x: hidden;
 }
 
-#yyatkmkjca .gt_stub {
+#qablwombos .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -735,7 +770,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#yyatkmkjca .gt_stub_row_group {
+#qablwombos .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -749,15 +784,15 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   vertical-align: top;
 }
 
-#yyatkmkjca .gt_row_group_first td {
+#qablwombos .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#yyatkmkjca .gt_row_group_first th {
+#qablwombos .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#yyatkmkjca .gt_summary_row {
+#qablwombos .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -767,16 +802,16 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#yyatkmkjca .gt_first_summary_row {
+#qablwombos .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_first_summary_row.thick {
+#qablwombos .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#yyatkmkjca .gt_last_summary_row {
+#qablwombos .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -786,7 +821,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_grand_summary_row {
+#qablwombos .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -796,7 +831,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#yyatkmkjca .gt_first_grand_summary_row {
+#qablwombos .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -806,7 +841,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-top-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_last_grand_summary_row_top {
+#qablwombos .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -816,11 +851,11 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_striped {
+#qablwombos .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#yyatkmkjca .gt_table_body {
+#qablwombos .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -829,7 +864,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-bottom-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_footnotes {
+#qablwombos .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -843,7 +878,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_footnote {
+#qablwombos .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -852,7 +887,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#yyatkmkjca .gt_sourcenotes {
+#qablwombos .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -866,7 +901,7 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   border-right-color: #D3D3D3;
 }
 
-#yyatkmkjca .gt_sourcenote {
+#qablwombos .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -874,72 +909,72 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
   padding-right: 5px;
 }
 
-#yyatkmkjca .gt_left {
+#qablwombos .gt_left {
   text-align: left;
 }
 
-#yyatkmkjca .gt_center {
+#qablwombos .gt_center {
   text-align: center;
 }
 
-#yyatkmkjca .gt_right {
+#qablwombos .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#yyatkmkjca .gt_font_normal {
+#qablwombos .gt_font_normal {
   font-weight: normal;
 }
 
-#yyatkmkjca .gt_font_bold {
+#qablwombos .gt_font_bold {
   font-weight: bold;
 }
 
-#yyatkmkjca .gt_font_italic {
+#qablwombos .gt_font_italic {
   font-style: italic;
 }
 
-#yyatkmkjca .gt_super {
+#qablwombos .gt_super {
   font-size: 65%;
 }
 
-#yyatkmkjca .gt_footnote_marks {
+#qablwombos .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#yyatkmkjca .gt_asterisk {
+#qablwombos .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#yyatkmkjca .gt_indent_1 {
+#qablwombos .gt_indent_1 {
   text-indent: 5px;
 }
 
-#yyatkmkjca .gt_indent_2 {
+#qablwombos .gt_indent_2 {
   text-indent: 10px;
 }
 
-#yyatkmkjca .gt_indent_3 {
+#qablwombos .gt_indent_3 {
   text-indent: 15px;
 }
 
-#yyatkmkjca .gt_indent_4 {
+#qablwombos .gt_indent_4 {
   text-indent: 20px;
 }
 
-#yyatkmkjca .gt_indent_5 {
+#qablwombos .gt_indent_5 {
   text-indent: 25px;
 }
 
-#yyatkmkjca .katex-display {
+#qablwombos .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#yyatkmkjca div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#qablwombos div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -955,10 +990,10 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
-<td class="gt_row gt_left" headers="instrument">RR (Romer-Romer)</td>
-<td class="gt_row gt_right" headers="F">93.458</td>
-<td class="gt_row gt_right" headers="R2">0.167</td>
-<td class="gt_row gt_right" headers="n">468</td>
+<td class="gt_row gt_left" headers="instrument">MPshockSign (Jarocinski-Karadi)</td>
+<td class="gt_row gt_right" headers="F">6.474</td>
+<td class="gt_row gt_right" headers="R2">0.02</td>
+<td class="gt_row gt_right" headers="n">323</td>
 </tr>
 </tbody>
 </table>
@@ -966,18 +1001,17 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
 </div>
 </div>
 </div>
-<p>The table reports relevance for the policy-rate equation used in this fit. Changing the first variable changes that diagnostic; a first-stage statistic previously computed for GDP cannot be reused for the policy-rate equation.</p>
-<p>Because the impact column is held at its first-stage estimate, none of that weakness reaches the credible bands, for the reason set out above. These conditional credible bands are not weak-instrument-robust confidence sets.</p>
+<p>For this specification, the first-stage F-statistic is approximately 6.47, which raises a weak-instrument concern. The financial shock is identified conditional on the estimated monetary-shock direction, so uncertainty in that direction also matters for its interpretation. These conditional credible bands are not weak-instrument-robust confidence sets. The exercise demonstrates how to combine an instrument with sign restrictions; it should not be presented as reproducing the paper’s financial-shock estimates.</p>
 <hr>
 </section>
 </section>
-<section id="cesa-bianchi-and-sokol-2022" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="cesa-bianchi-and-sokol-2022"><span class="header-section-number">3</span> Cesa-Bianchi and Sokol (2022)</h2>
+<section id="cesa-bianchi-and-sokol-2022" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="cesa-bianchi-and-sokol-2022"><span class="header-section-number">4</span> Cesa-Bianchi and Sokol (2022)</h2>
 <p><span class="citation" data-cites="cesabianchi2021">Cesa-Bianchi and Sokol (<a href="#ref-cesabianchi2021" role="doc-biblioref">2022</a>)</span> reports the domestic responses to an adverse US financial shock. The model is a five-variable monthly VAR(12) with a constant, estimated from 1979:M7 through 2016:M12. The endogenous variables are ordered as the one-year Treasury rate, corporate bond yield, real GDP, CPI and the excess bond premium. Monetary policy and central-bank-information shocks are jointly identified by the two high-frequency surprises of <span class="citation" data-cites="jarocinski2020">Jarociński and Karadi (<a href="#ref-jarocinski2020" role="doc-biblioref">2020</a>)</span>. Conditional on those two columns, the financial shock is the first shock left for sign identification.</p>
 <p>The financial shock lowers the policy rate, real GDP and CPI while raising the borrowing rate and the excess bond premium. These signs hold on impact and for the following two months. The remaining demand and supply shocks are unrestricted.</p>
 <p>For the supplied US data at the OLS estimate, the impact signs have no nonzero direction in the complement of the two IV columns. More rotations of that fixed model cannot help. The all-rotation C++ collector now checks for a well-conditioned linear certificate of this incompatibility in small free subspaces, returning <code>infeasible = TRUE</code>, <code>n_tried = 0</code> and the excluded rotation budget in <code>n_ruled_out</code>. Every bootstrap VAR must be checked separately: this OLS finding is not a claim that the entire bootstrap has no admissible models.</p>
-<section id="replication-code" class="level3" data-number="3.1">
-<h3 data-number="3.1" class="anchored" data-anchor-id="replication-code"><span class="header-section-number">3.1</span> Replication code</h3>
+<section id="replication-code" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="replication-code"><span class="header-section-number">4.1</span> Replication code</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"CBS2022"</span>, <span class="at">package =</span> <span class="st">"tidyMacro"</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1022,17 +1056,11 @@ Figure&nbsp;1: Responses to a monetary policy shock identified by the Romer-Rome
 </div>
 </section>
 </section>
-<section id="references" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="references"><span class="header-section-number">4</span> References</h2>
+<section id="references" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="references"><span class="header-section-number">5</span> References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-arias2019" class="csl-entry" role="listitem">
-Arias, Jonas E., Dario Caldara, and Juan F. Rubio-Ramírez. 2019. <span>“The Systematic Component of Monetary Policy in <span>SVARs</span>: An Agnostic Identification Procedure.”</span> <em>Journal of Monetary Economics</em> 101: 1–13. <a href="https://doi.org/10.1016/j.jmoneco.2018.07.011">https://doi.org/10.1016/j.jmoneco.2018.07.011</a>.
-</div>
 <div id="ref-arias2021" class="csl-entry" role="listitem">
 Arias, Jonas E., Juan F. Rubio-Ramírez, and Daniel F. Waggoner. 2021. <span>“Inference in <span>Bayesian</span> Proxy-<span>SVARs</span>.”</span> <em>Journal of Econometrics</em> 225 (1): 88–106.
-</div>
-<div id="ref-braun2023" class="csl-entry" role="listitem">
-Braun, Robin, and Ralf Brüggemann. 2023. <span>“Identification of <span>SVAR</span> Models by Combining Sign Restrictions with External Instruments.”</span> <em>Journal of Business &amp; Economic Statistics</em> 41 (4): 1077–89. <a href="https://doi.org/10.1080/07350015.2022.2104857">https://doi.org/10.1080/07350015.2022.2104857</a>.
 </div>
 <div id="ref-caldara2019" class="csl-entry" role="listitem">
 Caldara, Dario, and Edward Herbst. 2019. <span>“Monetary Policy, Real Activity, and Credit Spreads: Evidence from <span>Bayesian</span> Proxy <span>SVARs</span>.”</span> <em>American Economic Journal: Macroeconomics</em> 11 (1): 157–92.
@@ -1045,9 +1073,6 @@ Jarociński, Marek, and Peter Karadi. 2020. <span>“Deconstructing Monetary Pol
 </div>
 <div id="ref-mertens2013" class="csl-entry" role="listitem">
 Mertens, Karel, and Morten O. Ravn. 2013. <span>“The Dynamic Effects of Personal and Corporate Income Tax Changes in the <span>United States</span>.”</span> <em>American Economic Review</em> 103 (4): 1212–47.
-</div>
-<div id="ref-romer2004" class="csl-entry" role="listitem">
-Romer, Christina D., and David H. Romer. 2004. <span>“A New Measure of Monetary Shocks: Derivation and Implications.”</span> <em>American Economic Review</em> 94 (4): 1055–84. <a href="https://doi.org/10.1257/0002828042002651">https://doi.org/10.1257/0002828042002651</a>.
 </div>
 <div id="ref-stockwatson2012" class="csl-entry" role="listitem">
 Stock, James H., and Mark W. Watson. 2012. <span>“Disentangling the Channels of the 2007-09 Recession.”</span> <em>Brookings Papers on Economic Activity</em> 43 (1): 81–135.

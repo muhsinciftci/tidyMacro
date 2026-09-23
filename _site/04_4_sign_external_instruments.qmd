@@ -23,8 +23,8 @@ library(tidyMacro)
 
 theme_set(fThemeTidyMacro())
 
-# Instrumented shocks occupy the first structural columns.
-iv_shock <- 1
+# Shock 1 is instrumented; shock 2 is identified by sign restrictions.
+financial_shock <- 2
 ```
 
 ------------------------------------------------------------------------
@@ -58,81 +58,108 @@ The VAR Toolbox keeps the first-stage estimate at OLS rather than re-estimating 
 
 The fixed column is renormalised against each draw's Cholesky factor, $b_1 / \lVert L^{-1}b_1 \rVert$, so its direction is constant but its length is not. For multiple instruments, Gram-Schmidt also changes subsequent columns' directions when the IV-sample and VAR-draw covariances differ. Thus “fixed” means that the first stage is not re-estimated; it does not mean that every numerical entry of the impact block is unchanged. The paper's bootstrap uses the IV-sample covariance for both recovery and completion.
 
-### Application: the Romer-Romer instrument
+## Pseudo-application: Cesa-Bianchi and Sokol (2022) with one instrument
 
-`ACR2019` allows a version where both the data and the instrument come from published work: it is the six-variable monetary VAR of @arias2019, distributed in the replication package of @braun2023, together with the narrative monetary policy shock of @romer2004 as the external instrument. The six endogenous variables are the same ones used on the sign and narrative pages. The local Braun-Bruggemann code (`inst/Bruggemann2022`) estimates a proxy-augmented likelihood model and also imposes restrictions on the inverse impact matrix. Its dataset is used here; its identification algorithm is not the fixed-IV-block rotation method illustrated below.
+This is a **pseudo-application**, adapted from @cesabianchi2021, rather than a replication of their estimates. We use their US data and financial-shock sign restrictions, but retain only the monetary-policy instrument `MPshockSign` from @jarocinski2020.
+
+The differences from the paper are substantive:
+
+- The paper uses both monetary-policy and central-bank-information instruments. Here `CBIshockSign` is omitted, so the financial shock is constrained to be orthogonal to the instrument-identified monetary shock, without separately identifying an information shock. This changes the identification assumptions.
+- The paper uses a wild bootstrap that re-estimates the IV block. Here `fSignRestr()` uses posterior VAR draws conditional on a first-stage estimate computed once, with the covariance normalization described above. The resulting bands do not incorporate first-stage sampling uncertainty.
+- We illustrate only the US block, without the paper's UK transmission model or counterfactuals.
+
+### Data and identification
+
+The model is a five-variable monthly VAR(12) with a constant, using observations from 1979:M7 through 2016:M12. The variables are the one-year Treasury rate, corporate bond yield, real GDP, CPI and excess bond premium. `CBS2022` stores GDP and CPI in logs, the two interest rates in decimal units, and EBP in percentage points. No additional log transformation is needed. Missing instrument observations remain `NA`; genuine zeros are retained.
 
 ```{r}
-#| label: acr-data
+#| label: cbs-single-iv-data
 
-data(ACR2019)
+data("CBS2022", package = "tidyMacro")
 
-# The replication code takes 100 * log of everything except the policy rate.
-acr <- ACR2019 |>
-  mutate(across(-c(Date, `Fed. Funds Rate`, RR), \(x) 100 * log(x)))                
+us <- CBS2022 |>
+  filter(Date >= as.Date("1979-07-01"), Date <= as.Date("2016-12-01"))
+
+# The first-stage normalization equation is the one-year policy rate.
+y <- us |>
+  select(i_1YR, BondYield, lnRGDP, CPI, EBP)
+
+# Pseudo-application: use only the monetary-policy instrument.
+z <- us |>
+  select(MPshockSign)
 ```
 
-Monetary policy is pinned by the instrument; one further shock is set-identified as a contractionary demand shock, lowering output, prices and the policy rate. The remaining four are left free. That is the same shape as the design in @cesabianchi2021: instrument for the shock you can instrument, sign restrictions for one more, silence about the rest.
+Shock 1 is identified by the instrument. Shock 2 is an adverse financial shock: it lowers the policy rate, real GDP and CPI while raising the bond yield and excess bond premium. These signs are imposed on impact and for the following two months (`sr_hor = 3`). The other three shocks are unrestricted. A zero in the sign matrix means unrestricted, not an exact zero response.
 
 ```{r}
-#| label: acr-fit
+#| label: cbs-single-iv-fit
 
-# The first-stage normalization equation is the policy rate.
-endo_acr <- acr |> select(`Fed. Funds Rate`, everything(), -Date, -RR)
+# With one instrument, column 1 of this 5 x 4 matrix identifies shock 2.
+sign_financial <- matrix(
+  0, nrow = 5, ncol = 4,
+  dimnames = list(names(y), NULL)
+)
+sign_financial[, 1] <- c(-1, 1, -1, -1, 1)
 
-# Column 1 of `sign_acr` is structural shock 2, the demand shock.
-sign_acr <- matrix(0, nrow = 6, ncol = 5, dimnames = list(names(endo_acr), NULL))
-sign_acr[c("Real GDP", "GDP Deflator", "Fed. Funds Rate"), 1] <- -1
-
-sr_acr <- fSignRestr(
-    as.matrix(endo_acr), 
-    p = 12, 
-    c = 0, 
-    sign = sign_acr,
-    store_draws = FALSE,
-    nsteps = 48, 
-    ndraws = 500, 
-    sr_hor = 6, 
-    conf   = c(68, 90), 
-    inference = 1,
-    instrument = list(Z = as.matrix(ACR2019$RR)),
-    varnames   = names(endo_acr), seed = 42
+bs_us <- fSignRestr(
+  y = y,
+  p = 12,
+  c = 1,
+  sign = sign_financial,
+  instrument = list(Z = z),
+  nsteps = 36,
+  ndraws = 2000,
+  sr_hor = 3,
+  sr_rot = 1000,
+  conf = c(68, 90),
+  inference = 1,
+  store_draws = FALSE,
+  varnames = c("1-year rate", "Bond yield", "Real GDP", "CPI", "EBP"),
+  seed = 2022
 )
 
-sr_acr
+bs_us
 ```
 
+### Financial-shock responses
+
+The figure plots **shock 2**, the sign-identified financial shock. Its signs over months 0--2 are imposed by construction; responses at later horizons are unrestricted. The instrument-identified monetary shock occupies column 1 and is not the shock plotted here.
+
 ```{r}
-#| label: fig-acr
-#| fig-cap: "Responses to a monetary policy shock identified by the Romer-Romer narrative instrument, with a sign-identified demand shock alongside. Median with 68% and 90% credible bands, six-variable VAR(12) without constant, monthly US data 1965m1-2007m12."
+#| label: fig-cbs-single-iv
+#| fig-cap: "Pseudo-application adapted from Cesa-Bianchi and Sokol (2022): responses to an adverse financial shock, conditional on a monetary shock identified by a single instrument. Median with 68% and 90% conditional credible bands. Five-variable monthly US VAR(12) with a constant, 1979:M7-2016:M12. GDP and CPI responses are in approximate percent; interest-rate and EBP responses are in percentage points."
 
 fPlotIRFSign(
-    sr_acr, 
-    shock = iv_shock, 
-    labels = "Sign + IV (Romer-Romer)",
-    conf = c(68, 90), 
-    facet_ncol = 2
+  bs_us,
+  shock = financial_shock,
+  labels = "Financial shock (single-IV pseudo-application)",
+  conf = c(68, 90),
+  # Convert decimal rates to percentage points and logs to percent.
+  # EBP is already in percentage points.
+  scale = c(100, 100, 100, 100, 1),
+  facet_ncol = 2
 )
 ```
 
-Check instrument relevance in the normalization equation used by the model.
+### Instrument relevance and interpretation
+
+The first stage uses the one-year-rate residual and the observed monetary-policy instrument. The diagnostic therefore pertains to the instrumented monetary shock, not directly to the sign-identified financial shock.
 
 ```{r}
-#| label: acr-firststage
+#| label: cbs-single-iv-firststage
 
+iv <- bs_us[["iv"]]
 tibble(
-  instrument = "RR (Romer-Romer)",
-  F  = sr_acr$iv$fs_F,
-  R2 = sr_acr$iv$fs_r2,
-  n  = sr_acr$iv$n_iv
+  instrument = "MPshockSign (Jarocinski-Karadi)",
+  F = iv$fs_F,
+  R2 = iv$fs_r2,
+  n = iv$n_iv
 ) |>
   mutate(across(where(is.numeric), \(x) round(x, 3))) |>
   gt::gt()
 ```
 
-The table reports relevance for the policy-rate equation used in this fit. Changing the first variable changes that diagnostic; a first-stage statistic previously computed for GDP cannot be reused for the policy-rate equation.
-
-Because the impact column is held at its first-stage estimate, none of that weakness reaches the credible bands, for the reason set out above. These conditional credible bands are not weak-instrument-robust confidence sets.
+For this specification, the first-stage F-statistic is approximately 6.47, which raises a weak-instrument concern. The financial shock is identified conditional on the estimated monetary-shock direction, so uncertainty in that direction also matters for its interpretation. These conditional credible bands are not weak-instrument-robust confidence sets. The exercise demonstrates how to combine an instrument with sign restrictions; it should not be presented as reproducing the paper's financial-shock estimates.
 
 ------------------------------------------------------------------------
 
